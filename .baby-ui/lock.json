@@ -1,0 +1,53 @@
+{
+	"version": 1,
+	"items": {
+		"https://baby-ui.pages.dev/r/theme.json": {
+			"name": "theme",
+			"type": "registry:theme",
+			"framework": "react",
+			"installedAt": "2026-11-04T14:33:54.822Z",
+			"itemHash": "89a10671cc505a314a040bf435e01c8ad57d6644351c082aba8261a8946166dc",
+			"files": {},
+			"dependencies": [],
+			"registryDependencies": [
+				"https://baby-ui.pages.dev/r/tokens.json",
+				"https://baby-ui.pages.dev/r/tokens-charts.json",
+				"https://baby-ui.pages.dev/r/tokens-effects.json"
+			]
+		},
+		"https://baby-ui.pages.dev/r/tokens-charts.json": {
+			"name": "tokens-charts",
+			"type": "registry:style",
+			"framework": "react",
+			"installedAt": "2026-11-04T14:33:54.822Z",
+			"itemHash": "e6ad00317aeaf9c9b29335ccac4034d778bd423e5c31b6d2ff4b7f2340e4eb19",
+			"files": {},
+			"dependencies": [],
+			"registryDependencies": [
+				"https://baby-ui.pages.dev/r/tokens.json"
+			]
+		},
+		"https://baby-ui.pages.dev/r/tokens-effects.json": {
+			"name": "tokens-effects",
+			"type": "registry:style",
+			"framework": "react",
+			"installedAt": "2026-11-04T14:33:54.822Z",
+			"itemHash": "6f8cda99c9e8df2291b6f8b02ff8b92e9e75af8f635a98058d529949c2ab8de7",
+			"files": {},
+			"dependencies": [],
+			"registryDependencies": [
+				"https://baby-ui.pages.dev/r/tokens.json"
+			]
+		},
+		"https://baby-ui.pages.dev/r/tokens.json": {
+			"name": "tokens",
+			"type": "registry:style",
+			"framework": "react",
+			"installedAt": "2026-11-04T14:33:54.821Z",
+			"itemHash": "b4b891381ccb1f0155bf14a0ec97eececcc5fbf041d5f8c82d8eaf88561cc0b4",
+			"files": {},
+			"dependencies": [],
+			"registryDependencies": []
+		}
+	}
+}

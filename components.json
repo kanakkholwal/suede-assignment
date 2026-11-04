@@ -1,0 +1,30 @@
+{
+  "$schema": "https://ui.shadcn.com/schema.json",
+  "style": "new-york",
+  "rsc": true,
+  "tsx": true,
+  "tailwind": {
+    "config": "",
+    "css": "app/globals.css",
+    "baseColor": "neutral",
+    "cssVariables": true,
+    "prefix": ""
+  },
+  "iconLibrary": "lucide",
+  "aliases": {
+    "components": "@/components",
+    "utils": "@/lib/utils",
+    "ui": "@/components/ui",
+    "lib": "@/lib",
+    "hooks": "@/hooks"
+  },
+  "registries": {
+    "@baby-ui": "https://baby-ui.pages.dev/r/{name}.json",
+    "@baby-ui-pro": {
+      "url": "https://baby-ui.pages.dev/pro/r/{name}.json",
+      "headers": {
+        "Authorization": "Bearer ${BABY_UI_TOKEN}"
+      }
+    }
+  }
+}
