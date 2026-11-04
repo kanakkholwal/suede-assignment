@@ -5,13 +5,23 @@ import Image from 'next/image';
 import { useEffect, useRef, useState, type KeyboardEvent } from 'react';
 
 import type { CatalogProduct, ProductVariant } from '@/data/product-types';
+import { AddToRoomButton } from '@/components/room/add-to-room-button';
 import { ProductFacts } from '@/components/shared/product-facts';
+import type { DimensionSummary } from '@/lib/dimensions';
 import { formatPrice } from '@/lib/format';
+
+export interface DetailRoomActions {
+  inRoom: boolean;
+  disabled: boolean;
+  onToggle: (variantId: string | null) => void;
+}
 
 interface CatalogDetailDialogProps {
   product: CatalogProduct | null;
   selectedVariantId?: string | null;
   onClose: () => void;
+  dimensions?: DimensionSummary;
+  room?: DetailRoomActions;
 }
 
 interface VariantPickerProps {
@@ -93,9 +103,11 @@ function VariantPicker({ productId, productName, variants, selectedVariant, onSe
 interface CatalogDetailContentProps {
   product: CatalogProduct;
   initialVariantId: string | null;
+  dimensions?: DimensionSummary;
+  room?: DetailRoomActions;
 }
 
-function CatalogDetailContent({ product, initialVariantId }: CatalogDetailContentProps) {
+function CatalogDetailContent({ product, initialVariantId, dimensions, room }: CatalogDetailContentProps) {
   const initialVariant = initialVariantFor(product.variants, initialVariantId);
   const [selectedVariantId, setSelectedVariantId] = useState(initialVariant?.id ?? null);
   const selectedVariant =
@@ -127,8 +139,22 @@ function CatalogDetailContent({ product, initialVariantId }: CatalogDetailConten
       <div className="flex min-w-0 flex-col">
         <p className="text-[11px] font-semibold uppercase tracking-[0.12em] text-[#7d7167]">{product.brand}</p>
         <h2 id="catalog-detail-title" className="mt-2 font-serif text-4xl leading-[0.96] tracking-[-0.04em] text-[#1f1814]">{product.name}</h2>
+        {room ? (
+          <div className="mt-4 flex items-center gap-3">
+            <AddToRoomButton
+              productName={product.name}
+              inRoom={room.inRoom}
+              disabled={room.disabled}
+              onToggle={() => room.onToggle(selectedVariant?.id ?? null)}
+              className="h-8 px-3"
+            />
+            <p className="text-xs text-muted-foreground">
+              {room.inRoom ? 'On the room shortlist.' : 'Adds the selected option to the room shortlist.'}
+            </p>
+          </div>
+        ) : null}
         <p className="mt-4 text-sm leading-relaxed text-[#635a52]">{product.description}</p>
-        <div className="mt-6"><ProductFacts product={product} /></div>
+        <div className="mt-6"><ProductFacts product={product} dimensions={dimensions} /></div>
         <VariantPicker
           productId={product.id}
           productName={product.name}
@@ -141,7 +167,7 @@ function CatalogDetailContent({ product, initialVariantId }: CatalogDetailConten
   );
 }
 
-export function CatalogDetailDialog({ product, selectedVariantId = null, onClose }: CatalogDetailDialogProps) {
+export function CatalogDetailDialog({ product, selectedVariantId = null, onClose, dimensions, room }: CatalogDetailDialogProps) {
   const dialogRef = useRef<HTMLElement>(null);
   const closeButtonRef = useRef<HTMLButtonElement>(null);
   const triggerRef = useRef<HTMLElement | null>(null);
@@ -202,6 +228,8 @@ export function CatalogDetailDialog({ product, selectedVariantId = null, onClose
           key={`${product.id}:${selectedVariantId ?? 'default'}`}
           product={product}
           initialVariantId={selectedVariantId}
+          dimensions={dimensions}
+          room={room}
         />
       </section>
     </div>

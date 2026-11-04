@@ -1,6 +1,47 @@
 {
 	"version": 1,
 	"items": {
+		"https://baby-ui.pages.dev/r/badge.json": {
+			"name": "badge",
+			"type": "registry:ui",
+			"framework": "react",
+			"installedAt": "2026-11-04T15:36:55.179Z",
+			"itemHash": "abfdc98525133aed4bb8bfc9b96dfffdf8fb1a58fe98cae2b95823d66751ccf7",
+			"files": {
+				"components/ui/badge/badge.tsx": "943a04988dbc19893b61ee09e18faca377b1a970016a40d210409a6aeac20cc7",
+				"components/ui/badge/index.ts": "c0c4e90ece2064aaf52ab83b1495c89bb2590b8c53af46262d1a3dbabc4ffb15",
+				"components/ui/badge/variants.ts": "4aa2a87f66b65e7af1302e94866c4f390bce19d45afddc8943d50fd4c8da0f8b",
+				"lib/cn.ts": "0fca478853f3fc4310e40ebff727a53da7ec677938f4e3e0d5ecaa62e936a199"
+			},
+			"dependencies": [
+				"clsx",
+				"tailwind-merge",
+				"tailwind-variants"
+			],
+			"registryDependencies": [
+				"https://baby-ui.pages.dev/r/tokens.json"
+			]
+		},
+		"https://baby-ui.pages.dev/r/button.json": {
+			"name": "button",
+			"type": "registry:ui",
+			"framework": "react",
+			"installedAt": "2026-11-04T15:36:55.179Z",
+			"itemHash": "3f9eeb0bf825876941c5ed91bf083671ff87a0ff10e410ccd454041408052693",
+			"files": {
+				"components/ui/button/button.tsx": "f6c6cae0221613387c05b60b00c1d5e4725a4c8f35320533a6077957ac398028",
+				"components/ui/button/index.ts": "abea64d3d28a77a1220d64aace1671ac0f4881ded84c22e5b925c2f0d269c9eb",
+				"components/ui/button/variants.ts": "e6d6928de88ac0a23ceab4a8d9968a5338d854b9e5192996b6b647f7bd2a6d5b"
+			},
+			"dependencies": [
+				"clsx",
+				"tailwind-merge",
+				"tailwind-variants"
+			],
+			"registryDependencies": [
+				"https://baby-ui.pages.dev/r/tokens.json"
+			]
+		},
 		"https://baby-ui.pages.dev/r/theme.json": {
 			"name": "theme",
 			"type": "registry:theme",

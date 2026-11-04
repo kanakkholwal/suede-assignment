@@ -16,6 +16,11 @@ export async function resolveWorkspace(): Promise<WorkspaceResolution> {
   return { workspaceId: randomUUID(), setCookie: true };
 }
 
+/** The existing workspace, if any; read-only routes never create one. */
+export async function readWorkspaceId(): Promise<string | null> {
+  return (await cookies()).get(WORKSPACE_COOKIE_NAME)?.value ?? null;
+}
+
 export function workspaceCookieOptions() {
   return {
     httpOnly: true,

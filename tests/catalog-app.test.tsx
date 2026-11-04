@@ -472,7 +472,7 @@ it('opens a product detail dialog from a catalog card', async () => {
   await user.click(screen.getByRole('button', { name: `View ${LINEN_BOX_QUILT}` }));
 
   expect(screen.getByRole('dialog', { name: LINEN_BOX_QUILT })).toBeVisible();
-  expect(screen.getByText(/Known information is labeled/)).toBeVisible();
+  expect(screen.getByText(/Every size shows where it came from/)).toBeVisible();
 });
 
 it('restores catalog results when a cleared price field has no constraint', async () => {

@@ -1,4 +1,5 @@
 import type { CatalogProduct, ProductVariant } from '@/data/product-types';
+import type { DimensionSummary } from '@/lib/dimensions';
 
 export type CatalogCategoryFilter = number | 'uncategorized' | null;
 
@@ -9,6 +10,8 @@ export interface CatalogFilters {
   minPriceCents: number | null;
   maxPriceCents: number | null;
   inStockOnly: boolean;
+  minWidthIn: number | null;
+  maxWidthIn: number | null;
 }
 
 export interface CatalogCategoryNode {
@@ -16,6 +19,8 @@ export interface CatalogCategoryNode {
   name: string;
   count: number;
   children: CatalogCategoryNode[];
+  /** Ontology synonyms such as `couch` for Sofa; omitted when there are none. */
+  aliases?: string[];
 }
 
 /** Compact API reference; the product and variant are already in products. */
@@ -38,6 +43,8 @@ export interface CatalogQueryResult {
   variants?: CatalogVariantReference[];
   brands: string[];
   categoryTree: CatalogCategoryNode[];
+  /** Keyed by product id, for every product in `products`. */
+  dimensions: Record<string, DimensionSummary>;
 }
 
 export const emptyCatalogFilters: CatalogFilters = {
@@ -47,6 +54,8 @@ export const emptyCatalogFilters: CatalogFilters = {
   minPriceCents: null,
   maxPriceCents: null,
   inStockOnly: false,
+  minWidthIn: null,
+  maxWidthIn: null,
 };
 
 export class CatalogQueryInputError extends Error {
@@ -78,6 +87,16 @@ function parseNonNegativeInteger(params: URLSearchParams, name: string): number 
   return parsed;
 }
 
+function parseWidth(params: URLSearchParams, name: string): number | null {
+  const value = params.get(name);
+  if (value === null) return null;
+  const parsed = Number(value);
+  if (!/^\d+(\.\d+)?$/.test(value) || parsed <= 0 || parsed > 1200) {
+    throw new CatalogQueryInputError(`${name} must be a positive number of inches.`);
+  }
+  return parsed;
+}
+
 function parseCategory(value: string | null): CatalogCategoryFilter {
   if (value === null) return null;
   if (value === 'uncategorized') return value;
@@ -104,6 +123,12 @@ export function parseCatalogFilters(params: URLSearchParams): CatalogFilters {
     throw new CatalogQueryInputError('minPriceCents must not be greater than maxPriceCents.');
   }
 
+  const minWidthIn = parseWidth(params, 'minWidthIn');
+  const maxWidthIn = parseWidth(params, 'maxWidthIn');
+  if (minWidthIn !== null && maxWidthIn !== null && minWidthIn > maxWidthIn) {
+    throw new CatalogQueryInputError('minWidthIn must not be greater than maxWidthIn.');
+  }
+
   return {
     query: params.get('query') ?? '',
     category: parseCategory(params.get('category')),
@@ -111,6 +136,8 @@ export function parseCatalogFilters(params: URLSearchParams): CatalogFilters {
     minPriceCents,
     maxPriceCents,
     inStockOnly: parseInStockOnly(params.get('inStockOnly')),
+    minWidthIn,
+    maxWidthIn,
   };
 }
 
@@ -122,5 +149,7 @@ export function catalogFiltersToSearchParams(filters: CatalogFilters): URLSearch
   if (filters.minPriceCents !== null) params.set('minPriceCents', String(filters.minPriceCents));
   if (filters.maxPriceCents !== null) params.set('maxPriceCents', String(filters.maxPriceCents));
   if (filters.inStockOnly) params.set('inStockOnly', 'true');
+  if (filters.minWidthIn !== null) params.set('minWidthIn', String(filters.minWidthIn));
+  if (filters.maxWidthIn !== null) params.set('maxWidthIn', String(filters.maxWidthIn));
   return params;
 }

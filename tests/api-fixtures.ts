@@ -5,7 +5,9 @@ import { vi } from 'vitest';
 import { CATALOG_PRODUCTS } from '@/data/catalog';
 import type { CatalogProduct } from '@/data/product-types';
 import type { CatalogQueryResult } from '@/lib/catalog-contract';
+import { CLIENT_ROOM_TEMPLATE } from '@/data/client-room';
 import type { LibrarySnapshot } from '@/lib/library-state';
+import type { RoomSnapshot } from '@/lib/room-state';
 
 export const quilt = CATALOG_PRODUCTS.find((product) => product.id === '7a7e801d-cb56-42ed-aa20-5b0dfa146d32')!;
 export const boneQuilt = CATALOG_PRODUCTS.find((product) => product.name === 'Linen Box Quilt (Bone)')!;
@@ -21,6 +23,7 @@ export function catalogFixture(products: CatalogProduct[] = [quilt, boneQuilt, a
     products,
     variants: products.flatMap((product) => product.variants.map((variant) => ({ key: `${product.id}:${variant.id}`, productId: product.id, variantId: variant.id }))),
     brands: ['House of Leon', 'Parachute Home'],
+    dimensions: {},
     categoryTree: [
       { id: 7, name: 'Decor', count: 1, children: [{ id: 300, name: 'Vase', count: 1, children: [] }] },
       { id: 1, name: 'Seating', count: 1, children: [{ id: 11, name: 'Chair', count: 1, children: [{ id: 30, name: 'Armchair', count: 1, children: [] }] }] },
@@ -34,6 +37,16 @@ export function catalogFixture(products: CatalogProduct[] = [quilt, boneQuilt, a
 
 export function libraryFixture(products: CatalogProduct[] = [], collections: LibrarySnapshot['state']['collections'] = []): LibrarySnapshot {
   return { state: { version: 1, savedIds: products.map((product) => product.id), collections }, products };
+}
+
+export function roomFixture(): RoomSnapshot {
+  const { features, ...room } = CLIENT_ROOM_TEMPLATE;
+  return {
+    room: { id: 'room-1', ...room },
+    features: features.map((feature, index) => ({ id: `feature-${index}`, ...feature })),
+    items: [],
+    products: [],
+  };
 }
 
 export function deferred<T>() {
@@ -76,6 +89,7 @@ export function mockApi(options: {
       }
       return options.library instanceof Promise ? options.library : Response.json(options.library ?? libraryFixture());
     }
+    if (url.pathname === '/api/room') return Response.json(roomFixture());
     throw new Error(`Unexpected request: ${input}`);
   });
   vi.stubGlobal('fetch', fetchMock);

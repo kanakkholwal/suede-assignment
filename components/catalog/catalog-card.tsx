@@ -7,6 +7,8 @@ import type { CatalogProduct } from '@/data/product-types';
 import type { LibraryCollection } from '@/lib/library-state';
 import type { IsLibraryMutationBlocked } from '@/lib/use-library';
 import { formatPrice, startingPriceCents } from '@/lib/format';
+import { CardFitDetails } from '@/components/catalog/card-fit-details';
+import type { ShortlistContext } from '@/components/room/add-to-room-button';
 import { ProductActionsMenu } from '@/components/shared/product-actions-menu';
 
 interface CatalogCardProps {
@@ -18,6 +20,7 @@ interface CatalogCardProps {
   onToggleSaved: (productId: string) => void;
   onAddToCollection: (collectionId: string, productId: string) => void;
   onCreateCollection: (name: string, productId: string) => Promise<boolean>;
+  shortlist?: ShortlistContext;
 }
 
 export function CatalogCard({
@@ -29,6 +32,7 @@ export function CatalogCard({
   onToggleSaved,
   onAddToCollection,
   onCreateCollection,
+  shortlist,
 }: CatalogCardProps) {
   const price = startingPriceCents(product.variants);
   const unavailable = product.availability !== 'in_stock';
@@ -45,10 +49,12 @@ export function CatalogCard({
       <div className="relative z-10 pointer-events-none flex min-h-29 flex-col gap-1.5 p-3.5">
         <p className="text-[10px] font-semibold uppercase tracking-[0.12em] text-[#877c72]">{product.brand}</p>
         <h2 className="line-clamp-1 font-serif text-lg leading-tight tracking-[-0.025em] text-[#1e1814]">{product.name}</h2>
-        <div className="mt-auto flex items-center justify-between gap-2 text-xs text-[#665c54]">
-          <span>{price === undefined ? 'Price not provided' : `From ${formatPrice(price)}`}</span>
-          <span>{product.variants.length} {product.variants.length === 1 ? 'option' : 'options'}</span>
-        </div>
+        <CardFitDetails
+          product={product}
+          variantId={null}
+          shortlist={shortlist}
+          priceLabel={`${price === undefined ? 'Price not provided' : `From ${formatPrice(price)}`} · ${product.variants.length} ${product.variants.length === 1 ? 'option' : 'options'}`}
+        />
       </div>
       <button type="button" aria-label={`View ${product.name}`} onClick={() => onView(product)} className="absolute inset-0 z-0 cursor-pointer focus-visible:outline-2 focus-visible:outline-offset-[-3px] focus-visible:outline-[#886b54]" />
     </article>

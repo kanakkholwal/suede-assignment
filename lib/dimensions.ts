@@ -91,13 +91,71 @@ export function hasFootprint(dimensions: ResolvedDimensions): boolean {
   return dimensions.width.value !== null && dimensions.depth.value !== null;
 }
 
-/** The weakest source across the footprint; drives how confidently a fit is reported. */
-export function footprintConfidence(dimensions: ResolvedDimensions): DimensionSource | 'unknown' {
-  const sources = [dimensions.width.source, dimensions.depth.source];
-  if (sources.includes('unknown')) return 'unknown';
+/** The least trustworthy of several sources; `unknown` if any is missing. */
+export function weakestSource(sources: ReadonlyArray<DimensionSource | 'unknown'>): DimensionSource | 'unknown' {
+  if (sources.length === 0 || sources.includes('unknown')) return 'unknown';
   return (sources as DimensionSource[]).reduce((weakest, source) =>
     DIMENSION_SOURCE_RANK[source] < DIMENSION_SOURCE_RANK[weakest] ? source : weakest,
   );
+}
+
+/** The weakest source across the footprint; drives how confidently a fit is reported. */
+export function footprintConfidence(dimensions: ResolvedDimensions): DimensionSource | 'unknown' {
+  return weakestSource([dimensions.width.source, dimensions.depth.source]);
+}
+
+export interface FieldSummary {
+  min: number;
+  max: number;
+  /** The weakest source among the variants that report this field. */
+  source: DimensionSource;
+}
+
+export interface DimensionSummary {
+  width: FieldSummary | null;
+  depth: FieldSummary | null;
+  height: FieldSummary | null;
+  /** Variants whose width or depth is still unknown, so their footprint can't be checked. */
+  unmeasuredVariants: number;
+  variantCount: number;
+}
+
+/** Ranges across a product's variants, so a 72″/96″/120″ sofa reads as one honest span. */
+export function summarizeDimensions(
+  records: readonly DimensionRecord[],
+  variantIds: readonly string[],
+): DimensionSummary {
+  const resolved = (variantIds.length ? variantIds : [null]).map((id) => resolveDimensions(records, id));
+
+  const summarize = (field: DimensionField): FieldSummary | null => {
+    const known = resolved.map((dimensions) => dimensions[field]).filter((entry) => entry.value !== null);
+    if (known.length === 0) return null;
+    const values = known.map((entry) => entry.value as number);
+    return {
+      min: Math.min(...values),
+      max: Math.max(...values),
+      source: weakestSource(known.map((entry) => entry.source)) as DimensionSource,
+    };
+  };
+
+  return {
+    width: summarize('width'),
+    depth: summarize('depth'),
+    height: summarize('height'),
+    unmeasuredVariants: resolved.filter((dimensions) => !hasFootprint(dimensions)).length,
+    variantCount: resolved.length,
+  };
+}
+
+/** The weakest footprint source across a product's options. */
+export function summaryConfidence(summary: DimensionSummary): DimensionSource | 'unknown' {
+  return weakestSource([summary.width?.source ?? 'unknown', summary.depth?.source ?? 'unknown']);
+}
+
+/** Unknown width passes: a missing measurement is a reason to check, not to exclude. */
+export function widthWithin(width: number | null, min: number | null, max: number | null): boolean {
+  if (width === null) return true;
+  return (min === null || width >= min) && (max === null || width <= max);
 }
 
 const NUMBER = String.raw`(\d+(?:\.\d+)?)`;

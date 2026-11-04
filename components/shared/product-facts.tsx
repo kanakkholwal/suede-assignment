@@ -1,6 +1,8 @@
 import { ExternalLink } from 'lucide-react';
 
+import { SummaryDimensionLine } from '@/components/shared/dimension-line';
 import type { CatalogProduct, DataConfidence } from '@/data/product-types';
+import type { DimensionSummary } from '@/lib/dimensions';
 import { formatLeadTime, formatPrice, startingPriceCents } from '@/lib/format';
 
 function confidenceLabel(confidence: DataConfidence): string {
@@ -9,12 +11,7 @@ function confidenceLabel(confidence: DataConfidence): string {
   return 'Not provided';
 }
 
-function dimensions(product: CatalogProduct): string {
-  const { width, depth, height } = product.dimensionsIn;
-  return width !== null && depth !== null && height !== null ? `${width} × ${depth} × ${height} in` : 'Not provided';
-}
-
-export function ProductFacts({ product }: { product: CatalogProduct }) {
+export function ProductFacts({ product, dimensions }: { product: CatalogProduct; dimensions?: DimensionSummary }) {
   const price = startingPriceCents(product.variants);
 
   return (
@@ -22,11 +19,18 @@ export function ProductFacts({ product }: { product: CatalogProduct }) {
       <div className="grid grid-cols-2 gap-x-6 gap-y-4 border-y border-[#e4ded7] py-4 text-sm">
         <Fact label="Starting at" value={price === undefined ? 'Not provided' : formatPrice(price)} note={confidenceLabel(product.provenance.price)} />
         <Fact label="Lead time" value={formatLeadTime(product.leadTimeWeeks)} note={confidenceLabel(product.provenance.leadTime)} />
-        <Fact label="Dimensions" value={dimensions(product)} note="Product page" />
+        <div className="col-span-2 min-w-0">
+          <p className="text-[10px] font-semibold uppercase tracking-[0.1em] text-[#81766d]">Dimensions · W × D × H</p>
+          {dimensions ? (
+            <SummaryDimensionLine summary={dimensions} className="mt-1 text-sm" />
+          ) : (
+            <p className="mt-1 font-medium text-[#211b17]">Not on file</p>
+          )}
+        </div>
         <Fact label="Material" value={product.material ?? 'Not provided'} note="Product page" />
       </div>
       <p className="text-xs leading-relaxed text-[#72675e]">
-        Known information is labeled. Exact option availability is shown below; this snapshot does not include lead-time, dimensions, material, or commercial data.
+        Every size shows where it came from. Exact option availability is shown below; this snapshot does not include lead-time, material, or commercial data.
       </p>
       <a
         href={product.sourceUrl}

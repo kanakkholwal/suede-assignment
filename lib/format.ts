@@ -18,3 +18,10 @@ export function startingPriceCents(variants: readonly { priceCents: number }[]):
     undefined,
   );
 }
+
+/** `2026-09-15` → `Sep 15, 2026`, read as a calendar date with no timezone shift. */
+export function formatCalendarDate(isoDate: string): string {
+  const date = new Date(`${isoDate}T00:00:00Z`);
+  if (Number.isNaN(date.getTime())) return isoDate;
+  return new Intl.DateTimeFormat('en-US', { month: 'short', day: 'numeric', year: 'numeric', timeZone: 'UTC' }).format(date);
+}

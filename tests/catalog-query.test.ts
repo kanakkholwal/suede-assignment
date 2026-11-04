@@ -40,17 +40,19 @@ describe('Catalog query contract', () => {
       minPriceCents: 100,
       maxPriceCents: 500,
       inStockOnly: true,
+      minWidthIn: null,
+      maxWidthIn: 90.5,
     });
 
     expect(params.toString()).toBe(
-      'query=linen&category=413&brand=Parachute+Home&brand=Italic&minPriceCents=100&maxPriceCents=500&inStockOnly=true',
+      'query=linen&category=413&brand=Parachute+Home&brand=Italic&minPriceCents=100&maxPriceCents=500&inStockOnly=true&maxWidthIn=90.5',
     );
     expect(catalogFiltersToSearchParams(emptyCatalogFilters).toString()).toBe('');
   });
 
   it('parses a valid query string into the shared filter contract', () => {
     const params = new URLSearchParams(
-      'query=linen&category=uncategorized&brand=Parachute+Home&brand=Italic&minPriceCents=100&maxPriceCents=500&inStockOnly=true',
+      'query=linen&category=uncategorized&brand=Parachute+Home&brand=Italic&minPriceCents=100&maxPriceCents=500&inStockOnly=true&minWidthIn=84&maxWidthIn=96.5',
     );
 
     expect(parseCatalogFilters(params)).toEqual({
@@ -60,11 +62,15 @@ describe('Catalog query contract', () => {
       minPriceCents: 100,
       maxPriceCents: 500,
       inStockOnly: true,
+      minWidthIn: 84,
+      maxWidthIn: 96.5,
     });
   });
 
   it.each([
     ['malformed minimum price', 'minPriceCents=ten'],
+    ['non-positive width', 'maxWidthIn=0'],
+    ['inverted width range', 'minWidthIn=96&maxWidthIn=84'],
     ['fractional maximum price', 'maxPriceCents=12.5'],
     ['negative price', 'minPriceCents=-1'],
     ['invalid category', 'category=chairs'],

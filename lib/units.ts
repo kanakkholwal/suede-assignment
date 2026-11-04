@@ -13,9 +13,14 @@ function inchPart(inches: number): string {
   return `${whole}${fraction}`;
 }
 
+/** 86.5 → `86½`, no unit mark. Rounds to the nearest quarter inch. */
+export function formatInchValue(value: number): string {
+  return inchPart(roundToQuarter(value));
+}
+
 /** 86.5 → `86½″`. Rounds to the nearest quarter inch. */
 export function formatInches(value: number): string {
-  return `${inchPart(roundToQuarter(value))}″`;
+  return `${formatInchValue(value)}″`;
 }
 
 /** 86.5 → `7′ 2½″`, 144 → `12′`. Rounds to the nearest quarter inch. */
@@ -34,7 +39,7 @@ export function formatDimensionTriple(
   depth: number | null,
   height: number | null,
 ): string {
-  const part = (value: number | null) => (value === null ? '?' : inchPart(roundToQuarter(value)));
+  const part = (value: number | null) => (value === null ? '?' : formatInchValue(value));
   return `${part(width)} × ${part(depth)} × ${part(height)} in`;
 }
 

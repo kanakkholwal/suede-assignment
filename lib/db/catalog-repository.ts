@@ -13,6 +13,9 @@ import type {
   CatalogQueryResult,
   CatalogVariantReference,
 } from '@/lib/catalog-contract';
+import { getDimensionRecords } from '@/lib/db/dimension-repository';
+import { placeholders } from '@/lib/db/sql';
+import { type DimensionRecord, resolveDimensions, summarizeDimensions, widthWithin } from '@/lib/dimensions';
 
 interface ProductRow {
   id: string;
@@ -62,15 +65,12 @@ interface CategoryFacetRow {
   id: number;
   name: string;
   parent_id: number | null;
+  aliases: string | null;
   count: number;
 }
 
 interface ProductHydration {
   products: CatalogProduct[];
-}
-
-function placeholders(count: number): string {
-  return Array.from({ length: count }, () => '?').join(', ');
 }
 
 function escapeLike(value: string): string {
@@ -311,6 +311,7 @@ function getCategoryTree(db: Database.Database): CatalogCategoryNode[] {
         category.id,
         category.name,
         category.parent_id,
+        (SELECT group_concat(alias, '|') FROM category_aliases WHERE category_id = category.id) AS aliases,
         COUNT(DISTINCT product_category.product_id) AS count
       FROM categories category
       JOIN descendants ON descendants.ancestor_id = category.id
@@ -321,7 +322,13 @@ function getCategoryTree(db: Database.Database): CatalogCategoryNode[] {
     .all() as CategoryFacetRow[];
   const nodes = new Map<number, CatalogCategoryNode>();
   for (const row of rows) {
-    nodes.set(row.id, { id: row.id, name: row.name, count: row.count, children: [] });
+    nodes.set(row.id, {
+      id: row.id,
+      name: row.name,
+      count: row.count,
+      children: [],
+      ...(row.aliases ? { aliases: row.aliases.split('|').sort() } : {}),
+    });
   }
 
   const roots: CatalogCategoryNode[] = [];
@@ -382,12 +389,34 @@ export function getCatalogProductsByIds(
   return hydrateProducts(db, [...new Set(ids)]).products;
 }
 
+function groupByProduct(records: readonly DimensionRecord[]): Map<string, DimensionRecord[]> {
+  const grouped = new Map<string, DimensionRecord[]>();
+  for (const record of records) grouped.set(record.productId, [...(grouped.get(record.productId) ?? []), record]);
+  return grouped;
+}
+
 export function getCatalogPage(
   db: Database.Database,
   filters: CatalogFilters,
-  { includeVariants = true }: { includeVariants?: boolean } = {},
+  { includeVariants = true, workspaceId = null }: { includeVariants?: boolean; workspaceId?: string | null } = {},
 ): CatalogQueryResult {
-  const productIds = matchingProductIds(db, filters);
+  let productIds = matchingProductIds(db, filters);
+  const records = groupByProduct(getDimensionRecords(db, productIds, workspaceId));
+  const filtersWidth = filters.minWidthIn !== null || filters.maxWidthIn !== null;
+  let variants = includeVariants || filtersWidth ? matchingVariantReferences(db, filters, productIds) : [];
+
+  if (filtersWidth) {
+    variants = variants.filter((reference) =>
+      widthWithin(
+        resolveDimensions(records.get(reference.productId) ?? [], reference.variantId).width.value,
+        filters.minWidthIn,
+        filters.maxWidthIn,
+      ),
+    );
+    const kept = new Set(variants.map((reference) => reference.productId));
+    productIds = productIds.filter((id) => kept.has(id));
+  }
+
   const hydration = hydrateProducts(db, productIds);
   const meta = db.prepare("SELECT value FROM catalog_meta WHERE key = 'captured_at'").get() as
     | { value: string }
@@ -396,9 +425,18 @@ export function getCatalogPage(
   return {
     capturedAt: meta?.value ?? '',
     products: hydration.products,
-    ...(includeVariants ? { variants: matchingVariantReferences(db, filters, productIds) } : {}),
+    ...(includeVariants ? { variants } : {}),
     brands: getBrands(db),
     categoryTree: getCategoryTree(db),
+    dimensions: Object.fromEntries(
+      hydration.products.map((product) => [
+        product.id,
+        summarizeDimensions(
+          records.get(product.id) ?? [],
+          product.variants.map((variant) => variant.id),
+        ),
+      ]),
+    ),
   };
 }
 

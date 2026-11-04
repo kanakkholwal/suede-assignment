@@ -9,6 +9,8 @@ const connectionBoundary = vi.hoisted(() => ({
   getDatabase: vi.fn(),
 }));
 
+vi.mock('next/headers', () => ({ cookies: async () => ({ get: () => undefined }) }));
+
 vi.mock('@/lib/db/connection', () => ({
   getDatabase: connectionBoundary.getDatabase,
 }));
@@ -37,7 +39,7 @@ afterEach(() => {
 
 describe('Catalog API routes', () => {
   it.each(['', '?includeVariants=false'])('omits variant references for product requests (%s) while preserving product options', async (query) => {
-    const response = GET(new Request(`http://localhost/api/catalog${query}`));
+    const response = await GET(new Request(`http://localhost/api/catalog${query}`));
     const body = await response.json();
     expect(response.status).toBe(200);
     expect(body).not.toHaveProperty('variants');
@@ -46,7 +48,7 @@ describe('Catalog API routes', () => {
   });
 
   it('returns only compact variant references when explicitly requested', async () => {
-    const response = GET(new Request('http://localhost/api/catalog?includeVariants=true'));
+    const response = await GET(new Request('http://localhost/api/catalog?includeVariants=true'));
     const body = await response.json();
     expect(response.status).toBe(200);
     expect(body.variants).toHaveLength(2165);
@@ -58,7 +60,7 @@ describe('Catalog API routes', () => {
   });
 
   it.each(['', '1', 'TRUE', 'true&includeVariants=false'])('rejects invalid includeVariants=%s', async (value) => {
-    const response = GET(new Request(`http://localhost/api/catalog?includeVariants=${value}`));
+    const response = await GET(new Request(`http://localhost/api/catalog?includeVariants=${value}`));
     expect(response.status).toBe(400);
     expect(await response.json()).toMatchObject({ error: expect.stringContaining('includeVariants') });
   });

@@ -2,6 +2,7 @@ import type { CatalogProduct } from '@/data/product-types';
 import type { LibraryCollection } from '@/lib/library-state';
 import type { IsLibraryMutationBlocked } from '@/lib/use-library';
 import { CatalogCard } from '@/components/catalog/catalog-card';
+import type { ShortlistContext } from '@/components/room/add-to-room-button';
 
 interface CatalogGridProps {
   products: readonly CatalogProduct[];
@@ -12,6 +13,7 @@ interface CatalogGridProps {
   onToggleSaved: (productId: string) => void;
   onAddToCollection: (collectionId: string, productId: string) => void;
   onCreateCollection: (name: string, productId: string) => Promise<boolean>;
+  shortlist?: ShortlistContext;
 }
 
 export function CatalogGrid(props: CatalogGridProps) {
@@ -25,9 +27,9 @@ export function CatalogGrid(props: CatalogGridProps) {
   }
 
   return (
-    <div className="grid flex-1 grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">
+    <div className="grid flex-1 grid-cols-[repeat(auto-fill,minmax(min(100%,11.5rem),1fr))] gap-3">
       {props.products.map((product) => (
-        <CatalogCard key={product.id} product={product} saved={props.savedIds.includes(product.id)} collections={props.collections} isBlocked={props.isBlocked} onView={props.onView} onToggleSaved={props.onToggleSaved} onAddToCollection={props.onAddToCollection} onCreateCollection={props.onCreateCollection} />
+        <CatalogCard key={product.id} product={product} saved={props.savedIds.includes(product.id)} collections={props.collections} isBlocked={props.isBlocked} onView={props.onView} onToggleSaved={props.onToggleSaved} onAddToCollection={props.onAddToCollection} onCreateCollection={props.onCreateCollection} shortlist={props.shortlist} />
       ))}
     </div>
   );

@@ -2,7 +2,7 @@
 
 import { RotateCcw, Search } from 'lucide-react';
 
-import type { CatalogCategoryNode, CatalogFilters } from '@/lib/catalog-contract';
+import { type CatalogCategoryNode, type CatalogFilters, emptyCatalogFilters } from '@/lib/catalog-contract';
 import { CatalogCategoryTree } from '@/components/catalog/catalog-category-tree';
 
 interface CatalogFilterRailProps {
@@ -95,7 +95,7 @@ export function CatalogFilterRail({ filters, brands, categoryTree, onChange }: C
       {hasActiveFilters ? (
         <button
           type="button"
-          onClick={() => onChange({ query: '', category: null, brands: [], minPriceCents: null, maxPriceCents: null, inStockOnly: false })}
+          onClick={() => onChange(emptyCatalogFilters)}
           className="inline-flex w-fit items-center gap-1.5 text-sm text-[#6a5a4e] hover:text-[#241c17]"
         >
           <RotateCcw className="size-3.5" aria-hidden="true" /> Clear all
