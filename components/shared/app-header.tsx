@@ -6,13 +6,14 @@ import { usePathname } from 'next/navigation';
 const navigation = [
   { href: '/catalog', label: 'Catalog' },
   { href: '/library', label: 'Library' },
+  { href: '/room', label: 'Floor plan' },
 ];
 
 export function AppHeader() {
   const pathname = usePathname();
 
   return (
-    <header className="border-b border-[#ddd8d2] bg-[#f8f5ef]">
+    <header className="border-b border-[#ddd8d2] bg-[#f8f5ef] print:hidden">
       <div className="mx-auto flex h-15 w-full max-w-[1440px] items-center gap-7 px-4 sm:px-6 lg:px-8">
         <Link
           href="/catalog"

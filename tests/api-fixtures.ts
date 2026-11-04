@@ -63,6 +63,7 @@ export function mockApi(options: {
   catalog?: (url: URL, init?: RequestInit) => Response | Promise<Response>;
   library?: LibrarySnapshot | Promise<Response>;
   mutation?: (init: RequestInit) => Response | Promise<Response>;
+  room?: RoomSnapshot;
 } = {}) {
   const fetchMock = vi.fn(async (input: RequestInfo | URL, init?: RequestInit) => {
     const url = new URL(String(input), 'http://localhost');
@@ -89,7 +90,7 @@ export function mockApi(options: {
       }
       return options.library instanceof Promise ? options.library : Response.json(options.library ?? libraryFixture());
     }
-    if (url.pathname === '/api/room') return Response.json(roomFixture());
+    if (url.pathname === '/api/room') return Response.json(options.room ?? roomFixture());
     throw new Error(`Unexpected request: ${input}`);
   });
   vi.stubGlobal('fetch', fetchMock);

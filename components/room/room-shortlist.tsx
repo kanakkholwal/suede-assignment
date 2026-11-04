@@ -1,6 +1,8 @@
 'use client';
 
-import { Armchair, Info } from 'lucide-react';
+import { Armchair, Info, Map as MapIcon } from 'lucide-react';
+
+import { Button } from '@/components/ui/button';
 
 import { MeasurementStatusBadge } from '@/components/room/measurement-status-badge';
 import { ShortlistItem } from '@/components/room/shortlist-item';
@@ -71,6 +73,9 @@ export function RoomShortlist({ room, capturedAt, onDimensionsChanged }: RoomSho
             {totals.check ? ` · ${plural(totals.check, 'thing', 'things')} to confirm` : ''}
             {!totals.blocker && !totals.check ? ' · nothing left to check' : ''}
           </p>
+          <Button href="/room" size="sm" variant="default" className="w-full">
+            <MapIcon aria-hidden="true" /> Open floor plan
+          </Button>
           <ul className="flex flex-col divide-y divide-border">
             {rows.map(({ item, product, gaps }) => (
               <ShortlistItem

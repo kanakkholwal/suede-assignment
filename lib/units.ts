@@ -48,7 +48,15 @@ export function formatDimensionTriple(
  * Returns null for anything ambiguous rather than guessing.
  */
 export function parseLength(input: string): number | null {
-  const text = input.trim().toLowerCase().replace(/[″”]/g, '"').replace(/[′’]/g, "'");
+  const text = input
+    .trim()
+    .toLowerCase()
+    .replace(/[″”]/g, '"')
+    .replace(/[′’]/g, "'")
+    .replace(/¼/g, ' 1/4')
+    .replace(/½/g, ' 1/2')
+    .replace(/¾/g, ' 3/4')
+    .trim();
   if (!text) return null;
 
   const match = text.match(

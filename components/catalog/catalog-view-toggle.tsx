@@ -2,7 +2,14 @@
 
 import { LayoutGrid, Rows3 } from 'lucide-react';
 
+import { type SegmentOption, SegmentedControl } from '@/components/shared/segmented-control';
+
 export type CatalogView = 'products' | 'variants';
+
+const OPTIONS: readonly SegmentOption<CatalogView>[] = [
+  { value: 'products', label: 'Products', ariaLabel: 'Products view', icon: LayoutGrid },
+  { value: 'variants', label: 'Variants', ariaLabel: 'Variants view', icon: Rows3 },
+];
 
 interface CatalogViewToggleProps {
   view: CatalogView;
@@ -10,32 +17,5 @@ interface CatalogViewToggleProps {
 }
 
 export function CatalogViewToggle({ view, onChange }: CatalogViewToggleProps) {
-  return (
-    <div role="group" aria-label="Catalog view" className="inline-flex rounded-md border border-[#d9d3cd] bg-white p-0.5 shadow-sm">
-      <button
-        type="button"
-        aria-label="Products view"
-        aria-pressed={view === 'products'}
-        onClick={() => onChange('products')}
-        className={`inline-flex h-7 items-center gap-1.5 rounded px-2 text-xs font-medium transition focus-visible:outline-2 focus-visible:outline-[#886b54] ${
-          view === 'products' ? 'bg-[#ede7e0] text-[#2c241f]' : 'text-[#766b62] hover:text-[#2c241f]'
-        }`}
-      >
-        <LayoutGrid className="size-3.5" aria-hidden="true" />
-        <span className="hidden sm:inline">Products</span>
-      </button>
-      <button
-        type="button"
-        aria-label="Variants view"
-        aria-pressed={view === 'variants'}
-        onClick={() => onChange('variants')}
-        className={`inline-flex h-7 items-center gap-1.5 rounded px-2 text-xs font-medium transition focus-visible:outline-2 focus-visible:outline-[#886b54] ${
-          view === 'variants' ? 'bg-[#ede7e0] text-[#2c241f]' : 'text-[#766b62] hover:text-[#2c241f]'
-        }`}
-      >
-        <Rows3 className="size-3.5" aria-hidden="true" />
-        <span className="hidden sm:inline">Variants</span>
-      </button>
-    </div>
-  );
+  return <SegmentedControl label="Catalog view" value={view} options={OPTIONS} onChange={onChange} compact />;
 }
