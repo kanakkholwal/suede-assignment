@@ -1,0 +1,9 @@
+node_modules/
+.next/
+coverage/
+.DS_Store
+*.tsbuildinfo
+candidate-release/
+.catalog-lab-interview/
+data/*.sqlite-wal
+data/*.sqlite-shm

@@ -1,0 +1,74 @@
+@import 'tailwindcss';
+
+:root {
+  --paper: #f8f5ef;
+  --paper-app: #f6f4f2;
+  --ink: #090706;
+  --bone: #e0ddda;
+  --suede: #886b54;
+  --suede-deep: #6b5544;
+  --brand-soft: #f1ede7;
+  --background: var(--paper);
+  --foreground: var(--ink);
+  --card: #ffffff;
+  --card-foreground: var(--ink);
+  --popover: #ffffff;
+  --popover-foreground: var(--ink);
+  --primary: #988c6f;
+  --primary-foreground: var(--paper);
+  --muted: #e3e3e3;
+  --muted-foreground: #5b5048;
+  --accent: var(--brand-soft);
+  --accent-foreground: var(--suede-deep);
+  --border: transparent;
+  --input: var(--bone);
+  --ring: var(--suede);
+  --destructive: #c87a6a;
+  --radius: 0.5rem;
+}
+
+@theme inline {
+  --font-sans: 'Inter Variable', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  --font-serif: 'EB Garamond Variable', Georgia, serif;
+  --font-logo: 'DM Serif Display', Georgia, serif;
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+  --color-destructive: var(--destructive);
+  --radius-sm: calc(var(--radius) - 4px);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) + 4px);
+}
+
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+  }
+
+  body {
+    @apply bg-background font-sans text-foreground antialiased;
+  }
+
+  button,
+  input {
+    font: inherit;
+  }
+}
+
+.surface-app {
+  --background: var(--paper-app);
+  background-color: var(--background);
+}
