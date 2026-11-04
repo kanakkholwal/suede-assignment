@@ -7,3 +7,4 @@ candidate-release/
 .catalog-lab-interview/
 data/*.sqlite-wal
 data/*.sqlite-shm
+.local/
