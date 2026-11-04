@@ -11,3 +11,4 @@ console.log(`Variants: ${summary.variants.toLocaleString('en-US')}`);
 console.log(`Categories: ${summary.categories.toLocaleString('en-US')}`);
 console.log(`Variant images: ${summary.variantImages.toLocaleString('en-US')}`);
 console.log(`FTS rows: ${summary.ftsRows.toLocaleString('en-US')}`);
+console.log(`Dimension claims: ${summary.dimensionRecords.toLocaleString('en-US')}`);

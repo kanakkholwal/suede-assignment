@@ -1,46 +1,19 @@
-import { NextResponse } from 'next/server';
-
+import {
+  hasExactKeys,
+  isRecord,
+  RequestInputError,
+  requireString,
+  respondForWorkspace,
+  respondToMutation,
+} from '@/lib/api/route-helpers';
 import { getDatabase } from '@/lib/db/connection';
-import {
-  applyLibraryMutation,
-  getLibrarySnapshot,
-  LibraryRepositoryError,
-} from '@/lib/db/library-repository';
-import {
-  resolveWorkspace,
-  WORKSPACE_COOKIE_NAME,
-  workspaceCookieOptions,
-  type WorkspaceResolution,
-} from '@/lib/db/workspace';
+import { applyLibraryMutation, getLibrarySnapshot } from '@/lib/db/library-repository';
 import type { LibraryMutation } from '@/lib/library-state';
 
 export const runtime = 'nodejs';
 
-const databaseUnavailableMessage =
-  'The local catalog database is unavailable. Run pnpm db:reset to restore it.';
-
-class LibraryMutationInputError extends Error {}
-
-function isRecord(value: unknown): value is Record<string, unknown> {
-  return typeof value === 'object' && value !== null && !Array.isArray(value);
-}
-
-function hasExactKeys(value: Record<string, unknown>, keys: readonly string[]): boolean {
-  const actual = Object.keys(value).sort();
-  const expected = [...keys].sort();
-  return actual.length === expected.length && actual.every((key, index) => key === expected[index]);
-}
-
-function requireString(value: Record<string, unknown>, key: string): string {
-  const field = value[key];
-  if (typeof field !== 'string') {
-    throw new LibraryMutationInputError(`${key} must be a string.`);
-  }
-  return field;
-}
-
 function invalidMutation(): never {
-  throw new LibraryMutationInputError('The request body is not a valid Library mutation.');
+  throw new RequestInputError('The request body is not a valid Library mutation.');
 }
 
 function parseLibraryMutation(value: unknown): LibraryMutation {
@@ -92,53 +65,12 @@ function parseLibraryMutation(value: unknown): LibraryMutation {
   }
 }
 
-function withWorkspaceCookie(response: NextResponse, workspace: WorkspaceResolution): NextResponse {
-  if (workspace.setCookie) {
-    response.cookies.set(WORKSPACE_COOKIE_NAME, workspace.workspaceId, workspaceCookieOptions());
-  }
-  return response;
+export async function GET(_request: Request) {
+  return respondForWorkspace((workspaceId) => getLibrarySnapshot(getDatabase(), workspaceId));
 }
 
-function errorResponse(error: unknown): NextResponse {
-  if (error instanceof LibraryMutationInputError || error instanceof SyntaxError) {
-    return NextResponse.json(
-      { error: error instanceof SyntaxError ? 'The request body must be valid JSON.' : error.message },
-      { status: 400 },
-    );
-  }
-  if (error instanceof LibraryRepositoryError) {
-    return NextResponse.json({ error: error.message }, { status: error.status });
-  }
-  return NextResponse.json({ error: databaseUnavailableMessage }, { status: 503 });
-}
-
-export async function GET(_request: Request): Promise<NextResponse> {
-  let workspace: WorkspaceResolution | undefined;
-  try {
-    workspace = await resolveWorkspace();
-    const snapshot = getLibrarySnapshot(getDatabase(), workspace.workspaceId);
-    return withWorkspaceCookie(NextResponse.json(snapshot), workspace);
-  } catch (error) {
-    const response = errorResponse(error);
-    return workspace ? withWorkspaceCookie(response, workspace) : response;
-  }
-}
-
-export async function POST(request: Request): Promise<NextResponse> {
-  let mutation: LibraryMutation;
-  try {
-    mutation = parseLibraryMutation(await request.json());
-  } catch (error) {
-    return errorResponse(error);
-  }
-
-  let workspace: WorkspaceResolution | undefined;
-  try {
-    workspace = await resolveWorkspace();
-    const snapshot = applyLibraryMutation(getDatabase(), workspace.workspaceId, mutation);
-    return withWorkspaceCookie(NextResponse.json(snapshot), workspace);
-  } catch (error) {
-    const response = errorResponse(error);
-    return workspace ? withWorkspaceCookie(response, workspace) : response;
-  }
+export async function POST(request: Request) {
+  return respondToMutation(request, parseLibraryMutation, (workspaceId, mutation) =>
+    applyLibraryMutation(getDatabase(), workspaceId, mutation),
+  );
 }

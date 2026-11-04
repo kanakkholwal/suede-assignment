@@ -142,6 +142,8 @@ pnpm db:check
 pnpm db:reset
 ```
 
+After pulling a schema change, run `pnpm db:reset` once. On Windows, stop the dev server first: Windows will not delete a database file another process has open.
+
 `pnpm db:check` verifies the committed snapshot, including integrity, foreign keys, counts, local image paths, and the search index. `pnpm db:reset` deterministically rebuilds the template and deletes the runtime copy, so it also deletes local saves and collections. You can leave the local server running: it reconnects to the fresh database on the next request. Reload the page to see the reset state. A SQLite viewer can be useful for exploration, but it is entirely optional.
 
 The normalized database includes products, variants, product images, categories and tags with their bridge tables, an FTS5 search index, and anonymous Library workspace and collection tables. The FTS5 index is seeded but is not used by the default search route.

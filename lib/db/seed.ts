@@ -3,10 +3,13 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import Database from 'better-sqlite3';
 import { CATALOG_PRODUCTS, STAGING_CATALOG_CAPTURED_AT } from '@/data/catalog';
+import type { CatalogProduct } from '@/data/product-types';
+import { CURATED_PRODUCT_DIMENSIONS } from '@/data/product-dimensions';
 import { STAGING_PRODUCT_CATEGORY_IDS } from '@/data/staging-category-assignments';
 import { STAGING_CATALOG_CATEGORIES } from '@/data/staging-categories';
 import { STAGING_VARIANT_IMAGES } from '@/data/staging-variant-images';
 import { runMigrations } from '@/lib/db/migrations';
+import { type DimensionRecord, parseListedDimensions } from '@/lib/dimensions';
 
 export interface SeedSummary {
   databasePath: string;
@@ -17,6 +20,7 @@ export interface SeedSummary {
   productImages: number;
   variantImages: number;
   ftsRows: number;
+  dimensionRecords: number;
 }
 
 export interface DatabaseCheckResult extends SeedSummary {
@@ -40,6 +44,31 @@ function normalizeTag(label: string): string {
     .toLowerCase()
     .replace(/[^a-z0-9]+/g, '-')
     .replace(/^-|-$/g, '');
+}
+
+/** Sizes the snapshot states in titles and variant labels, as `listing` claims. */
+export function listedDimensionRecords(products: readonly CatalogProduct[]): DimensionRecord[] {
+  return products.flatMap((product) => {
+    const claim = (variantId: string | null, text: string): DimensionRecord[] => {
+      const values = parseListedDimensions(text);
+      if (!values) return [];
+      return [
+        {
+          productId: product.id,
+          variantId,
+          source: 'listing',
+          sourceUrl: product.sourceUrl,
+          note: values.depth === null ? `Lone size read as width from “${text}”.` : `Read from “${text}”.`,
+          capturedAt: STAGING_CATALOG_CAPTURED_AT,
+          ...values,
+        },
+      ];
+    };
+    return [
+      ...claim(null, product.name),
+      ...product.variants.flatMap((variant) => claim(variant.id, variant.label)),
+    ];
+  });
 }
 
 function removeDatabaseFiles(databasePath: string): void {
@@ -99,6 +128,13 @@ export function seedInterviewDatabase({ databasePath }: { databasePath: string }
         id, product_id, variant_id, local_path, alt_text, is_primary, position
       ) values (?, ?, ?, ?, ?, ?, ?)
     `);
+    const insertDimension = db.prepare(`
+      insert into product_dimensions (
+        product_id, variant_id, width_in, depth_in, height_in, source, source_url, note, captured_at
+      ) values (
+        @productId, @variantId, @width, @depth, @height, @source, @sourceUrl, @note, @capturedAt
+      )
+    `);
     const insertSearch = db.prepare(`
       insert into catalog_search (product_id, name, brand, product_type, category_names, tag_names)
       values (?, ?, ?, ?, ?, ?)
@@ -119,6 +155,11 @@ export function seedInterviewDatabase({ databasePath }: { databasePath: string }
         product.variants.map((variant, position) => [variant.id, { productId: product.id, position }] as const),
       ),
     );
+
+    const dimensionRecords = [
+      ...listedDimensionRecords(sortedProducts),
+      ...CURATED_PRODUCT_DIMENSIONS,
+    ];
 
     let nextImageId = 1;
     const importSnapshot = db.transaction(() => {
@@ -207,6 +248,8 @@ export function seedInterviewDatabase({ databasePath }: { databasePath: string }
           variant.position,
         );
       }
+
+      for (const record of dimensionRecords) insertDimension.run(record);
     });
 
     importSnapshot();
@@ -221,11 +264,16 @@ export function seedInterviewDatabase({ databasePath }: { databasePath: string }
       productImages: CATALOG_PRODUCTS.reduce((count, product) => count + product.images.length, 0),
       variantImages: Object.keys(STAGING_VARIANT_IMAGES).length,
       ftsRows: CATALOG_PRODUCTS.length,
+      dimensionRecords: dimensionRecords.length,
     };
   } finally {
     db.close();
     for (const suffix of ['-wal', '-shm', '-journal']) rmSync(`${resolvedDatabasePath}${suffix}`, { force: true });
   }
+}
+
+function dimensionRecordCount(): number {
+  return listedDimensionRecords(CATALOG_PRODUCTS).length + CURATED_PRODUCT_DIMENSIONS.length;
 }
 
 function count(db: Database.Database, table: string, where = ''): number {
@@ -261,6 +309,7 @@ export function checkInterviewDatabase(databasePath: string): DatabaseCheckResul
       productImages: count(db, 'product_images', 'where variant_id is null'),
       variantImages: count(db, 'product_images', 'where variant_id is not null'),
       ftsRows: count(db, 'catalog_search'),
+      dimensionRecords: count(db, 'product_dimensions'),
       integrityCheck,
       foreignKeyViolations,
       missingImagePaths,
@@ -275,6 +324,7 @@ export function checkInterviewDatabase(databasePath: string): DatabaseCheckResul
       result.productImages === 280 &&
       result.variantImages === 1862 &&
       result.ftsRows === 280 &&
+      result.dimensionRecords === dimensionRecordCount() &&
       integrityCheck.length === 1 &&
       integrityCheck[0] === 'ok' &&
       foreignKeyViolations.length === 0 &&

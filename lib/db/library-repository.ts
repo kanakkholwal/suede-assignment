@@ -2,6 +2,7 @@ import { randomUUID } from 'node:crypto';
 import type Database from 'better-sqlite3';
 
 import { getCatalogProductsByIds } from '@/lib/db/catalog-repository';
+import { RepositoryError } from '@/lib/db/repository-error';
 import {
   type LibraryCollection,
   type LibraryMutation,
@@ -14,16 +15,8 @@ export type LibraryRepositoryErrorCode =
   | 'PRODUCT_NOT_FOUND'
   | 'COLLECTION_NOT_FOUND';
 
-export class LibraryRepositoryError extends Error {
+export class LibraryRepositoryError extends RepositoryError<LibraryRepositoryErrorCode> {
   readonly name = 'LibraryRepositoryError';
-
-  constructor(
-    message: string,
-    readonly status: 400 | 404,
-    readonly code: LibraryRepositoryErrorCode,
-  ) {
-    super(message);
-  }
 }
 
 interface CollectionProductRow {
