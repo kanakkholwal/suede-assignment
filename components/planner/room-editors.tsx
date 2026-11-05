@@ -19,6 +19,10 @@ const LABEL = 'flex min-w-0 flex-col gap-1.5 text-xs text-muted-foreground';
 export type SaveRoom = (lengthIn: number, widthIn: number, ceilingIn: number | null, status: MeasurementStatus) => Promise<boolean>;
 export type SaveFeature = (patch: RoomFeaturePatch, status: MeasurementStatus) => Promise<boolean>;
 
+function capitalise(word: string): string {
+  return word[0].toUpperCase() + word.slice(1);
+}
+
 function cornerName(wall: Wall): string {
   return wall === 'north' || wall === 'south' ? 'west' : 'north';
 }
@@ -156,10 +160,10 @@ export function FeatureDialog({ feature, onSave, disabled, triggerClassName, chi
             <DialogTitle>Adjust {label.toLowerCase()}</DialogTitle>
             <DialogDescription>{feature.clientSaid ? `Client said: “${feature.clientSaid}”` : 'Where it sits and how big it is.'}</DialogDescription>
           </DialogHeader>
-          <div className="grid grid-cols-3 gap-3">
+          <div className="grid grid-cols-2 gap-3">
             <label htmlFor={`${id}-wall`} className={LABEL}>
               Wall
-              <FieldSelect id={`${id}-wall`} value={wall} items={WALLS.map((option) => ({ value: option, label: option[0].toUpperCase() + option.slice(1) }))} onChange={setWall} />
+              <FieldSelect id={`${id}-wall`} value={wall} items={WALLS.map((option) => ({ value: option, label: capitalise(option) }))} onChange={setWall} />
             </label>
             <label htmlFor={`${id}-offset`} className={LABEL}>
               From {cornerName(wall)} corner
@@ -169,27 +173,27 @@ export function FeatureDialog({ feature, onSave, disabled, triggerClassName, chi
               Width
               <Input size="sm" id={`${id}-width`} value={width} onChange={(event) => setWidth(event.target.value)} className="min-w-0 tabular-nums" />
             </label>
+            {feature.kind === 'door' ? (
+              <>
+                <label htmlFor={`${id}-swing`} className={LABEL}>
+                  Swings
+                  <FieldSelect id={`${id}-swing`} value={swing} items={[{ value: 'in', label: 'Into the room' }, { value: 'out', label: 'Out of the room' }]} onChange={setSwing} />
+                </label>
+                <label htmlFor={`${id}-hinge`} className={LABEL}>
+                  Hinges at
+                  <FieldSelect
+                    id={`${id}-hinge`}
+                    value={hinge}
+                    items={[
+                      { value: 'start', label: `${capitalise(cornerName(wall))} side` },
+                      { value: 'end', label: `${cornerName(wall) === 'west' ? 'East' : 'South'} side` },
+                    ]}
+                    onChange={setHinge}
+                  />
+                </label>
+              </>
+            ) : null}
           </div>
-          {feature.kind === 'door' ? (
-            <div className="grid grid-cols-2 gap-3">
-              <label htmlFor={`${id}-swing`} className={LABEL}>
-                Swings
-                <FieldSelect id={`${id}-swing`} value={swing} items={[{ value: 'in', label: 'Into the room' }, { value: 'out', label: 'Out of the room' }]} onChange={setSwing} />
-              </label>
-              <label htmlFor={`${id}-hinge`} className={LABEL}>
-                Hinges at
-                <FieldSelect
-                  id={`${id}-hinge`}
-                  value={hinge}
-                  items={[
-                    { value: 'start', label: `${cornerName(wall)} side` },
-                    { value: 'end', label: `${cornerName(wall) === 'west' ? 'east' : 'south'} side` },
-                  ]}
-                  onChange={setHinge}
-                />
-              </label>
-            </div>
-          ) : null}
           <Checkbox checked={confirmed} onCheckedChange={setConfirmed} label="Confirmed by the client or measured" />
           {error ? <p role="alert" className="text-xs text-destructive-strong">{error}</p> : null}
           <DialogFooter>
