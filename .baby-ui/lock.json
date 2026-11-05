@@ -42,53 +42,110 @@
 				"https://baby-ui.pages.dev/r/tokens.json"
 			]
 		},
-		"https://baby-ui.pages.dev/r/theme.json": {
-			"name": "theme",
-			"type": "registry:theme",
+		"https://baby-ui.pages.dev/r/input.json": {
+			"name": "input",
+			"type": "registry:ui",
 			"framework": "react",
-			"installedAt": "2026-11-04T14:33:54.822Z",
-			"itemHash": "89a10671cc505a314a040bf435e01c8ad57d6644351c082aba8261a8946166dc",
-			"files": {},
-			"dependencies": [],
-			"registryDependencies": [
-				"https://baby-ui.pages.dev/r/tokens.json",
-				"https://baby-ui.pages.dev/r/tokens-charts.json",
-				"https://baby-ui.pages.dev/r/tokens-effects.json"
-			]
-		},
-		"https://baby-ui.pages.dev/r/tokens-charts.json": {
-			"name": "tokens-charts",
-			"type": "registry:style",
-			"framework": "react",
-			"installedAt": "2026-11-04T14:33:54.822Z",
-			"itemHash": "e6ad00317aeaf9c9b29335ccac4034d778bd423e5c31b6d2ff4b7f2340e4eb19",
-			"files": {},
-			"dependencies": [],
+			"installedAt": "2026-11-05T06:54:53.646Z",
+			"itemHash": "184483b7184ccb917c2196e869df663c68ebf43eb11dfdf0d747dd8027deef98",
+			"files": {
+				"components/ui/input/index.ts": "7856195014fe1d39433562b2216fed2ab9682b32ce13d52208b5491860eb17df",
+				"components/ui/input/input.tsx": "33a15832e361cb2cd88fb4c06874172db56272e4dbf8c5de44a27c1b9772f32f",
+				"components/ui/input/variants.ts": "9c024dde517ba03e23ff47019ca76c9da1af9f69193520648322a1e74db87632"
+			},
+			"dependencies": [
+				"clsx",
+				"tailwind-merge",
+				"tailwind-variants"
+			],
 			"registryDependencies": [
 				"https://baby-ui.pages.dev/r/tokens.json"
 			]
 		},
-		"https://baby-ui.pages.dev/r/tokens-effects.json": {
-			"name": "tokens-effects",
-			"type": "registry:style",
+		"https://baby-ui.pages.dev/r/native-select.json": {
+			"name": "native-select",
+			"type": "registry:ui",
 			"framework": "react",
-			"installedAt": "2026-11-04T14:33:54.822Z",
-			"itemHash": "6f8cda99c9e8df2291b6f8b02ff8b92e9e75af8f635a98058d529949c2ab8de7",
-			"files": {},
-			"dependencies": [],
+			"installedAt": "2026-11-05T06:54:53.647Z",
+			"itemHash": "64be7467d51fafe28523916b9f6a3596f0c7b9fd4257c85f35c0d0dcd410ba0c",
+			"files": {
+				"components/ui/native-select/index.ts": "05d6ac5789ce11878e9550692d7d842a309d1c0bac63606e9cbfba5bc8f40f24",
+				"components/ui/native-select/native-select.tsx": "1ff09abe71ee0dd1754d3cea172aedbef4a023b4a5093ae2429bee892efed664",
+				"components/ui/native-select/variants.ts": "67531947ec4746c8db78db06f35a25e5343819017f21a75793d086f8a2332be7",
+				"lib/control.ts": "6651c5c33695c4cff0bb3416216e7006ed696724e413160f31460cd97bb67ca6"
+			},
+			"dependencies": [
+				"clsx",
+				"tailwind-merge",
+				"tailwind-variants"
+			],
 			"registryDependencies": [
 				"https://baby-ui.pages.dev/r/tokens.json"
 			]
 		},
-		"https://baby-ui.pages.dev/r/tokens.json": {
-			"name": "tokens",
-			"type": "registry:style",
+		"https://baby-ui.pages.dev/r/tabs.json": {
+			"name": "tabs",
+			"type": "registry:ui",
 			"framework": "react",
-			"installedAt": "2026-11-04T14:33:54.821Z",
-			"itemHash": "b4b891381ccb1f0155bf14a0ec97eececcc5fbf041d5f8c82d8eaf88561cc0b4",
-			"files": {},
-			"dependencies": [],
-			"registryDependencies": []
+			"installedAt": "2026-11-05T06:54:53.645Z",
+			"itemHash": "72d1b4839f66fa501dd6930e57d987d72bb57593611253253fde66f417477032",
+			"files": {
+				"components/ui/tabs/index.ts": "73ea2bf43a0c151514ba3d077496d8a5dea66f4b8e455a619901b8b75bbf2bcd",
+				"components/ui/tabs/tabs.tsx": "93c3aee81559dc0a4f8bb655203ddae106a39a15ea7454ef8044933a1ffb16cf",
+				"components/ui/tabs/variants.ts": "89eee44d47cb8d17e605b4759216a7229d5b619892b4a4fabdbfe483d3953c8e"
+			},
+			"dependencies": [
+				"@base-ui/react",
+				"clsx",
+				"tailwind-merge",
+				"tailwind-variants"
+			],
+			"registryDependencies": [
+				"https://baby-ui.pages.dev/r/tokens.json"
+			]
+		},
+		"https://baby-ui.pages.dev/r/toggle-group.json": {
+			"name": "toggle-group",
+			"type": "registry:ui",
+			"framework": "react",
+			"installedAt": "2026-11-05T06:54:53.647Z",
+			"itemHash": "9b5e4ec447989a0c842ce0fea551d790a35fd90b5567866dc5fa4edccd0bfcb8",
+			"files": {
+				"components/ui/toggle-group/index.ts": "cef67a64b73f417296e1bd7a1bd47fd3f114b4a7514745e404cf6470aa87eb05",
+				"components/ui/toggle-group/segment.ts": "211cffb7cd2ea6cc11cd90fed35e573240f2fb49f70ea7de5ae0e5042b645bd9",
+				"components/ui/toggle-group/toggle-group.tsx": "ef128da78ad654d6a6c83664510dd89a4c07ace44e92101f564853a7e5dea630",
+				"components/ui/toggle-group/variants.ts": "b721063c3f985156d277c79aa5447d4d67c1e604d91163c4c13663f9cab93ce4",
+				"lib/pill.ts": "e92a6a73691d44d7184d1a0a73720e7bde1af949de374c17029b84180571be90"
+			},
+			"dependencies": [
+				"@base-ui/react",
+				"clsx",
+				"tailwind-merge",
+				"tailwind-variants"
+			],
+			"registryDependencies": [
+				"https://baby-ui.pages.dev/r/tokens.json"
+			]
+		},
+		"https://baby-ui.pages.dev/r/tooltip.json": {
+			"name": "tooltip",
+			"type": "registry:ui",
+			"framework": "react",
+			"installedAt": "2026-11-05T06:54:53.646Z",
+			"itemHash": "2088e9b936fa3c6a0ba62f441e911455fa6f75ac298f01125bd0b2e0b7e98ad0",
+			"files": {
+				"components/ui/tooltip/index.ts": "b158fc74e62cdac4b94f87c7ba520226aa600d1fa3667fee560822228cde9aaf",
+				"components/ui/tooltip/tooltip.tsx": "9888800b48660cf22cb7b34bffebd69a85c8f23b7c941d3a061e0959ff9dca13"
+			},
+			"dependencies": [
+				"@base-ui/react",
+				"clsx",
+				"tailwind-merge",
+				"tailwind-variants"
+			],
+			"registryDependencies": [
+				"https://baby-ui.pages.dev/r/tokens.json"
+			]
 		}
 	}
 }
