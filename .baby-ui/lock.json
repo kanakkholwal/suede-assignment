@@ -222,6 +222,27 @@
 				"https://baby-ui.pages.dev/r/tokens.json"
 			]
 		},
+		"https://baby-ui.pages.dev/r/skeleton.json": {
+			"name": "skeleton",
+			"type": "registry:ui",
+			"framework": "react",
+			"installedAt": "2026-11-05T18:13:31.974Z",
+			"itemHash": "34c76ba58431f9b5104eef9d7ae3de306457d58fd2bb91a7eec7ae781a7e9d5f",
+			"files": {
+				"components/ui/skeleton/index.ts": "835918e027916eaa8a3c088e712de99b651e0d6a7c3bea69e8a74c383df0a58f",
+				"components/ui/skeleton/skeleton.tsx": "36be8ab9ec197806b3e4ec9dfee7296e9e1e3df99b5d7fd2a4b56569a3bf4609",
+				"components/ui/skeleton/variants.ts": "f933c1df7fd1c3631b424215663897836d4507d53b580f14484a651e10dd2dc2",
+				"lib/cn.ts": "0fca478853f3fc4310e40ebff727a53da7ec677938f4e3e0d5ecaa62e936a199"
+			},
+			"dependencies": [
+				"clsx",
+				"tailwind-merge",
+				"tailwind-variants"
+			],
+			"registryDependencies": [
+				"https://baby-ui.pages.dev/r/tokens.json"
+			]
+		},
 		"https://baby-ui.pages.dev/r/tabs.json": {
 			"name": "tabs",
 			"type": "registry:ui",
