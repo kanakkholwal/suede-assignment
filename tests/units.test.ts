@@ -22,7 +22,8 @@ describe('formatting', () => {
   });
 
   it('marks unknown dimensions instead of inventing them', () => {
-    expect(formatDimensionTriple(96, 38.25, null)).toBe('96 × 38¼ × ? in');
+    expect(formatDimensionTriple(96, 38.25, null)).toBe('96 × 38¼ in');
+    expect(formatDimensionTriple(null, 38.25, 30)).toBe('? × 38¼ × 30 in');
   });
 });
 

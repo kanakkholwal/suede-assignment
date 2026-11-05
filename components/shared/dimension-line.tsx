@@ -37,7 +37,7 @@ export function SummaryDimensionLine({ summary, showUnknown = false, className }
   return (
     <p className={cn('flex min-w-0 flex-wrap items-center gap-x-2 gap-y-1 text-xs text-muted-foreground', className)}>
       <span className="tabular-nums text-foreground">
-        {`${rangeText(summary.width)} × ${rangeText(summary.depth)} × ${rangeText(summary.height)} in`}
+        {`${rangeText(summary.width)} × ${rangeText(summary.depth)}${summary.height ? ` × ${rangeText(summary.height)}` : ''} in`}
       </span>
       <SourceBadge source={summaryConfidence(summary)} detail={partial ? `${summary.unmeasuredVariants} of ${summary.variantCount} options have no size` : undefined} />
     </p>

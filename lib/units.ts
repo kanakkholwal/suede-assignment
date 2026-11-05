@@ -40,6 +40,8 @@ export function formatDimensionTriple(
   height: number | null,
 ): string {
   const part = (value: number | null) => (value === null ? '?' : formatInchValue(value));
+  // An unknown height is common; the footprint alone reads cleaner than a trailing "?".
+  if (height === null && width !== null && depth !== null) return `${part(width)} × ${part(depth)} in`;
   return `${part(width)} × ${part(depth)} × ${part(height)} in`;
 }
 
