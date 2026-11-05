@@ -22,7 +22,7 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
         <TooltipProvider delay={400}>
           <RoomProvider>
             <div className="flex min-h-svh flex-col lg:h-svh">
-              <Suspense fallback={<div className="h-16 shrink-0" />}>
+              <Suspense fallback={<div className="h-13 shrink-0" />}>
                 <AppBar />
               </Suspense>
               <div className="flex min-h-0 flex-1 flex-col px-1.5 pb-1.5 print:p-0">{children}</div>
