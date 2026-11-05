@@ -8,6 +8,19 @@
   --suede: #886b54;
   --suede-deep: #6b5544;
   --brand-soft: #f1ede7;
+  --canvas: #eee9e2;
+  --plan-floor: #fffdfa;
+  --plan-wall: #2c241f;
+  --plan-ink: #3a2f28;
+  --plan-label: #5b5048;
+  --plan-glass: #f2f6f9;
+  --plan-glass-line: #7d93a3;
+  --plan-fixture: #e9e3dc;
+  --piece-soft: #e6d7c5;
+  --piece: #d8c6b2;
+  --piece-firm: #c5af96;
+  --piece-rug: #efe5d8;
+  --piece-selected: #d2bba3;
   --background: var(--paper);
   --foreground: var(--ink);
   --card: #ffffff;
@@ -17,7 +30,7 @@
   /* Brand ink measured: 4.91:1 on card, 4.51:1 on paper. Status hues collide under CVD; pair with icon + label. */
   --primary: var(--suede);
   --primary-foreground: #ffffff;
-  --muted: #e3e3e3;
+  --muted: #ece6df;
   --muted-foreground: #5b5048;
   --accent: var(--brand-soft);
   --accent-foreground: var(--suede-deep);
@@ -25,7 +38,7 @@
   --input: #8f857b;
   --ring: var(--suede);
   --destructive: #a4473a;
-  --radius: 0.5rem;
+  --radius: 0.625rem;
   --segment: #ffffff;
   --border-strong: #d9d3cd;
   --destructive-strong: color-mix(in oklab, var(--destructive) 64%, var(--foreground));
@@ -142,6 +155,8 @@
   --color-info-foreground: var(--info-foreground);
   --color-info-strong: var(--info-strong);
   --color-segment: var(--segment);
+  --color-canvas: var(--canvas);
+  --color-paper: var(--paper);
   --color-primary-hover: var(--primary-hover);
   --shadow-surface: var(--surface-shadow);
   --shadow-overlay: var(--overlay-shadow);
@@ -238,11 +253,212 @@
   --text-6xl--line-height: 1;
   --font-body: var(--font-body);
   --radius-4xl: calc(var(--radius) * 2.6);
+  @keyframes spinner {
+  to {
+    rotate: 360deg;
+    }
+  }
+  @keyframes rolling-digits-in {
+  0% {
+    opacity: 0;
+    transform: translateY(var(--rd-from)) scale(0.84);
+    }
+  5% {
+    opacity: 0.258;
+    transform: translateY(calc(var(--rd-from) * 0.742)) scale(0.881);
+    }
+  10% {
+    opacity: 0.739;
+    transform: translateY(calc(var(--rd-from) * 0.261)) scale(0.958);
+    }
+  15% {
+    opacity: 1;
+    transform: translateY(calc(var(--rd-from) * -0.118)) scale(1.019);
+    }
+  20% {
+    opacity: 1;
+    transform: translateY(calc(var(--rd-from) * -0.267)) scale(1.043);
+    }
+  25% {
+    opacity: 1;
+    transform: translateY(calc(var(--rd-from) * -0.225)) scale(1.036);
+    }
+  30% {
+    opacity: 1;
+    transform: translateY(calc(var(--rd-from) * -0.098)) scale(1.016);
+    }
+  35% {
+    opacity: 0.985;
+    transform: translateY(calc(var(--rd-from) * 0.015)) scale(0.998);
+    }
+  40% {
+    opacity: 0.931;
+    transform: translateY(calc(var(--rd-from) * 0.069)) scale(0.989);
+    }
+  45% {
+    opacity: 0.934;
+    transform: translateY(calc(var(--rd-from) * 0.066)) scale(0.989);
+    }
+  50% {
+    opacity: 0.966;
+    transform: translateY(calc(var(--rd-from) * 0.034)) scale(0.995);
+    }
+  55% {
+    opacity: 0.999;
+    transform: translateY(calc(var(--rd-from) * 0.001)) scale(1);
+    }
+  60% {
+    opacity: 1;
+    transform: translateY(calc(var(--rd-from) * -0.017)) scale(1.003);
+    }
+  65% {
+    opacity: 1;
+    transform: translateY(calc(var(--rd-from) * -0.019)) scale(1.003);
+    }
+  70% {
+    opacity: 1;
+    transform: translateY(calc(var(--rd-from) * -0.011)) scale(1.002);
+    }
+  75% {
+    opacity: 1;
+    transform: translateY(calc(var(--rd-from) * -0.002)) scale(1);
+    }
+  80% {
+    opacity: 0.996;
+    transform: translateY(calc(var(--rd-from) * 0.004)) scale(0.999);
+    }
+  85% {
+    opacity: 0.995;
+    transform: translateY(calc(var(--rd-from) * 0.005)) scale(0.999);
+    }
+  90% {
+    opacity: 0.996;
+    transform: translateY(calc(var(--rd-from) * 0.004)) scale(0.999);
+    }
+  95% {
+    opacity: 0.999;
+    transform: translateY(calc(var(--rd-from) * 0.001)) scale(1);
+    }
+  }
+  @keyframes rolling-digits-out {
+  5% {
+    opacity: 0.883;
+    transform: translateY(calc(var(--rd-to) * 0.117)) scale(0.981);
+    }
+  10% {
+    opacity: 0.634;
+    transform: translateY(calc(var(--rd-to) * 0.366)) scale(0.941);
+    }
+  15% {
+    opacity: 0.368;
+    transform: translateY(calc(var(--rd-to) * 0.632)) scale(0.899);
+    }
+  20% {
+    opacity: 0.146;
+    transform: translateY(calc(var(--rd-to) * 0.854)) scale(0.863);
+    }
+  25% {
+    opacity: 0;
+    transform: translateY(calc(var(--rd-to) * 1.003)) scale(0.839);
+    }
+  30% {
+    opacity: 0;
+    transform: translateY(calc(var(--rd-to) * 1.084)) scale(0.827);
+    }
+  35% {
+    opacity: 0;
+    transform: translateY(calc(var(--rd-to) * 1.109)) scale(0.823);
+    }
+  40% {
+    opacity: 0;
+    transform: translateY(calc(var(--rd-to) * 1.1)) scale(0.824);
+    }
+  45% {
+    opacity: 0;
+    transform: translateY(calc(var(--rd-to) * 1.074)) scale(0.828);
+    }
+  50% {
+    opacity: 0;
+    transform: translateY(calc(var(--rd-to) * 1.045)) scale(0.833);
+    }
+  55% {
+    opacity: 0;
+    transform: translateY(calc(var(--rd-to) * 1.019)) scale(0.837);
+    }
+  60% {
+    opacity: 0;
+    transform: translateY(calc(var(--rd-to) * 1.002)) scale(0.84);
+    }
+  65% {
+    opacity: 0.008;
+    transform: translateY(calc(var(--rd-to) * 0.992)) scale(0.841);
+    }
+  70% {
+    opacity: 0.012;
+    transform: translateY(calc(var(--rd-to) * 0.988)) scale(0.842);
+    }
+  75% {
+    opacity: 0.011;
+    transform: translateY(calc(var(--rd-to) * 0.989)) scale(0.842);
+    }
+  80% {
+    opacity: 0.009;
+    transform: translateY(calc(var(--rd-to) * 0.991)) scale(0.841);
+    }
+  85% {
+    opacity: 0.005;
+    transform: translateY(calc(var(--rd-to) * 0.995)) scale(0.841);
+    }
+  90% {
+    opacity: 0.003;
+    transform: translateY(calc(var(--rd-to) * 0.997)) scale(0.84);
+    }
+  95% {
+    opacity: 0;
+    transform: translateY(calc(var(--rd-to) * 1)) scale(0.84);
+    }
+  100% {
+    opacity: 0;
+    transform: translateY(calc(var(--rd-to) * 1)) scale(0.84);
+    }
+  }
+  @keyframes rolling-digits-cell {
+  from {
+    opacity: 0;
+    grid-template-columns: 0fr;
+    }
+  }
+  @keyframes rolling-digits-cell-close {
+  to {
+    opacity: 0;
+    grid-template-columns: 0fr;
+    }
+  }
+  @keyframes fade-in {
+  from {
+    opacity: 0;
+    }
+  }
+  @keyframes text-fade-out {
+  from {
+    opacity: 1;
+    }
+  to {
+    opacity: 0;
+    }
+  }
+  @keyframes skeleton-shimmer {
+  to {
+    background-position: -200% 0;
+    }
+  }
 }
 
 @layer base {
   * {
     @apply border-border outline-ring/50;
+    scrollbar-width: thin;
+    scrollbar-color: color-mix(in oklab, var(--foreground) 16%, transparent) transparent;
   }
 
   body {
@@ -258,12 +474,8 @@
   }
 }
 
-.surface-app {
-  --background: var(--paper-app);
-  background-color: var(--background);
-}
 
-  :root {
+:root {
   --primary-hover: color-mix(in oklab, var(--primary) 90%, var(--foreground));
 }
 
@@ -283,5 +495,173 @@
     --popover-enter-scale: 1;
     --popover-exit-scale: 1;
     --modal-enter-scale: 1;
+  }
+}
+:root {
+  --primary-hover: color-mix(in oklab, var(--primary) 90%, var(--foreground));
+}
+
+@layer baby-ui {
+  .scrollbar-none {
+    scrollbar-width: none;
+  }
+  .scrollbar-none::-webkit-scrollbar {
+    display: none;
+  }
+  .group\/slider:has([data-slot="slider-thumb"]:is([data-active], [data-dragging])) .slider-glide {
+    --slider-glide: var(--duration-instant);
+  }
+  .spinner {
+    animation: spinner 850ms linear infinite;
+  }
+
+@media (prefers-reduced-motion: reduce) {
+  .spinner {
+    animation-duration: 2s;
+    }
+  .rolling-digits-in, .rolling-digits-cell-in {
+    animation: fade-in 160ms var(--ease-ui-out) both;
+    }
+  .rolling-digits-out, .rolling-digits-cell-out {
+    animation: text-fade-out var(--duration-exit) var(--ease-ui-out) both;
+    }
+  .checkbox-check path {
+    transition: none;
+    stroke-dashoffset: 0;
+    }
+  .skeleton-shimmer, .progress-sweep, .alert-in {
+    animation: none;
+    }
+  .menu-check path, .menu-dot {
+    transition: none;
+    }
+  }
+  .rolling-digits-in {
+    animation: rolling-digits-in 1239ms linear both;
+  }
+  .rolling-digits-out {
+    animation: rolling-digits-out 822ms linear both;
+  }
+  .rolling-digits-cell-in {
+    animation: rolling-digits-cell var(--duration-overlay) var(--ease-ui-out) both;
+  }
+  .rolling-digits-cell-out {
+    animation: rolling-digits-cell-close var(--duration-overlay) var(--ease-ui-out) both;
+  }
+  .checkbox-check path {
+    stroke-dasharray: 12;
+    stroke-dashoffset: 12;
+    transition: stroke-dashoffset 200ms var(--ease-ui-out) 60ms, d 220ms var(--ease-ui-out);
+  }
+  .checkbox-check[data-on="true"] path {
+    stroke-dashoffset: 0;
+  }
+  .checkbox-check[data-mixed="true"] path {
+    d: path("M3 6 L6 6 L9 6");
+  }
+  .scroll-area {
+    scrollbar-width: thin;
+    scrollbar-color: var(--border-strong) transparent;
+  }
+  .skeleton-shimmer {
+    background-image: linear-gradient( 90deg, transparent 0%, color-mix(in oklch, var(--foreground) 7%, transparent) 50%, transparent 100% );
+    background-size: 200% 100%;
+    animation: skeleton-shimmer 2s linear infinite;
+  }
+  .menu-check path {
+    stroke-dasharray: 1;
+    stroke-dashoffset: 1;
+    transition: stroke-dashoffset 250ms linear;
+  }
+  .menu-check[data-on="true"] path, [data-checked]:not([data-checked="false"]) .menu-check path, [data-slot="select-item"][data-selected] .menu-check path {
+    stroke-dashoffset: 0;
+  }
+  .menu-dot {
+    scale: 0.7;
+    opacity: 0;
+    transition: scale 250ms var(--ease-out-quart), opacity 250ms var(--ease-out-quart);
+  }
+  .menu-dot[data-on="true"], [data-checked]:not([data-checked="false"]) .menu-dot {
+    scale: 1;
+    opacity: 1;
+  }
+}
+
+/* Suede app layer: entrances and view transitions on baby-ui motion tokens. */
+@keyframes rise {
+  from {
+    opacity: 0;
+    translate: 0 var(--enter-lift);
+  }
+}
+
+@keyframes pop {
+  from {
+    opacity: 0;
+    scale: var(--enter-scale);
+  }
+}
+
+@layer components {
+  .rise {
+    animation: rise var(--duration-spring-snappy) var(--ease-spring-snappy) both;
+    animation-delay: calc(var(--i, 0) * var(--stagger-step));
+  }
+
+  /* Rows and chips mounted after first paint ease in; removal is instant. */
+  .enter {
+    transition-property: opacity, translate, scale;
+    transition-duration: var(--duration-slow);
+    transition-timing-function: var(--ease-ui-out);
+    @starting-style {
+      opacity: 0;
+      translate: 0 calc(var(--enter-lift) / 2);
+    }
+  }
+
+  .pop {
+    animation: pop var(--duration-base) var(--ease-ui-out) both;
+  }
+
+  /* Disclosure: animate height through grid rows instead of mounting. */
+  .collapse {
+    display: grid;
+    grid-template-rows: 0fr;
+    transition: grid-template-rows var(--duration-collapse) var(--ease-out-quad), opacity var(--duration-collapse) var(--ease-out-quad);
+    opacity: 0;
+    &[data-open='true'] {
+      grid-template-rows: 1fr;
+      opacity: 1;
+    }
+    & > * {
+      min-height: 0;
+      overflow: hidden;
+    }
+  }
+}
+
+::view-transition-old(root) {
+  animation: 100ms var(--ease-ui-out) both fade-out;
+}
+
+::view-transition-new(root) {
+  animation: var(--duration-slow) var(--ease-ui-out) both rise;
+}
+
+::view-transition-group(app-bar) {
+  animation: none;
+}
+
+@keyframes fade-out {
+  to {
+    opacity: 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  ::view-transition-group(*),
+  ::view-transition-old(*),
+  ::view-transition-new(*) {
+    animation: none;
   }
 }
