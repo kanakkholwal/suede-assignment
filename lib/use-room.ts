@@ -1,5 +1,6 @@
 'use client';
 
+import { DEFAULT_ROOM_PRESET, type RoomPresetId } from '@/data/room-presets';
 import type { DimensionValues } from '@/lib/dimensions';
 import type { MeasurementStatus, RoomFeaturePatch, RoomMutation, RoomSnapshot, Rotation } from '@/lib/room-state';
 import { type PendingMutations, useSnapshotStore } from '@/lib/use-snapshot-store';
@@ -10,9 +11,9 @@ function mutationBlocked(initialized: boolean, pending: PendingMutations<RoomMut
 
 export type RoomStore = ReturnType<typeof useRoom>;
 
-export function useRoom() {
+export function useRoom(preset: RoomPresetId = DEFAULT_ROOM_PRESET) {
   const store = useSnapshotStore<RoomSnapshot, RoomMutation>({
-    endpoint: '/api/room',
+    endpoint: preset === DEFAULT_ROOM_PRESET ? '/api/room' : `/api/room?room=${preset}`,
     loadError: 'Unable to load the room. Please try again.',
     mutateError: 'Unable to update the room. Please try again.',
     isBlocked: mutationBlocked,

@@ -32,6 +32,15 @@ export function useSnapshotStore<S, M>({ endpoint, loadError, mutateError, isBlo
   const queueRef = useRef<Promise<unknown>>(Promise.resolve());
   const lifecycleRef = useRef<AbortController | null>(null);
   const isBlockedRef = useRef(isBlocked);
+  const [loadedEndpoint, setLoadedEndpoint] = useState(endpoint);
+
+  // A new endpoint (another room) must never show or mutate the previous snapshot.
+  if (loadedEndpoint !== endpoint) {
+    setLoadedEndpoint(endpoint);
+    setSnapshot(null);
+    setLoading(true);
+    setError(null);
+  }
 
   useEffect(() => {
     isBlockedRef.current = isBlocked;
