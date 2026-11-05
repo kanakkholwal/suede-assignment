@@ -13,6 +13,7 @@ import { SelectionBar } from '@/components/planner/selection-bar';
 import { TapeOutSheet } from '@/components/planner/tape-out-sheet';
 import { useRoomStore } from '@/components/room/room-provider';
 import { type SegmentOption, SegmentedControl } from '@/components/shared/segmented-control';
+import { CountBadge } from '@/components/shared/count-badge';
 import { PlannerSkeleton } from '@/components/shared/skeletons';
 import { Island } from '@/components/shell/island';
 import { Button } from '@/components/ui/button';
@@ -50,15 +51,7 @@ const VIEW_COPY: Record<PlannerView, { title: string; lede: string }> = {
 const OPPOSITE: Record<Wall, Wall> = { north: 'south', south: 'north', east: 'west', west: 'east' };
 
 function Count({ value, tone = 'muted' }: { value: number; tone?: 'muted' | 'alert' }) {
-  if (!value) return null;
-  return (
-    <span
-      key={value}
-      className={`pop ml-1 grid h-4.5 min-w-4.5 place-items-center rounded-full px-1 text-xs tabular-nums ${tone === 'alert' ? 'bg-destructive text-destructive-foreground' : 'bg-foreground/[0.07] text-muted-foreground'}`}
-    >
-      {value}
-    </span>
-  );
+  return value ? <CountBadge tone={tone} className="ml-1">{value}</CountBadge> : null;
 }
 
 export function RoomPlanner() {
