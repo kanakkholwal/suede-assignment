@@ -7,6 +7,7 @@ import { CatalogDetailDialog } from '@/components/catalog/catalog-detail-dialog'
 import { TILE_GRID } from '@/components/catalog/product-tile';
 import { LibraryCard } from '@/components/library/library-card';
 import { LibraryCollections } from '@/components/library/library-collections';
+import { TileGridSkeleton } from '@/components/shared/skeletons';
 import { Island } from '@/components/shell/island';
 import { Input } from '@/components/ui/input';
 import type { CatalogProduct } from '@/data/product-types';
@@ -54,7 +55,7 @@ export function LibraryApp() {
         <div className="min-h-0 flex-1 p-3 sm:p-4 lg:overflow-y-auto">
           {library.error ? <p role="alert" className="mb-4 rounded-lg bg-destructive/[0.06] p-3 text-sm text-destructive-strong">{library.error}</p> : null}
           {library.loading ? (
-            <p role="status" aria-label="Loading library" className="py-4 text-sm text-muted-foreground">Loading library…</p>
+            <TileGridSkeleton label="Loading library" count={4} />
           ) : visibleProducts.length ? (
             <div className={TILE_GRID}>
               {visibleProducts.map((product) => <LibraryCard key={product.id} product={product} collections={library.state.collections} isBlocked={library.isBlocked} onView={setDetailProduct} onRemove={library.toggleSaved} onAddToCollection={library.addToCollection} />)}

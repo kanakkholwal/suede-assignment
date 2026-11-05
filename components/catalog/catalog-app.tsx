@@ -14,6 +14,7 @@ import type { ShortlistContext } from '@/components/room/add-to-room-button';
 import { useRoomStore } from '@/components/room/room-provider';
 import { RoomShortlist } from '@/components/room/room-shortlist';
 import { SideSheet } from '@/components/shared/side-sheet';
+import { TileGridSkeleton } from '@/components/shared/skeletons';
 import { Island } from '@/components/shell/island';
 import { Button, button } from '@/components/ui/button';
 import type { CatalogProduct } from '@/data/product-types';
@@ -149,7 +150,7 @@ export function CatalogApp() {
           {catalog.error ? <p role="alert" className="mb-4 rounded-lg border border-destructive/30 bg-destructive/[0.06] p-3 text-sm text-destructive-strong">{catalog.error}</p> : null}
           {library.error ? <p role="alert" className="mb-4 text-sm text-destructive-strong">{library.error}</p> : null}
           {catalog.loading ? (
-            <p role="status" aria-label="Loading catalog" className="py-4 text-sm text-muted-foreground">Loading catalog…</p>
+            <TileGridSkeleton label="Loading catalog" />
           ) : catalog.error ? null : view === 'products' ? (
             <div className="flex flex-col gap-8">
               {sizedProducts.length || !unsizedProducts.length ? (

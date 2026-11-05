@@ -6,6 +6,7 @@ import type { ReactNode } from 'react';
 import { useRoomStore } from '@/components/room/room-provider';
 import { useRoomHref } from '@/lib/url-state';
 import { ShortlistItem } from '@/components/room/shortlist-item';
+import { ShortlistSkeleton } from '@/components/shared/skeletons';
 import { Button } from '@/components/ui/button';
 import { formatCalendarDate } from '@/lib/format';
 import { countGaps, itemGaps } from '@/lib/shortlist-gaps';
@@ -36,7 +37,7 @@ export function RoomShortlist({ capturedAt, onDimensionsChanged }: RoomShortlist
   const roomHref = useRoomHref();
   const { snapshot } = room;
 
-  if (room.loading) return <p role="status" className="p-4 text-sm text-muted-foreground">Loading room…</p>;
+  if (room.loading) return <ShortlistSkeleton />;
   if (!snapshot) return <p role="alert" className="p-4 text-sm text-destructive-strong">{room.error ?? 'Room unavailable.'}</p>;
 
   const snapshotDate = capturedAt ? formatCalendarDate(capturedAt) : 'the snapshot date';

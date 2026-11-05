@@ -13,10 +13,12 @@ import { SelectionBar } from '@/components/planner/selection-bar';
 import { TapeOutSheet } from '@/components/planner/tape-out-sheet';
 import { useRoomStore } from '@/components/room/room-provider';
 import { type SegmentOption, SegmentedControl } from '@/components/shared/segmented-control';
+import { PlannerSkeleton } from '@/components/shared/skeletons';
 import { Island } from '@/components/shell/island';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import type { CatalogProduct } from '@/data/product-types';
+import { roomPreset } from '@/data/room-presets';
 import type { DimensionValues } from '@/lib/dimensions';
 import { evaluateFit } from '@/lib/fit-rules';
 import { frontSide } from '@/lib/geometry';
@@ -25,7 +27,7 @@ import { defaultPlacement, type Placement, type PlanPiece, planPieces, rotateClo
 import type { RoomItem, Wall } from '@/lib/room-state';
 import { WALLS } from '@/lib/room-state';
 import { formatFeetInches } from '@/lib/units';
-import { type InspectorTab, type PlannerView, usePlannerUrlState } from '@/lib/url-state';
+import { type InspectorTab, type PlannerView, usePlannerUrlState, useRoomPreset } from '@/lib/url-state';
 
 const VIEWS: readonly SegmentOption<PlannerView>[] = [
   { value: 'plan', label: 'Plan', icon: MapIcon },
@@ -62,6 +64,8 @@ function Count({ value, tone = 'muted' }: { value: number; tone?: 'muted' | 'ale
 export function RoomPlanner() {
   const room = useRoomStore();
   const [url, setUrl] = usePlannerUrlState();
+  const [preset] = useRoomPreset();
+  const pending = roomPreset(preset).template;
   const { view, tab, wall: chosenWall, piece: selectedId } = url;
   const setView = useCallback((next: PlannerView) => void setUrl({ view: next }), [setUrl]);
   const setSelectedId = useCallback((piece: string | null) => void setUrl({ piece }), [setUrl]);
@@ -94,9 +98,10 @@ export function RoomPlanner() {
   );
 
   if (!snapshot) {
+    if (room.loading) return <PlannerSkeleton ratio={pending.lengthIn / pending.widthIn} />;
     return (
       <main className="flex flex-1 items-center justify-center">
-        {room.loading ? <p role="status" className="text-sm text-muted-foreground">Loading room…</p> : <p role="alert" className="text-sm text-destructive-strong">{room.error}</p>}
+        <p role="alert" className="text-sm text-destructive-strong">{room.error}</p>
       </main>
     );
   }
