@@ -3,6 +3,7 @@
 import { BookmarkMinus, FolderPlus } from '@/components/icons';
 
 import { ProductTile } from '@/components/catalog/product-tile';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import type { CatalogProduct } from '@/data/product-types';
 import { formatPrice, startingPriceCents } from '@/lib/format';
 import type { LibraryCollection } from '@/lib/library-state';
@@ -43,24 +44,26 @@ export function LibraryCard({ product, collections, isBlocked, onView, onRemove,
           <BookmarkMinus className="size-3.5" aria-hidden="true" /> Remove
         </button>
         {availableCollections.length ? (
-          <label className="ml-auto inline-flex min-w-0 items-center gap-1.5 rounded-md px-1.5 py-1 text-xs text-muted-foreground transition-colors duration-(--duration-fast) focus-within:ring-2 focus-within:ring-ring hover:bg-foreground/[0.06] hover:text-foreground">
-            <FolderPlus className="size-3.5 shrink-0" aria-hidden="true" />
-            <span className="sr-only">Add {product.name} to collection</span>
-            <select
-              value=""
-              onChange={(event) => {
-                if (event.target.value) onAddToCollection(event.target.value, product.id);
-              }}
-              className="max-w-28 min-w-0 bg-transparent text-xs outline-none"
-            >
-              <option value="">Add to…</option>
+          <Select
+            size="xs"
+            value=""
+            items={availableCollections.map((collection) => ({ value: collection.id, label: collection.name }))}
+            onValueChange={(collectionId) => {
+              if (collectionId) onAddToCollection(collectionId, product.id);
+            }}
+          >
+            <SelectTrigger variant="ghost" aria-label={`Add ${product.name} to collection`} className="ml-auto w-auto gap-1 text-muted-foreground">
+              <FolderPlus className="size-3.5" aria-hidden="true" />
+              <SelectValue placeholder="Add to…" />
+            </SelectTrigger>
+            <SelectContent>
               {availableCollections.map((collection) => (
-                <option key={collection.id} value={collection.id} disabled={isBlocked({ operation: 'addToCollection', collectionId: collection.id, productId: product.id })}>
+                <SelectItem key={collection.id} value={collection.id} disabled={isBlocked({ operation: 'addToCollection', collectionId: collection.id, productId: product.id })}>
                   {collection.name}
-                </option>
+                </SelectItem>
               ))}
-            </select>
-          </label>
+            </SelectContent>
+          </Select>
         ) : null}
       </div>
       }

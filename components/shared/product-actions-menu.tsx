@@ -5,6 +5,7 @@ import { useCallback, useEffect, useLayoutEffect, useRef, useState, type Keyboar
 import { createPortal } from 'react-dom';
 
 import type { CatalogProduct } from '@/data/product-types';
+import { Input } from '@/components/ui/input';
 import type { LibraryCollection } from '@/lib/library-state';
 import type { IsLibraryMutationBlocked } from '@/lib/use-library';
 
@@ -210,7 +211,8 @@ export function ProductActionsMenu({
               <label className="sr-only" htmlFor={`collection-${product.id}`}>
                 Collection name
               </label>
-              <input
+              <Input
+                size="sm"
                 id={`collection-${product.id}`}
                 autoFocus
                 value={name}
@@ -221,7 +223,7 @@ export function ProductActionsMenu({
                   if (event.key === 'Escape') { createRevision.current += 1; setCreating(false); }
                 }}
                 placeholder="Collection name"
-                className="h-8 w-full rounded-md border border-input bg-field px-2 text-base outline-none transition-[border-color,box-shadow] duration-(--duration-fast) focus:border-ring focus:ring-3 focus:ring-ring/20 md:text-sm"
+                className="w-full"
               />
               <div className="mt-2 flex justify-end gap-1">
                 <button

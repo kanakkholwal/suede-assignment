@@ -3,6 +3,7 @@
 import { Check, FolderPlus, Pencil, Plus, Trash2, X } from '@/components/icons';
 import { useRef, useState, type Dispatch, type SetStateAction } from 'react';
 
+import { Input } from '@/components/ui/input';
 import type { LibraryCollection } from '@/lib/library-state';
 import type { IsLibraryMutationBlocked } from '@/lib/use-library';
 
@@ -96,13 +97,14 @@ export function LibraryCollections({
               }}
             >
               <label className="sr-only" htmlFor={`rename-${collection.id}`}>Rename {collection.name}</label>
-              <input
+              <Input
+                size="sm"
                 id={`rename-${collection.id}`}
                 autoFocus
                 value={editingName}
                 onChange={(event) => { editRevision.current += 1; setEditingName(event.target.value); }}
                 maxLength={60}
-                className="h-8 w-full rounded-md border border-input bg-field px-2 text-base outline-none transition-[border-color,box-shadow] duration-(--duration-fast) focus:border-ring focus:ring-3 focus:ring-ring/20 md:text-sm"
+                className="w-full"
               />
               <div className="mt-2 flex items-center justify-between gap-1">
                 <button type="button" aria-label={`Delete ${collection.name}`} disabled={isBlocked({ operation: 'deleteCollection', collectionId: collection.id })} onClick={() => deleteCollection(collection)} className="inline-flex items-center gap-1 rounded-md px-1.5 py-1 text-xs text-destructive-strong outline-none hover:bg-destructive/10 focus-visible:ring-2 focus-visible:ring-ring disabled:opacity-50">
@@ -144,7 +146,7 @@ export function LibraryCollections({
           }}
         >
           <label htmlFor="library-collection-name" className="text-xs text-muted-foreground">New collection name</label>
-          <input id="library-collection-name" autoFocus value={name} onChange={(event) => { createRevision.current += 1; setName(event.target.value); }} maxLength={60} placeholder="e.g. Bedroom ideas" className="mt-1.5 h-8 w-full rounded-md border border-input bg-field px-2 text-base outline-none transition-[border-color,box-shadow] duration-(--duration-fast) focus:border-ring focus:ring-3 focus:ring-ring/20 md:text-sm" />
+          <Input size="sm" id="library-collection-name" autoFocus value={name} onChange={(event) => { createRevision.current += 1; setName(event.target.value); }} maxLength={60} placeholder="e.g. Bedroom ideas" className="mt-1.5 w-full" />
           <div className="mt-2 flex items-center justify-end gap-2">
             <button type="button" onClick={() => { createRevision.current += 1; setCreating(false); }} className="rounded-md px-2 py-1 text-xs text-muted-foreground outline-none hover:bg-foreground/[0.06] hover:text-foreground focus-visible:ring-2 focus-visible:ring-ring">Cancel</button>
             <button type="submit" disabled={!name.trim() || isBlocked({ operation: 'createCollection', name: name.trim() })} className="rounded-md bg-primary px-2.5 py-1.5 text-xs font-medium text-primary-foreground outline-none hover:bg-primary-hover focus-visible:ring-2 focus-visible:ring-ring active:scale-(--press-scale-sm) disabled:opacity-50">Create collection</button>
