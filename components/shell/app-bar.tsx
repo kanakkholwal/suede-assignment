@@ -77,7 +77,7 @@ function StepNav({ active }: { active: WorkflowStep | null }) {
                 >
                   {index + 1}
                 </span>
-                <span className="flex flex-col leading-tight">
+                <span className={cn('flex flex-col leading-tight', !current && 'sr-only sm:not-sr-only')}>
                   <span className="text-sm font-medium">{step.label}</span>
                   <span className="hidden text-xs text-muted-foreground tabular-nums md:block">{step.status(progress)}</span>
                 </span>
@@ -112,7 +112,7 @@ export function AppBar() {
 
   return (
     <header className="flex h-16 shrink-0 items-center gap-3 px-3 [view-transition-name:app-bar] sm:gap-5 sm:px-4 print:hidden">
-      <div className="flex min-w-0 flex-1 items-center gap-5">
+      <div className="flex shrink-0 items-center gap-5 sm:min-w-0 sm:flex-1 sm:shrink">
         <Link
           href="/catalog"
           aria-label="Suede catalog"
@@ -123,7 +123,7 @@ export function AppBar() {
         <RoomChip />
       </div>
       <StepNav active={activeStep(pathname, view)} />
-      <div className="flex flex-1 justify-end">
+      <div className="flex shrink-0 justify-end sm:flex-1">
         <Tooltip>
           <TooltipTrigger
             render={

@@ -31,8 +31,8 @@ export function CardFitDetails({ product, variantId, priceLabel, shortlist }: Ca
           ))}
         </ul>
       ) : null}
-      <div className="mt-auto flex items-center justify-between gap-2 pt-1.5">
-        <span className="min-w-0 truncate text-sm tabular-nums text-foreground">{priceLabel}</span>
+      <div className="mt-auto flex flex-wrap items-center justify-between gap-x-2 gap-y-1.5 pt-1.5">
+        <span className="text-sm tabular-nums text-foreground">{priceLabel}</span>
         {shortlist ? (
           <AddToRoomButton
             productName={product.name}
