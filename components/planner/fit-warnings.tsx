@@ -11,6 +11,8 @@ const SEVERITY: Record<FitSeverity, { label: string; possible: string; icon: Luc
   tip: { label: 'Tip', possible: 'Tip', icon: Lightbulb, tone: 'text-muted-foreground' },
 };
 
+const SUMMARY_NOUN: Record<FitSeverity, string> = { conflict: 'conflict', tight: 'tight', tip: 'tip' };
+
 interface FitWarningsProps {
   warnings: readonly FitWarning[];
   placedCount: number;
@@ -22,7 +24,7 @@ export function fitSummary(warnings: readonly FitWarning[]): string {
   return (['conflict', 'tight', 'tip'] as const)
     .map((severity) => [severity, warnings.filter((warning) => warning.severity === severity).length] as const)
     .filter(([, count]) => count > 0)
-    .map(([severity, count]) => `${count} ${SEVERITY[severity].label.toLowerCase()}`)
+    .map(([severity, count]) => `${count} ${SUMMARY_NOUN[severity]}${count === 1 || severity === 'tight' ? '' : 's'}`)
     .join(' · ');
 }
 
