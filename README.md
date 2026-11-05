@@ -1,5 +1,15 @@
 # Suede Take-Home: From Catalog to Room
 
+> **Submission notes (Kanak).** Run it with `pnpm install --frozen-lockfile && pnpm db:reset && pnpm dev`, then open
+> [localhost:3000/catalog](http://localhost:3000/catalog). Decisions, trade-offs and next steps are in
+> [DECISIONS.md](DECISIONS.md).
+>
+> **Two-minute path:** click the first "Try" brief and add the Elevate 86″ sofa; then search and add the Kyoto coffee table (60″),
+> Bacana armchair and Copper rug (8′×10′) → **Fit the room** → *Place* each and drag the armchair into the door
+> swing → **Show the client** for the wall view and the tape-out sheet.
+>
+> Checks: `pnpm test`, `pnpm lint`, `pnpm build`. No keys or network needed at runtime.
+
 We're excited to move on to the next step of the interview process.
 
 We picked this project because it brings together two real problems we want to solve at Suede: helping designers find the right furniture and helping clients understand how it will actually fit in their homes.
