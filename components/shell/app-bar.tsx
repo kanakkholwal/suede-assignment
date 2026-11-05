@@ -1,11 +1,14 @@
 'use client';
 
-import { Bookmark } from '@/components/icons';
+import { Bookmark, Check, ChevronDown } from '@/components/icons';
 import Link from 'next/link';
 import { usePathname, useSearchParams } from 'next/navigation';
-import { useLayoutEffect, useRef } from 'react';
+import { useLayoutEffect, useRef, useState } from 'react';
 
 import { type RoomProgress, useRoomProgress, useRoomStore } from '@/components/room/room-provider';
+import { MeasurementStatusBadge } from '@/components/room/measurement-status-badge';
+import { button } from '@/components/ui/button';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { attachSegmentPill } from '@/components/ui/toggle-group';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import { formatFeetInches } from '@/lib/units';
@@ -19,18 +22,20 @@ interface Step {
   href: string;
   /** Short live count shown beside the label on wide screens. */
   status: (progress: RoomProgress) => string | null;
+  done: (progress: RoomProgress) => boolean;
 }
 
 const STEPS: readonly Step[] = [
-  { id: 'find', label: 'Find pieces', href: '/catalog', status: ({ shortlisted }) => (shortlisted ? String(shortlisted) : null) },
+  { id: 'find', label: 'Find pieces', href: '/catalog', status: ({ shortlisted }) => (shortlisted ? String(shortlisted) : null), done: ({ shortlisted }) => shortlisted > 0 },
   {
     id: 'fit',
     label: 'Fit the room',
     href: '/room?view=plan',
     status: ({ shortlisted, placed, problems }) =>
       !shortlisted ? null : problems ? `${problems} to fix` : `${placed}/${shortlisted}`,
+    done: ({ shortlisted, placed, problems }) => shortlisted > 0 && placed === shortlisted && problems === 0,
   },
-  { id: 'present', label: 'Show the client', href: '/room?view=wall', status: () => null },
+  { id: 'present', label: 'Show the client', href: '/room?view=wall', status: () => null, done: () => false },
 ];
 
 function activeStep(pathname: string, view: string | null): WorkflowStep | null {
@@ -59,6 +64,7 @@ function StepNav({ active }: { active: WorkflowStep | null }) {
         />
         {STEPS.map((step, index) => {
           const current = step.id === active;
+          const done = !current && step.done(progress);
           return (
             <li key={step.id} className="shrink-0">
               <Link
@@ -73,10 +79,10 @@ function StepNav({ active }: { active: WorkflowStep | null }) {
                 <span
                   className={cn(
                     'grid size-4.5 place-items-center rounded-full text-xs font-semibold tabular-nums transition-colors duration-(--duration-base)',
-                    current ? 'bg-primary text-primary-foreground' : 'bg-foreground/[0.07] text-muted-foreground group-hover:text-foreground',
+                    current ? 'bg-primary text-primary-foreground' : done ? 'bg-foreground text-background' : 'bg-foreground/[0.07] text-muted-foreground group-hover:text-foreground',
                   )}
                 >
-                  {index + 1}
+                  {done ? <Check key="done" className="pop size-3" aria-label="done" /> : index + 1}
                 </span>
                 <span className={cn('text-sm font-medium whitespace-nowrap', !current && 'sr-only sm:not-sr-only')}>{step.label}</span>
                 {step.status(progress) ? (
@@ -91,17 +97,43 @@ function StepNav({ active }: { active: WorkflowStep | null }) {
   );
 }
 
-function RoomChip() {
+/** The room being worked on; opens its facts so the context is one click away from any step. */
+function RoomMenu() {
   const { snapshot } = useRoomStore();
+  const [open, setOpen] = useState(false);
   if (!snapshot) return null;
-  const { room } = snapshot;
+  const { room, features } = snapshot;
+  const assumed = features.filter((feature) => feature.status !== 'confirmed').length;
+
   return (
-    <p className="hidden min-w-0 items-baseline gap-2 truncate lg:flex">
-      <span className="truncate font-serif text-base leading-none text-foreground">{room.name}</span>
-      <span className="text-xs tabular-nums text-muted-foreground">
-        {formatFeetInches(room.lengthIn)} × {formatFeetInches(room.widthIn)}
-      </span>
-    </p>
+    <Popover open={open} onOpenChange={setOpen}>
+      <PopoverTrigger className="hidden h-8 min-w-0 items-baseline gap-2 rounded-lg px-2 transition-colors duration-(--duration-fast) hover:bg-foreground/[0.06] data-[popup-open]:bg-foreground/[0.06] lg:inline-flex">
+        <span className="truncate font-serif text-base leading-8 text-foreground">{room.name}</span>
+        <span className="text-xs tabular-nums text-muted-foreground">
+          {formatFeetInches(room.lengthIn)} × {formatFeetInches(room.widthIn)}
+        </span>
+        <ChevronDown className="size-3.5 self-center text-muted-foreground" aria-hidden="true" />
+      </PopoverTrigger>
+      <PopoverContent align="start" className="flex w-80 flex-col gap-3 p-4">
+        <div className="flex flex-col gap-1">
+          <p className="font-serif text-xl leading-tight text-foreground">{room.name}</p>
+          <p className="flex flex-wrap items-center gap-x-2 text-sm tabular-nums text-foreground">
+            {formatFeetInches(room.lengthIn)} × {formatFeetInches(room.widthIn)}
+            {room.ceilingIn ? <><span className="text-muted-foreground" aria-hidden="true">·</span><span className="text-muted-foreground">{formatFeetInches(room.ceilingIn)} ceiling</span></> : null}
+            <MeasurementStatusBadge status={room.dimensionsStatus} />
+          </p>
+        </div>
+        {room.clientMessage ? (
+          <blockquote className="rounded-lg bg-muted/60 p-3 font-serif text-sm leading-relaxed text-foreground italic">“{room.clientMessage}”</blockquote>
+        ) : null}
+        <div className="flex items-center justify-between gap-3">
+          <p className="text-xs text-muted-foreground">{assumed ? `${assumed} assumption${assumed === 1 ? '' : 's'} to confirm` : 'Everything confirmed'}</p>
+          <Link href="/room?view=plan&tab=room" onClick={() => setOpen(false)} className={button({ variant: 'outline', size: 'sm' })}>
+            Room facts
+          </Link>
+        </div>
+      </PopoverContent>
+    </Popover>
   );
 }
 
@@ -113,7 +145,7 @@ export function AppBar() {
 
   return (
     <header className="flex h-13 shrink-0 items-center gap-3 px-3 [view-transition-name:app-bar] sm:gap-5 sm:px-4 print:hidden">
-      <div className="flex shrink-0 items-center gap-5 sm:min-w-0 sm:flex-1 sm:shrink">
+      <div className="flex shrink-0 items-center gap-3 sm:min-w-0 sm:flex-1 sm:shrink">
         <Link
           href="/catalog"
           aria-label="Suede catalog"
@@ -121,7 +153,7 @@ export function AppBar() {
         >
           suede
         </Link>
-        <RoomChip />
+        <RoomMenu />
       </div>
       <StepNav active={activeStep(pathname, view)} />
       <div className="flex shrink-0 justify-end sm:flex-1">
