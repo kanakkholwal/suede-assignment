@@ -7,7 +7,7 @@ import { snapPlacement } from '@/lib/plan-model';
 import type { Room, RoomFeature, Rotation } from '@/lib/room-state';
 
 const { features: templateFeatures, ...roomFields } = CLIENT_ROOM_TEMPLATE;
-const room: Room = { id: 'room', ...roomFields };
+const room: Room = { id: 'room', preset: 'client-living-room', ...roomFields };
 const features: RoomFeature[] = templateFeatures.map((feature, index) => ({ id: `f${index}`, ...feature }));
 const door = features.find((feature) => feature.kind === 'door')!;
 

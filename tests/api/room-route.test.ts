@@ -99,6 +99,23 @@ describe('Room API route', () => {
     expect(response.headers.get('set-cookie')).toBeNull();
   });
 
+  it('serves and mutates the room picked by ?room=, and rejects unknown presets', async () => {
+    const studio = await GET(new Request('http://localhost/api/room?room=open-studio'));
+    expect(((await studio.json()) as RoomSnapshot).room.preset).toBe('open-studio');
+
+    const added = await POST(
+      new Request('http://localhost/api/room?room=open-studio', {
+        method: 'POST',
+        headers: { 'content-type': 'application/json' },
+        body: JSON.stringify({ operation: 'addItem', productId: PRODUCTS.elevate86, variantId: null }),
+      }),
+    );
+    expect(((await added.json()) as RoomSnapshot).items).toHaveLength(1);
+    expect(((await (await GET(new Request('http://localhost/api/room'))).json()) as RoomSnapshot).items).toEqual([]);
+
+    expect((await GET(new Request('http://localhost/api/room?room=castle'))).status).toBe(400);
+  });
+
   it('returns missing resources as a 404', async () => {
     const response = await post({ operation: 'addItem', productId: UNKNOWN_ID, variantId: null });
     expect(response.status).toBe(404);

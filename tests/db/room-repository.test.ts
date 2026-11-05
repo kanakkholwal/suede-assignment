@@ -33,6 +33,17 @@ describe('Room repository', () => {
     expect(getRoomSnapshot(db, 'workspace-a').room.id).toBe(room.id);
   });
 
+  it('keeps one room per preset, each with its own shortlist', () => {
+    addItem('workspace-a', PRODUCTS.elevate86);
+    const studio = getRoomSnapshot(db, 'workspace-a', 'open-studio');
+
+    expect(studio.room).toMatchObject({ preset: 'open-studio', name: 'Example: open studio', lengthIn: 192, widthIn: 168 });
+    expect(studio.items).toEqual([]);
+    expect(studio.room.id).not.toBe(getRoomSnapshot(db, 'workspace-a').room.id);
+    expect(getRoomSnapshot(db, 'workspace-a').items).toHaveLength(1);
+    expect(getRoomSnapshot(db, 'workspace-a', 'open-studio').room.id).toBe(studio.room.id);
+  });
+
   it('isolates rooms between workspaces', () => {
     addItem('workspace-a', PRODUCTS.elevate86);
     expect(getRoomSnapshot(db, 'workspace-b').items).toEqual([]);

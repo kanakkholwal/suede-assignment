@@ -1,4 +1,5 @@
 import type { CatalogProduct } from '@/data/product-types';
+import type { RoomPresetId } from '@/data/room-presets';
 import type { DimensionValues, ResolvedDimensions } from '@/lib/dimensions';
 
 export type MeasurementStatus = 'stated' | 'assumed' | 'confirmed';
@@ -15,6 +16,8 @@ export const WALLS: readonly Wall[] = ['north', 'east', 'south', 'west'];
  */
 export interface Room {
   id: string;
+  /** Which preset this room was created from; a workspace keeps one room per preset. */
+  preset: RoomPresetId;
   name: string;
   lengthIn: number;
   widthIn: number;

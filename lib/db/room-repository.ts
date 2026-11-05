@@ -1,7 +1,7 @@
 import { randomUUID } from 'node:crypto';
 import type Database from 'better-sqlite3';
 
-import { CLIENT_ROOM_TEMPLATE } from '@/data/client-room';
+import { DEFAULT_ROOM_PRESET, type RoomPresetId, roomPreset } from '@/data/room-presets';
 import { getCatalogProductsByIds } from '@/lib/db/catalog-repository';
 import { ensureWorkspace } from '@/lib/db/library-repository';
 import { RepositoryError } from '@/lib/db/repository-error';
@@ -32,6 +32,7 @@ export class RoomRepositoryError extends RepositoryError<RoomRepositoryErrorCode
 
 interface RoomRow {
   id: string;
+  preset: RoomPresetId;
   name: string;
   length_in: number;
   width_in: number;
@@ -81,13 +82,13 @@ function today(): string {
   return new Date().toISOString().slice(0, 10);
 }
 
-function createRoomFromTemplate(db: Database.Database, workspaceId: string): string {
+function createRoomFromPreset(db: Database.Database, workspaceId: string, preset: RoomPresetId): string {
   const roomId = randomUUID();
-  const { features, ...room } = CLIENT_ROOM_TEMPLATE;
+  const { features, ...room } = roomPreset(preset).template;
   db.prepare(`
-    INSERT INTO rooms (id, workspace_id, name, length_in, width_in, ceiling_in, dimensions_status, client_message, note)
-    VALUES (@id, @workspaceId, @name, @lengthIn, @widthIn, @ceilingIn, @dimensionsStatus, @clientMessage, @note)
-  `).run({ id: roomId, workspaceId, ...room });
+    INSERT INTO rooms (id, workspace_id, preset, name, length_in, width_in, ceiling_in, dimensions_status, client_message, note)
+    VALUES (@id, @workspaceId, @preset, @name, @lengthIn, @widthIn, @ceilingIn, @dimensionsStatus, @clientMessage, @note)
+  `).run({ id: roomId, workspaceId, preset, ...room });
 
   const insertFeature = db.prepare(`
     INSERT INTO room_features (
@@ -102,13 +103,13 @@ function createRoomFromTemplate(db: Database.Database, workspaceId: string): str
   return roomId;
 }
 
-/** One room per workspace for now, created from the client's message on first visit. */
-function ensureRoom(db: Database.Database, workspaceId: string): string {
+/** One room per workspace and preset, created from the preset's template on first visit. */
+function ensureRoom(db: Database.Database, workspaceId: string, preset: RoomPresetId): string {
   ensureWorkspace(db, workspaceId);
-  const existing = db.prepare('SELECT id FROM rooms WHERE workspace_id = ?').get(workspaceId) as
+  const existing = db.prepare('SELECT id FROM rooms WHERE workspace_id = ? AND preset = ?').get(workspaceId, preset) as
     | { id: string }
     | undefined;
-  return existing?.id ?? createRoomFromTemplate(db, workspaceId);
+  return existing?.id ?? createRoomFromPreset(db, workspaceId, preset);
 }
 
 function readRoomSnapshot(db: Database.Database, workspaceId: string, roomId: string): RoomSnapshot {
@@ -128,6 +129,7 @@ function readRoomSnapshot(db: Database.Database, workspaceId: string, roomId: st
 
   const room: Room = {
     id: roomRow.id,
+    preset: roomRow.preset,
     name: roomRow.name,
     lengthIn: roomRow.length_in,
     widthIn: roomRow.width_in,
@@ -279,17 +281,18 @@ function clearDesignerDimensions(
   `).run(workspaceId, productId, variantId);
 }
 
-export function getRoomSnapshot(db: Database.Database, workspaceId: string): RoomSnapshot {
-  return db.transaction(() => readRoomSnapshot(db, workspaceId, ensureRoom(db, workspaceId)))();
+export function getRoomSnapshot(db: Database.Database, workspaceId: string, preset: RoomPresetId = DEFAULT_ROOM_PRESET): RoomSnapshot {
+  return db.transaction(() => readRoomSnapshot(db, workspaceId, ensureRoom(db, workspaceId, preset)))();
 }
 
 export function applyRoomMutation(
   db: Database.Database,
   workspaceId: string,
   mutation: RoomMutation,
+  preset: RoomPresetId = DEFAULT_ROOM_PRESET,
 ): RoomSnapshot {
   return db.transaction(() => {
-    const roomId = ensureRoom(db, workspaceId);
+    const roomId = ensureRoom(db, workspaceId, preset);
     applyMutation(db, workspaceId, roomId, mutation);
     return readRoomSnapshot(db, workspaceId, roomId);
   })();

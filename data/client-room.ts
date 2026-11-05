@@ -3,7 +3,7 @@ import type { Room, RoomFeature } from '@/lib/room-state';
 export const CLIENT_ROOM_MESSAGE =
   'It’s 12 by 15, ceilings are 8 and a half feet, two windows on the long wall, door’s in the corner by the kitchen, radiator under the left window.';
 
-type RoomTemplate = Omit<Room, 'id'> & { features: ReadonlyArray<Omit<RoomFeature, 'id'>> };
+export type RoomTemplate = Omit<Room, 'id' | 'preset'> & { features: ReadonlyArray<Omit<RoomFeature, 'id'>> };
 
 const WINDOW_ASSUMPTION =
   'Which long wall, window widths, positions and sill height were not given. Drawn 36″ wide, evenly spaced, 30″ sill.';

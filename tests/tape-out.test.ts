@@ -8,7 +8,7 @@ import type { Room, RoomFeature, RoomSnapshot } from '@/lib/room-state';
 import { clientQuestions, tapeOutSteps } from '@/lib/tape-out';
 
 const { features: templateFeatures, ...roomFields } = CLIENT_ROOM_TEMPLATE;
-const room: Room = { id: 'room', ...roomFields };
+const room: Room = { id: 'room', preset: 'client-living-room', ...roomFields };
 const features: RoomFeature[] = templateFeatures.map((feature, index) => ({ id: `f${index}`, ...feature }));
 
 function snapshotWith(source: 'verified' | 'synthetic'): RoomSnapshot {

@@ -10,6 +10,7 @@ import {
   respondForWorkspace,
   respondToMutation,
 } from '@/lib/api/route-helpers';
+import { DEFAULT_ROOM_PRESET, isRoomPresetId, type RoomPresetId } from '@/data/room-presets';
 import { getDatabase } from '@/lib/db/connection';
 import { applyRoomMutation, getRoomSnapshot } from '@/lib/db/room-repository';
 import {
@@ -139,12 +140,20 @@ function parseRoomMutation(value: unknown): RoomMutation {
   }
 }
 
-export async function GET(_request: Request) {
-  return respondForWorkspace((workspaceId) => getRoomSnapshot(getDatabase(), workspaceId));
+/** `?room=` picks the preset; an unknown value is rejected rather than silently falling back. */
+function readPreset(request: Request): RoomPresetId {
+  const value = new URL(request.url).searchParams.get('room');
+  if (value === null) return DEFAULT_ROOM_PRESET;
+  if (!isRoomPresetId(value)) throw new RequestInputError('Unknown room preset.');
+  return value;
+}
+
+export async function GET(request: Request) {
+  return respondForWorkspace((workspaceId) => getRoomSnapshot(getDatabase(), workspaceId, readPreset(request)));
 }
 
 export async function POST(request: Request) {
   return respondToMutation(request, parseRoomMutation, (workspaceId, mutation) =>
-    applyRoomMutation(getDatabase(), workspaceId, mutation),
+    applyRoomMutation(getDatabase(), workspaceId, mutation, readPreset(request)),
   );
 }

@@ -42,7 +42,7 @@ export function libraryFixture(products: CatalogProduct[] = [], collections: Lib
 export function roomFixture(): RoomSnapshot {
   const { features, ...room } = CLIENT_ROOM_TEMPLATE;
   return {
-    room: { id: 'room-1', ...room },
+    room: { id: 'room-1', preset: 'client-living-room', ...room },
     features: features.map((feature, index) => ({ id: `feature-${index}`, ...feature })),
     items: [],
     products: [],
