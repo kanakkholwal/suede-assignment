@@ -45,7 +45,8 @@ function connection() {
   return db;
 }
 
-it.each(['removed', 'replaced'])('reconnects after the runtime file is %s and accepts Library writes without stale saves', (scenario) => {
+// Windows refuses to unlink an open file, so this POSIX-only scenario cannot occur there.
+it.skipIf(process.platform === 'win32').each(['removed', 'replaced'])('reconnects after the runtime file is %s and accepts Library writes without stale saves', (scenario) => {
   const original = connection();
   expect(applyLibraryMutation(original, 'workspace', { operation: 'toggleSaved', productId }).state.savedIds).toEqual([productId]);
 

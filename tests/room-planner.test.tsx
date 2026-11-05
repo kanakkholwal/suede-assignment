@@ -1,11 +1,39 @@
 import { render, screen, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { expect, it } from 'vitest';
+import { useSyncExternalStore } from 'react';
+import { beforeEach, expect, it, vi } from 'vitest';
+
+const navigation = vi.hoisted(() => {
+  let search = '';
+  const listeners = new Set<() => void>();
+  return {
+    reset: () => {
+      search = '';
+    },
+    subscribe: (listener: () => void) => {
+      listeners.add(listener);
+      return () => listeners.delete(listener);
+    },
+    read: () => search,
+    replace: (href: string) => {
+      search = href.split('?')[1] ?? '';
+      listeners.forEach((listener) => listener());
+    },
+  };
+});
+
+vi.mock('next/navigation', () => ({
+  useRouter: () => ({ replace: navigation.replace }),
+  useSearchParams: () => new URLSearchParams(useSyncExternalStore(navigation.subscribe, navigation.read)),
+  usePathname: () => '/room',
+}));
 
 import RoomPage from '@/app/room/page';
 import { resolveDimensions } from '@/lib/dimensions';
 import type { RoomSnapshot } from '@/lib/room-state';
 import { armchair, mockApi, roomFixture } from './api-fixtures';
+
+beforeEach(() => navigation.reset());
 
 function roomWithChairInDoorway(): RoomSnapshot {
   const base = roomFixture();

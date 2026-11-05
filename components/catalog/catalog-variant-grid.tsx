@@ -56,7 +56,7 @@ export function CatalogVariantGrid({
 
   return (
     <div>
-      <div className="grid flex-1 grid-cols-[repeat(auto-fill,minmax(min(100%,11.5rem),1fr))] gap-3">
+      <div className="grid flex-1 grid-cols-2 sm:grid-cols-[repeat(auto-fill,minmax(11.5rem,1fr))] gap-3">
         {visibleItems.map(({ key, product, variant }) => {
           const image = variant.image ?? product.images[0];
           const saved = savedIds.includes(product.id);

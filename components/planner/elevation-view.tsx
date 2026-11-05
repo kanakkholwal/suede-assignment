@@ -142,7 +142,14 @@ export function ElevationView({ room, features, pieces, wall, selectedId }: Elev
               strokeWidth={selected ? 1 : 0.5}
               strokeDasharray={known ? undefined : '2.5 1.5'}
             />
-            <text x={(start + end) / 2} y={floor - height - 2.2} textAnchor="middle" fontSize={3.2} fill="#241c17" fontWeight={600}>
+            <text
+              x={(start + end) / 2}
+              y={height >= 14 ? floor - height + 5 : floor - height - 2.2}
+              textAnchor="middle"
+              fontSize={Math.min(3.2, (end - start - 3) / (label.length * 0.56))}
+              fill="#241c17"
+              fontWeight={600}
+            >
               {label}
             </text>
           </g>

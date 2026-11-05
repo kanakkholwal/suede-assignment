@@ -22,12 +22,22 @@ export function SummaryDimensionLine({ summary, className }: { summary: Dimensio
   const known = [summary.width, summary.depth].filter((field): field is FieldSummary => field !== null);
   const partial = summary.unmeasuredVariants > 0 && summary.unmeasuredVariants < summary.variantCount;
 
+  if (known.length === 0) {
+    return <p className={cn('text-xs text-muted-foreground', className)}>Size not on file</p>;
+  }
+  if (known.length === 1 && summary.width) {
+    return (
+      <p className={cn('flex min-w-0 flex-wrap items-center gap-x-2 gap-y-1 text-xs text-muted-foreground', className)}>
+        <span><span className="tabular-nums text-foreground">{rangeText(summary.width)}″ wide</span> · depth not on file</span>
+        <SourceBadge source={summary.width.source} />
+      </p>
+    );
+  }
+
   return (
     <p className={cn('flex min-w-0 flex-wrap items-center gap-x-2 gap-y-1 text-xs text-muted-foreground', className)}>
       <span className="tabular-nums text-foreground">
-        {known.length === 0
-          ? 'Size not on file'
-          : `${rangeText(summary.width)} × ${rangeText(summary.depth)} × ${rangeText(summary.height)} in`}
+        {`${rangeText(summary.width)} × ${rangeText(summary.depth)} × ${rangeText(summary.height)} in`}
       </span>
       <SourceBadge source={summaryConfidence(summary)} detail={partial ? `${summary.unmeasuredVariants} of ${summary.variantCount} options have no size` : undefined} />
     </p>

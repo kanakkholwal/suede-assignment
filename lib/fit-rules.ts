@@ -166,7 +166,18 @@ function doorSwing(room: Room, door: RoomFeature, piece: PlannedPiece): FitWarni
 }
 
 function radiator(room: Room, feature: RoomFeature, piece: PlannedPiece): FitWarning | null {
+  const body = featureBand(room, feature, feature.depthIn ?? 0);
   const zone = featureBand(room, feature, (feature.depthIn ?? 0) + CLEARANCE.radiatorClear);
+  if (feature.depthIn && intersection(body, piece.rect)) {
+    return warning(
+      'radiator',
+      'conflict',
+      [piece],
+      `${piece.name} sits on the radiator`,
+      `The radiator sticks out ${inch(feature.depthIn)} from the wall. Pull the piece forward or move it along the wall.`,
+      { feature },
+    );
+  }
   if (!intersection(zone, piece.rect)) return null;
   return warning(
     'radiator',
@@ -193,8 +204,10 @@ function windowSill(room: Room, feature: RoomFeature, piece: PlannedPiece): FitW
 
 function walkway(a: PlannedPiece, b: PlannedPiece): FitWarning | null {
   const seatingTable = (isSeating(a.kind) && b.kind === 'coffee-table') || (isSeating(b.kind) && a.kind === 'coffee-table');
+  // Two seats side by side are a conversation group; the gap usually holds a side table.
+  const seatingPair = isSeating(a.kind) && isSeating(b.kind);
   const onWalkway = (kind: PieceKind) => blocksWalkways(kind) || kind === 'coffee-table';
-  if (seatingTable || !onWalkway(a.kind) || !onWalkway(b.kind)) return null;
+  if (seatingTable || seatingPair || !onWalkway(a.kind) || !onWalkway(b.kind)) return null;
   const facing = facingGap(a.rect, b.rect);
   if (!facing || facing.gap <= CLEARANCE.touching || facing.gap >= CLEARANCE.walkwayMin || facing.along < 12) return null;
   return warning(

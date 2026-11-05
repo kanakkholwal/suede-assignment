@@ -1,7 +1,7 @@
 'use client';
 
-import { ArrowLeft, Columns3, Map as MapIcon, Ruler } from 'lucide-react';
-import Link from 'next/link';
+import { Columns3, Map as MapIcon, Ruler } from 'lucide-react';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { useCallback, useMemo, useState } from 'react';
 
 import { ElevationView } from '@/components/planner/elevation-view';
@@ -10,8 +10,8 @@ import { PiecesPanel } from '@/components/planner/pieces-panel';
 import { PlanCanvas } from '@/components/planner/plan-canvas';
 import { RoomFactsPanel } from '@/components/planner/room-facts-panel';
 import { TapeOutSheet } from '@/components/planner/tape-out-sheet';
-import { MeasurementStatusBadge } from '@/components/room/measurement-status-badge';
 import { type SegmentOption, SegmentedControl } from '@/components/shared/segmented-control';
+import { WorkflowBar } from '@/components/shared/workflow-bar';
 import type { CatalogProduct } from '@/data/product-types';
 import type { DimensionValues } from '@/lib/dimensions';
 import { evaluateFit } from '@/lib/fit-rules';
@@ -20,7 +20,6 @@ import { pieceKind } from '@/lib/piece-kind';
 import { defaultPlacement, type Placement, type PlanPiece, planPieces, rotateClockwise, snapPlacement } from '@/lib/plan-model';
 import type { RoomItem, Wall } from '@/lib/room-state';
 import { WALLS } from '@/lib/room-state';
-import { formatFeetInches } from '@/lib/units';
 import { useRoom } from '@/lib/use-room';
 
 type PlannerView = 'plan' | 'wall' | 'tape';
@@ -36,6 +35,16 @@ const WALL_OPTIONS: readonly SegmentOption<Wall>[] = WALLS.map((wall) => ({
   label: wall[0].toUpperCase() + wall.slice(1),
   ariaLabel: `${wall} wall`,
 }));
+
+const VIEW_TITLE: Record<PlannerView, { title: string; lede: string }> = {
+  plan: { title: 'Fit the room', lede: 'Place each piece, then fix what the fit check flags. Dashed lines are assumptions until confirmed.' },
+  wall: { title: 'Show the client', lede: 'One wall at true scale, against the ceiling and a 5′ 6″ person.' },
+  tape: { title: 'Show the client', lede: 'A sheet the client can print to tape each piece onto their own floor.' },
+};
+
+function parseView(value: string | null): PlannerView {
+  return value === 'wall' || value === 'tape' ? value : 'plan';
+}
 
 const OPPOSITE: Record<Wall, Wall> = { north: 'south', south: 'north', east: 'west', west: 'east' };
 
@@ -55,7 +64,9 @@ function Legend() {
 
 export function RoomPlanner() {
   const room = useRoom();
-  const [view, setView] = useState<PlannerView>('plan');
+  const router = useRouter();
+  const view = parseView(useSearchParams().get('view'));
+  const setView = useCallback((next: PlannerView) => router.replace(`/room?view=${next}`, { scroll: false }), [router]);
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [overrides, setOverrides] = useState<Record<string, Placement>>({});
   const [chosenWall, setChosenWall] = useState<Wall | null>(null);
@@ -123,27 +134,24 @@ export function RoomPlanner() {
 
   return (
     <main className="mx-auto flex w-full max-w-[1600px] flex-1 flex-col gap-6 px-4 py-6 sm:px-6 sm:py-8 lg:px-8 print:max-w-none print:p-0">
-      <header className="flex flex-col justify-between gap-4 border-b border-[#ded8d1] pb-5 sm:flex-row sm:items-end print:hidden">
-        <div className="flex flex-col gap-2">
-          <Link href="/catalog" className="inline-flex w-fit items-center gap-1 text-xs text-muted-foreground hover:text-foreground">
-            <ArrowLeft className="size-3.5" aria-hidden="true" /> Catalog
-          </Link>
-          <p className="text-[10px] font-semibold uppercase tracking-[0.14em] text-[#84776e]">Floor plan</p>
-          <h1 className="font-serif text-4xl leading-none tracking-[-0.045em] text-[#1c1612] sm:text-5xl">{details.name}</h1>
-          <p className="flex flex-wrap items-center gap-2 text-sm text-muted-foreground">
-            <span className="tabular-nums text-foreground">
-              {formatFeetInches(details.lengthIn)} × {formatFeetInches(details.widthIn)}
-              {details.ceilingIn ? ` · ${formatFeetInches(details.ceilingIn)} ceiling` : ''}
-            </span>
-            <MeasurementStatusBadge status={details.dimensionsStatus} />
-          </p>
+      <WorkflowBar
+        room={details}
+        active={view === 'plan' ? 'fit' : 'present'}
+        shortlisted={snapshot.items.length}
+        placed={pieces.length}
+        problems={warnings.filter((warning) => warning.severity !== 'tip').length}
+      />
+      <header className="flex flex-col justify-between gap-3 sm:flex-row sm:items-end print:hidden">
+        <div className="flex flex-col gap-1.5">
+          <h1 className="font-serif text-4xl leading-none tracking-[-0.045em] text-[#1c1612]">{VIEW_TITLE[view].title}</h1>
+          <p className="max-w-2xl text-sm leading-relaxed text-[#70665d]">{VIEW_TITLE[view].lede}</p>
         </div>
         <SegmentedControl label="Planner view" value={view} options={VIEWS} onChange={setView} />
       </header>
 
       {room.error ? <p role="alert" className="text-sm text-destructive-strong print:hidden">{room.error}</p> : null}
 
-      <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_360px] print:block">
+      <div className={`grid gap-6 print:block ${view === 'plan' ? 'lg:grid-cols-[minmax(0,1fr)_360px]' : ''}`}>
         <section aria-label={VIEWS.find((option) => option.value === view)?.label} className="flex min-w-0 flex-col gap-3">
           {view === 'plan' ? (
             <>
@@ -164,24 +172,25 @@ export function RoomPlanner() {
             </>
           ) : view === 'wall' ? (
             <>
-              <div className="flex flex-wrap items-center justify-between gap-3">
+              <div className="mx-auto flex w-full max-w-5xl flex-wrap items-center justify-between gap-3">
                 <SegmentedControl label="Wall" value={elevationWall} options={WALL_OPTIONS} onChange={setChosenWall} />
                 {selected && nearestWall ? (
                   <p className="text-xs text-muted-foreground">{selected.name} is nearest the {nearestWall} wall.</p>
                 ) : null}
               </div>
-              <div className="rounded-xl border border-border bg-white p-3 shadow-surface sm:p-5">
+              <div className="mx-auto w-full max-w-5xl rounded-xl border border-border bg-white p-3 shadow-surface sm:p-6">
                 <ElevationView room={details} features={features} pieces={pieces} wall={elevationWall} selectedId={selectedId} />
               </div>
-              <p className="text-xs leading-relaxed text-muted-foreground">
+              <p className="mx-auto w-full max-w-5xl text-xs leading-relaxed text-muted-foreground">
                 Seen from inside the room, at true scale. Pieces farther from this wall are lighter; dashed outlines are unknown heights or assumed openings.
               </p>
             </>
           ) : (
-            <TapeOutSheet room={details} features={features} pieces={pieces} warnings={warnings} />
+            <div className="mx-auto w-full max-w-4xl"><TapeOutSheet room={details} features={features} pieces={pieces} warnings={warnings} /></div>
           )}
         </section>
 
+        {view === 'plan' ? (
         <aside aria-label="Room details" className="flex flex-col gap-7 print:hidden">
           <FitWarnings warnings={warnings} placedCount={pieces.length} onFocusPiece={(id) => { setSelectedId(id); setView('plan'); }} />
           <PiecesPanel
@@ -199,6 +208,7 @@ export function RoomPlanner() {
           />
           <RoomFactsPanel room={details} features={features} disabled={false} onUpdateRoom={room.updateRoom} onUpdateFeature={room.updateFeature} />
         </aside>
+        ) : null}
       </div>
     </main>
   );

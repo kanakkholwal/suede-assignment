@@ -19,7 +19,7 @@ export function CardFitDetails({ product, variantId, priceLabel, shortlist }: Ca
   return (
     <>
       {summary ? <SummaryDimensionLine summary={summary} className="pointer-events-auto" /> : null}
-      {shortlist ? <MatchReasonsList reasons={matchReasons(product, summary, shortlist.filters)} /> : null}
+      {shortlist ? <MatchReasonsList reasons={matchReasons(summary, shortlist.filters)} /> : null}
       <div className="mt-auto flex items-center justify-between gap-2 pt-1 text-xs text-[#665c54]">
         <span className="min-w-0 truncate">{priceLabel}</span>
         {shortlist ? (

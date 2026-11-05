@@ -109,9 +109,16 @@ describe('evaluateFit', () => {
     expect(rules([console, chair])).toContain('walkway');
   });
 
-  it('flags seating that crowds the radiator, and tall pieces above the window sill', () => {
-    const underWindow = piece('Console', 'storage', [54, 10], [40, 18], 0, { heightIn: 34 });
-    expect(rules([underWindow])).toEqual(expect.arrayContaining(['radiator', 'window']));
+  it('flags a piece on the radiator as a conflict, near it as tight, and tall pieces above the sill', () => {
+    const onRadiator = piece('Console', 'storage', [54, 9], [40, 18], 0, { heightIn: 34 });
+    const nearRadiator = piece('Console', 'storage', [54, 8 + 6 + 9], [40, 18], 0, { heightIn: 34 });
+    expect(evaluateFit({ room, features, pieces: [onRadiator] }).find((w) => w.rule === 'radiator')?.severity).toBe('conflict');
+    expect(evaluateFit({ room, features, pieces: [nearRadiator] }).find((w) => w.rule === 'radiator')?.severity).toBe('tight');
+    expect(rules([onRadiator])).toContain('window');
+  });
+
+  it('does not treat two seats side by side as a walkway', () => {
+    expect(rules([sofa(), piece('Chair', 'chair', [80 + 43.25 + 14 + 15, 144 - 15], [30, 30], 180)])).not.toContain('walkway');
   });
 
   it('wants seating front legs on the rug', () => {

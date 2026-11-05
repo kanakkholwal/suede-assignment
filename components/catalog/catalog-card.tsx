@@ -48,12 +48,12 @@ export function CatalogCard({
       </div>
       <div className="relative z-10 pointer-events-none flex min-h-29 flex-col gap-1.5 p-3.5">
         <p className="text-[10px] font-semibold uppercase tracking-[0.12em] text-[#877c72]">{product.brand}</p>
-        <h2 className="line-clamp-1 font-serif text-lg leading-tight tracking-[-0.025em] text-[#1e1814]">{product.name}</h2>
+        <h2 className="line-clamp-2 font-serif text-lg leading-tight tracking-[-0.025em] text-[#1e1814]">{product.name}</h2>
         <CardFitDetails
           product={product}
           variantId={null}
           shortlist={shortlist}
-          priceLabel={`${price === undefined ? 'Price not provided' : `From ${formatPrice(price)}`} · ${product.variants.length} ${product.variants.length === 1 ? 'option' : 'options'}`}
+          priceLabel={price === undefined ? 'Price not provided' : `From ${formatPrice(price)}`}
         />
       </div>
       <button type="button" aria-label={`View ${product.name}`} onClick={() => onView(product)} className="absolute inset-0 z-0 cursor-pointer focus-visible:outline-2 focus-visible:outline-offset-[-3px] focus-visible:outline-[#886b54]" />

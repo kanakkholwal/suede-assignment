@@ -76,6 +76,17 @@ const INWARD: Record<Wall, { x: number; y: number }> = {
   east: { x: -1, y: 0 },
 };
 
+// Inter at weight 600 averages about 0.56 em per character.
+const CHAR_EM = 0.56;
+
+/** Largest font up to `max` that fits `text` in `width`, truncating below `min`. */
+function fitLabel(text: string, width: number, max: number, min = 2.2): { text: string; fontSize: number } {
+  const fontSize = Math.min(max, (width - 3) / (text.length * CHAR_EM));
+  if (fontSize >= min) return { text, fontSize };
+  const chars = Math.max(1, Math.floor((width - 3) / (min * CHAR_EM)) - 1);
+  return { text: `${text.slice(0, chars)}…`, fontSize: min };
+}
+
 function worstSeverity(warnings: readonly FitWarning[], pieceId: string): FitSeverity | null {
   const relevant = warnings.filter((warning) => warning.pieceIds.includes(pieceId) && warning.severity !== 'tip');
   if (relevant.some((warning) => warning.severity === 'conflict')) return 'conflict';
@@ -360,7 +371,8 @@ export function PlanCanvas({
         const severity = worstSeverity(warnings, piece.id);
         const isSelected = piece.id === selectedId;
         const estimated = piece.footprintSource === 'synthetic' || piece.footprintSource === 'listing';
-        const fontSize = Math.min(3.6, Math.max(2.4, Math.min(width, height) / 6));
+        const label = fitLabel(piece.name, width, Math.min(3.6, Math.max(2.4, height / 4)));
+        const fontSize = label.fontSize;
         return (
           <g
             key={piece.id}
@@ -399,7 +411,7 @@ export function PlanCanvas({
               fontWeight={600}
               pointerEvents="none"
             >
-              {piece.name}
+              {label.text}
             </text>
             <text
               x={rect.x0 + width / 2}

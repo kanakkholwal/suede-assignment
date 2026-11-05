@@ -3,7 +3,7 @@ import { describe, expect, it } from 'vitest';
 import { armchair } from '@/tests/api-fixtures';
 import { emptyCatalogFilters } from '@/lib/catalog-contract';
 import { type DimensionSummary, resolveDimensions, type DimensionRecord } from '@/lib/dimensions';
-import { matchReasons, rankForBrief } from '@/lib/match-reasons';
+import { matchReasons } from '@/lib/match-reasons';
 import type { RoomItem } from '@/lib/room-state';
 import { countGaps, itemGaps } from '@/lib/shortlist-gaps';
 
@@ -66,7 +66,7 @@ describe('itemGaps', () => {
   });
 });
 
-describe('matchReasons and rankForBrief', () => {
+describe('matchReasons', () => {
   const sized: DimensionSummary = {
     width: { min: 86.5, max: 86.5, source: 'verified' },
     depth: { min: 38.25, max: 38.25, source: 'verified' },
@@ -74,24 +74,14 @@ describe('matchReasons and rankForBrief', () => {
     unmeasuredVariants: 0,
     variantCount: 1,
   };
-  const unsized: DimensionSummary = { ...sized, width: null, depth: null, unmeasuredVariants: 1 };
-  const filters = { ...emptyCatalogFilters, maxWidthIn: 90, inStockOnly: true };
+  const filters = { ...emptyCatalogFilters, maxWidthIn: 90 };
 
-  it('reports a known width as a match and an unknown one as unknown', () => {
-    expect(matchReasons(armchair, sized, filters)).toEqual([
-      { status: 'match', label: '86½″ wide' },
-      { status: 'match', label: 'Available to order' },
+  it('says whether the width fits, and stays quiet otherwise', () => {
+    expect(matchReasons(sized, filters)).toEqual([{ status: 'match', label: 'Width fits the brief' }]);
+    expect(matchReasons({ ...sized, width: { min: 72, max: 120, source: 'verified' } }, filters)).toEqual([
+      { status: 'match', label: 'One of its sizes fits' },
     ]);
-    expect(matchReasons(armchair, unsized, filters)[0]).toEqual({ status: 'unknown', label: 'Width not on file' });
-  });
-
-  it('lists products with a known width before unknowns only when width is filtered', () => {
-    const other = { ...armchair, id: 'other' };
-    const dimensions = { [armchair.id]: unsized, other: sized };
-    expect(rankForBrief([armchair, other], dimensions, filters).map((product) => product.id)).toEqual(['other', armchair.id]);
-    expect(rankForBrief([armchair, other], dimensions, emptyCatalogFilters).map((product) => product.id)).toEqual([
-      armchair.id,
-      'other',
-    ]);
+    expect(matchReasons({ ...sized, width: null, unmeasuredVariants: 1 }, filters)).toEqual([]);
+    expect(matchReasons(sized, emptyCatalogFilters)).toEqual([]);
   });
 });

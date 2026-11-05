@@ -193,35 +193,37 @@ export function RoomFactsPanel({ room, features, disabled, onUpdateRoom, onUpdat
         {features.map((feature) => {
           const Icon = FEATURE_ICON[feature.kind];
           return (
-            <li key={feature.id} className="rounded-lg border border-border bg-white p-3">
-              <div className="flex items-start justify-between gap-2">
-                <p className="flex items-center gap-1.5 text-sm font-medium text-foreground">
-                  <Icon className="size-4 text-muted-foreground" aria-hidden="true" />
-                  {FEATURE_LABEL[feature.kind]}
-                  <span className="font-normal text-muted-foreground">
-                    · {feature.wall} wall, {formatInches(feature.widthIn)}
+            <li key={feature.id}>
+              <details open={editing === feature.id || undefined} className="group rounded-lg border border-border bg-white">
+                <summary className="flex cursor-pointer list-none items-center justify-between gap-2 px-3 py-2.5 [&::-webkit-details-marker]:hidden">
+                  <span className="flex min-w-0 items-center gap-1.5 text-sm text-foreground">
+                    <Icon className="size-4 shrink-0 text-muted-foreground" aria-hidden="true" />
+                    <span className="font-medium">{FEATURE_LABEL[feature.kind]}</span>
+                    <span className="truncate text-muted-foreground">· {feature.wall} wall, {formatInches(feature.widthIn)}</span>
                   </span>
-                </p>
-                <MeasurementStatusBadge status={feature.status} />
-              </div>
-              {feature.clientSaid ? <p className="mt-1.5 text-xs text-[#4a3e35]">Client: “{feature.clientSaid}”</p> : null}
-              {feature.status !== 'confirmed' && feature.assumption ? (
-                <p className="mt-1 text-xs leading-relaxed text-muted-foreground">{feature.assumption}</p>
-              ) : null}
-              {editing === feature.id ? (
-                <FeatureForm feature={feature} onSave={(patch, status) => onUpdateFeature(feature.id, patch, status)} onCancel={() => setEditing(null)} />
-              ) : (
-                <div className="mt-1.5 flex gap-3">
-                  <Button size="xs" variant="link" className="px-0" disabled={disabled} onClick={() => setEditing(feature.id)}>
-                    <Pencil aria-hidden="true" /> Adjust
-                  </Button>
-                  {feature.status !== 'confirmed' ? (
-                    <Button size="xs" variant="link" className="px-0" disabled={disabled} onClick={() => void onUpdateFeature(feature.id, {}, 'confirmed')}>
-                      <Check aria-hidden="true" /> Client confirmed as drawn
-                    </Button>
+                  <MeasurementStatusBadge status={feature.status} />
+                </summary>
+                <div className="border-t border-border px-3 pb-3 pt-2">
+                  {feature.clientSaid ? <p className="text-xs text-[#4a3e35]">Client: “{feature.clientSaid}”</p> : null}
+                  {feature.status !== 'confirmed' && feature.assumption ? (
+                    <p className="mt-1 text-xs leading-relaxed text-muted-foreground">{feature.assumption}</p>
                   ) : null}
+                  {editing === feature.id ? (
+                    <FeatureForm feature={feature} onSave={(patch, status) => onUpdateFeature(feature.id, patch, status)} onCancel={() => setEditing(null)} />
+                  ) : (
+                    <div className="mt-1.5 flex gap-3">
+                      <Button size="xs" variant="link" className="px-0" disabled={disabled} onClick={() => setEditing(feature.id)}>
+                        <Pencil aria-hidden="true" /> Adjust
+                      </Button>
+                      {feature.status !== 'confirmed' ? (
+                        <Button size="xs" variant="link" className="px-0" disabled={disabled} onClick={() => void onUpdateFeature(feature.id, {}, 'confirmed')}>
+                          <Check aria-hidden="true" /> Client confirmed as drawn
+                        </Button>
+                      ) : null}
+                    </div>
+                  )}
                 </div>
-              )}
+              </details>
             </li>
           );
         })}

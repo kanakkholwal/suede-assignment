@@ -14,7 +14,12 @@ const globalDatabase = globalThis as typeof globalThis & {
 export function getDatabase(): Database.Database {
   // A separate db:reset process can unlink the file while this handle stays open.
   // Recreate first, then compare file identity (ordinary writes do not change it).
-  const databasePath = path.resolve(ensureRuntimeDatabase());
+  const databasePath = path.resolve(
+    ensureRuntimeDatabase(() => {
+      globalDatabase.catalogLabInterviewDatabase?.close();
+      delete globalDatabase.catalogLabInterviewDatabase;
+    }),
+  );
   const file = statSync(databasePath, { bigint: true });
   const identity = `${databasePath}:${file.dev}:${file.ino}:${file.birthtimeNs}`;
   if (!globalDatabase.catalogLabInterviewDatabase?.open || globalDatabase.catalogLabInterviewDatabaseIdentity !== identity) {
