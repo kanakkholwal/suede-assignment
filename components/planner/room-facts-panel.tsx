@@ -3,10 +3,9 @@
 import { Check, ChevronDown, Copy, DoorOpen, Heater, PanelsTopLeft, Pencil, type IconComponent } from '@/components/icons';
 import { type FormEvent, useId, useState } from 'react';
 
+import { FEATURE_LABEL, FeatureDialog, RoomSizePopover, type SaveRoom } from '@/components/planner/room-editors';
 import { MeasurementStatusBadge } from '@/components/room/measurement-status-badge';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { NativeSelect } from '@/components/ui/native-select';
 import { cn } from '@/lib/utils';
 import type { MeasurementStatus, Room, RoomFeature, RoomFeaturePatch, Wall } from '@/lib/room-state';
 import { WALLS } from '@/lib/room-state';
@@ -14,144 +13,19 @@ import { clientQuestions } from '@/lib/tape-out';
 import { formatFeetInches, formatInches, parseLength } from '@/lib/units';
 
 const FEATURE_ICON: Record<RoomFeature['kind'], IconComponent> = { window: PanelsTopLeft, door: DoorOpen, radiator: Heater };
-const FEATURE_LABEL: Record<RoomFeature['kind'], string> = { window: 'Window', door: 'Door', radiator: 'Radiator' };
-const LABEL = 'flex min-w-0 flex-col gap-1 text-xs text-muted-foreground';
-const FORM = 'enter flex flex-col gap-2.5 rounded-lg bg-muted/60 p-3';
-const CHECK = 'flex items-center gap-2 text-xs text-foreground [&_input]:size-4 [&_input]:accent-primary';
-
-function cornerName(wall: Wall): string {
-  return wall === 'north' || wall === 'south' ? 'west' : 'north';
-}
 
 interface RoomFactsPanelProps {
   room: Room;
   features: readonly RoomFeature[];
   disabled: boolean;
-  onUpdateRoom: (lengthIn: number, widthIn: number, ceilingIn: number | null, status: MeasurementStatus) => Promise<boolean>;
+  onUpdateRoom: SaveRoom;
   onUpdateFeature: (featureId: string, patch: RoomFeaturePatch, status: MeasurementStatus) => Promise<boolean>;
 }
 
-function RoomSizeForm({ room, onSave, onCancel }: { room: Room; onSave: RoomFactsPanelProps['onUpdateRoom']; onCancel: () => void }) {
-  const id = useId();
-  const [values, setValues] = useState({
-    length: formatFeetInches(room.lengthIn),
-    width: formatFeetInches(room.widthIn),
-    ceiling: room.ceilingIn === null ? '' : formatFeetInches(room.ceilingIn),
-  });
-  const [measured, setMeasured] = useState(room.dimensionsStatus === 'confirmed');
-  const [error, setError] = useState<string | null>(null);
-
-  const submit = async (event: FormEvent) => {
-    event.preventDefault();
-    const length = parseLength(values.length);
-    const width = parseLength(values.width);
-    const ceiling = values.ceiling.trim() ? parseLength(values.ceiling) : null;
-    if (length === null || width === null || (values.ceiling.trim() && ceiling === null)) {
-      setError('Use feet and inches like 15′ or 14′ 11½″, or plain inches.');
-      return;
-    }
-    const changed = length !== room.lengthIn || width !== room.widthIn || ceiling !== room.ceilingIn;
-    const status: MeasurementStatus = measured ? 'confirmed' : changed ? 'assumed' : room.dimensionsStatus;
-    if (await onSave(length, width, ceiling, status)) onCancel();
-  };
-
-  return (
-    <form onSubmit={submit} className={FORM} aria-label="Room size">
-      <div className="grid grid-cols-3 gap-2">
-        {(['length', 'width', 'ceiling'] as const).map((field) => (
-          <label key={field} htmlFor={`${id}-${field}`} className={LABEL}>
-            {field === 'length' ? 'Long walls' : field === 'width' ? 'Short walls' : 'Ceiling'}
-            <Input size="sm" id={`${id}-${field}`} value={values[field]} onChange={(event) => setValues((current) => ({ ...current, [field]: event.target.value }))} className="min-w-0 tabular-nums" />
-          </label>
-        ))}
-      </div>
-      <label className={CHECK}>
-        <input type="checkbox" checked={measured} onChange={(event) => setMeasured(event.target.checked)} />
-        Measured with a tape, wall to wall
-      </label>
-      {error ? <p role="alert" className="text-xs text-destructive-strong">{error}</p> : null}
-      <div className="flex gap-2">
-        <Button type="submit" size="xs">Save</Button>
-        <Button type="button" size="xs" variant="ghost" onClick={onCancel}>Cancel</Button>
-      </div>
-    </form>
-  );
-}
-
-function FeatureForm({ feature, onSave, onCancel }: { feature: RoomFeature; onSave: (patch: RoomFeaturePatch, status: MeasurementStatus) => Promise<boolean>; onCancel: () => void }) {
-  const id = useId();
-  const [wall, setWall] = useState<Wall>(feature.wall);
-  const [offset, setOffset] = useState(formatInches(feature.offsetIn));
-  const [width, setWidth] = useState(formatInches(feature.widthIn));
-  const [swing, setSwing] = useState(feature.swing);
-  const [hinge, setHinge] = useState(feature.hinge);
-  const [confirmed, setConfirmed] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-
-  const submit = async (event: FormEvent) => {
-    event.preventDefault();
-    const offsetIn = /^0\s*(″|"|in)?$/.test(offset.trim()) ? 0 : parseLength(offset);
-    const widthIn = parseLength(width);
-    if (offsetIn === null || widthIn === null) {
-      setError('Use inches like 36, or feet and inches like 3′ 2″.');
-      return;
-    }
-    const patch: RoomFeaturePatch = { wall, offsetIn, widthIn, ...(feature.kind === 'door' ? { swing, hinge } : {}) };
-    if (await onSave(patch, confirmed ? 'confirmed' : 'assumed')) onCancel();
-  };
-
-  return (
-    <form onSubmit={submit} className={cn(FORM, 'mt-2')} aria-label={`Adjust ${FEATURE_LABEL[feature.kind].toLowerCase()}`}>
-      <div className="grid grid-cols-3 gap-2">
-        <label htmlFor={`${id}-wall`} className={LABEL}>
-          Wall
-          <NativeSelect size="sm" id={`${id}-wall`} value={wall} onChange={(event) => setWall(event.target.value as Wall)}>
-            {WALLS.map((option) => <option key={option} value={option}>{option}</option>)}
-          </NativeSelect>
-        </label>
-        <label htmlFor={`${id}-offset`} className={LABEL}>
-          From {cornerName(wall)} corner
-          <Input size="sm" id={`${id}-offset`} value={offset} onChange={(event) => setOffset(event.target.value)} className="min-w-0 tabular-nums" />
-        </label>
-        <label htmlFor={`${id}-width`} className={LABEL}>
-          Width
-          <Input size="sm" id={`${id}-width`} value={width} onChange={(event) => setWidth(event.target.value)} className="min-w-0 tabular-nums" />
-        </label>
-      </div>
-      {feature.kind === 'door' ? (
-        <div className="grid grid-cols-2 gap-2">
-          <label htmlFor={`${id}-swing`} className={LABEL}>
-            Swings
-            <NativeSelect size="sm" id={`${id}-swing`} value={swing ?? 'in'} onChange={(event) => setSwing(event.target.value as 'in' | 'out')}>
-              <option value="in">into the room</option>
-              <option value="out">out of the room</option>
-            </NativeSelect>
-          </label>
-          <label htmlFor={`${id}-hinge`} className={LABEL}>
-            Hinges at
-            <NativeSelect size="sm" id={`${id}-hinge`} value={hinge ?? 'start'} onChange={(event) => setHinge(event.target.value as 'start' | 'end')}>
-              <option value="start">{cornerName(wall)} side</option>
-              <option value="end">{cornerName(wall) === 'west' ? 'east' : 'south'} side</option>
-            </NativeSelect>
-          </label>
-        </div>
-      ) : null}
-      <label className={CHECK}>
-        <input type="checkbox" checked={confirmed} onChange={(event) => setConfirmed(event.target.checked)} />
-        Confirmed by the client or measured
-      </label>
-      {error ? <p role="alert" className="text-xs text-destructive-strong">{error}</p> : null}
-      <div className="flex gap-2">
-        <Button type="submit" size="xs">Save</Button>
-        <Button type="button" size="xs" variant="ghost" onClick={onCancel}>Cancel</Button>
-      </div>
-    </form>
-  );
-}
+const LINK = 'inline-flex h-6 w-fit items-center gap-1.5 rounded-sm text-xs font-medium text-primary underline-offset-4 outline-none hover:underline focus-visible:ring-2 focus-visible:ring-ring disabled:opacity-50 [&_svg]:size-3.5';
 
 /** What the client said, what we assumed from it, and the questions that would settle it. */
 export function RoomFactsPanel({ room, features, disabled, onUpdateRoom, onUpdateFeature }: RoomFactsPanelProps) {
-  const [editing, setEditing] = useState<string | null>(null);
   const [expanded, setExpanded] = useState<string | null>(null);
   const [copied, setCopied] = useState(false);
   const questions = clientQuestions(room, features);
@@ -184,19 +58,15 @@ export function RoomFactsPanel({ room, features, disabled, onUpdateRoom, onUpdat
           <MeasurementStatusBadge status={room.dimensionsStatus} />
         </div>
         <p className="text-xs leading-relaxed text-muted-foreground">{room.dimensionsStatus === 'confirmed' ? 'Tape-measured.' : room.note}</p>
-        {editing === 'room' ? (
-          <RoomSizeForm room={room} onSave={onUpdateRoom} onCancel={() => setEditing(null)} />
-        ) : (
-          <Button size="xs" variant="link" className="w-fit px-0" disabled={disabled} onClick={() => setEditing('room')}>
-            <Pencil aria-hidden="true" /> Edit room size
-          </Button>
-        )}
+        <RoomSizePopover room={room} onSave={onUpdateRoom} disabled={disabled} triggerClassName={LINK}>
+          <Pencil aria-hidden="true" /> Edit room size
+        </RoomSizePopover>
       </div>
 
       <ul className="-mx-1.5 flex flex-col">
         {features.map((feature) => {
           const Icon = FEATURE_ICON[feature.kind];
-          const open = expanded === feature.id || editing === feature.id;
+          const open = expanded === feature.id;
           const panelId = `feature-${feature.id}`;
           return (
             <li key={feature.id}>
@@ -224,20 +94,16 @@ export function RoomFactsPanel({ room, features, disabled, onUpdateRoom, onUpdat
                     {feature.status !== 'confirmed' && feature.assumption ? (
                       <p className="text-xs leading-relaxed text-muted-foreground">{feature.assumption}</p>
                     ) : null}
-                    {editing === feature.id ? (
-                      <FeatureForm feature={feature} onSave={(patch, status) => onUpdateFeature(feature.id, patch, status)} onCancel={() => setEditing(null)} />
-                    ) : (
-                      <div className="flex flex-wrap gap-x-3">
-                        <Button size="xs" variant="link" className="px-0" disabled={disabled} onClick={() => setEditing(feature.id)}>
-                          <Pencil aria-hidden="true" /> Adjust
-                        </Button>
-                        {feature.status !== 'confirmed' ? (
-                          <Button size="xs" variant="link" className="px-0" disabled={disabled} onClick={() => void onUpdateFeature(feature.id, {}, 'confirmed')}>
-                            <Check aria-hidden="true" /> Client confirmed as drawn
-                          </Button>
-                        ) : null}
-                      </div>
-                    )}
+                    <div className="flex flex-wrap gap-x-4">
+                      <FeatureDialog feature={feature} onSave={(patch, status) => onUpdateFeature(feature.id, patch, status)} disabled={disabled} triggerClassName={LINK}>
+                        <Pencil aria-hidden="true" /> Adjust
+                      </FeatureDialog>
+                      {feature.status !== 'confirmed' ? (
+                        <button type="button" className={LINK} disabled={disabled} onClick={() => void onUpdateFeature(feature.id, {}, 'confirmed')}>
+                          <Check aria-hidden="true" /> Client confirmed as drawn
+                        </button>
+                      ) : null}
+                    </div>
                   </div>
                 </div>
               </div>
