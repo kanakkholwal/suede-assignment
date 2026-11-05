@@ -133,7 +133,7 @@ export function CatalogApp() {
             <CatalogSearch value={filters.query} onChange={(query) => setFilters((current) => ({ ...current, query }))} />
             <button ref={filterTriggerRef} type="button" onClick={() => setFiltersOpen(true)} className={button({ variant: 'outline', size: 'sm' })}>
               <SlidersHorizontal aria-hidden="true" /> Filters
-              {filterCount ? <span aria-hidden="true" className="pop grid size-4 place-items-center rounded-full bg-primary text-xs text-primary-foreground tabular-nums">{filterCount}</span> : null}
+              {filterCount ? <span aria-hidden="true" className="pop grid size-4 place-items-center rounded-full bg-foreground text-xs text-background tabular-nums">{filterCount}</span> : null}
             </button>
             <CatalogViewToggle view={view} onChange={setView} />
           </div>
