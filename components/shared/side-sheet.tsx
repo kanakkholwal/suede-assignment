@@ -19,10 +19,12 @@ interface SideSheetProps {
   /** Receives focus back on close, usually the trigger. */
   returnFocusRef?: RefObject<HTMLElement | null>;
   className?: string;
+  /** Drops body padding for content that brings its own. */
+  flush?: boolean;
 }
 
 /** Right-hand modal sheet with Escape, outside click and a focus trap. */
-export function SideSheet({ open, onClose, label, closeLabel, title, children, footer, returnFocusRef, className }: SideSheetProps) {
+export function SideSheet({ open, onClose, label, closeLabel, title, children, footer, returnFocusRef, className, flush = false }: SideSheetProps) {
   const sheetRef = useRef<HTMLElement>(null);
   const closeRef = useRef<HTMLButtonElement>(null);
   const onCloseRef = useRef(onClose);
@@ -65,7 +67,10 @@ export function SideSheet({ open, onClose, label, closeLabel, title, children, f
   };
 
   return (
-    <div className="fixed inset-0 z-50 bg-black/35 p-4 backdrop-blur-[1px]" onMouseDown={onClose}>
+    <div
+      className="fixed inset-0 z-50 bg-foreground/25 p-1.5 transition-opacity duration-(--duration-backdrop) ease-(--ease-ui-out) starting:opacity-0"
+      onMouseDown={onClose}
+    >
       <section
         ref={sheetRef}
         role="dialog"
@@ -73,22 +78,26 @@ export function SideSheet({ open, onClose, label, closeLabel, title, children, f
         aria-label={label}
         onKeyDown={trapFocus}
         onMouseDown={(event) => event.stopPropagation()}
-        className={cn('ml-auto flex h-full w-full max-w-sm flex-col overflow-hidden rounded-xl bg-[#fdfcfa] shadow-overlay', className)}
+        className={cn(
+          'ml-auto flex h-full w-full max-w-sm flex-col overflow-hidden rounded-xl bg-card shadow-overlay',
+          'transition-transform duration-(--duration-overlay) ease-(--ease-drawer) starting:translate-x-8 motion-reduce:starting:translate-x-0',
+          className,
+        )}
       >
-        <div className="flex items-center justify-between border-b border-border px-5 py-4">
-          <div className="text-[11px] font-semibold uppercase tracking-[0.12em] text-[#806f63]">{title}</div>
+        <div className="flex min-h-12 items-center justify-between gap-3 py-2 pr-2 pl-4">
+          <div className="text-sm font-semibold text-foreground">{title}</div>
           <button
             ref={closeRef}
             type="button"
             aria-label={closeLabel}
             onClick={onClose}
-            className="grid size-8 place-items-center rounded-full text-[#564b43] hover:bg-[#f0ece7] focus-visible:outline-2 focus-visible:outline-[#886b54]"
+            className="grid size-8 place-items-center rounded-lg text-muted-foreground outline-none transition-[background-color,color,scale] duration-(--duration-fast) hover:bg-foreground/[0.06] hover:text-foreground focus-visible:ring-2 focus-visible:ring-ring active:scale-(--press-scale-icon)"
           >
             <X className="size-4" aria-hidden="true" />
           </button>
         </div>
-        <div className="min-h-0 flex-1 overflow-y-auto p-5">{children}</div>
-        {footer ? <div className="border-t border-border bg-[#fdfcfa] p-4">{footer}</div> : null}
+        <div className={cn('flex min-h-0 flex-1 flex-col overflow-y-auto', !flush && 'p-4')}>{children}</div>
+        {footer ? <div className="p-3">{footer}</div> : null}
       </section>
     </div>
   );
