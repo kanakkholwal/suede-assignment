@@ -4,6 +4,7 @@ import { beforeEach, expect, it } from 'vitest';
 
 import CatalogPage from '@/app/catalog/page';
 import { armchair, boneQuilt, catalogFixture, deferred, fullCatalogProducts, libraryFixture, mockApi, quilt } from './api-fixtures';
+import { RoomProvider } from '@/components/room/room-provider';
 
 const LINEN_BOX_QUILT = 'Linen Box Quilt (Dusk)';
 const ANTWERP_ARMCHAIR = 'Antwerp Armchair';
@@ -11,7 +12,7 @@ const ANTWERP_ARMCHAIR = 'Antwerp Armchair';
 beforeEach(() => { mockApi(); });
 
 async function renderCatalog() {
-  render(<CatalogPage />);
+  render(<CatalogPage />, { wrapper: RoomProvider });
   await screen.findByRole('button', { name: `View ${LINEN_BOX_QUILT}` });
 }
 
@@ -59,7 +60,7 @@ it('loads Catalog through the API and sends literal search text immediately', as
 it('shows loading and an accessible database recovery error without static fallback', async () => {
   const response = deferred<Response>();
   mockApi({ catalog: () => response.promise });
-  render(<CatalogPage />);
+  render(<CatalogPage />, { wrapper: RoomProvider });
   expect(screen.getByRole('status', { name: 'Loading catalog' })).toBeVisible();
   expect(screen.queryByText(LINEN_BOX_QUILT)).not.toBeInTheDocument();
   await act(async () => response.resolve(Response.json({ error: 'The local catalog database is unavailable. Run pnpm db:reset to restore it.' }, { status: 503 })));
@@ -69,7 +70,7 @@ it('shows loading and an accessible database recovery error without static fallb
 
 it('does not suggest resetting the database for a network failure', async () => {
   mockApi({ catalog: () => Promise.reject(new Error('offline')) });
-  render(<CatalogPage />);
+  render(<CatalogPage />, { wrapper: RoomProvider });
   expect(await screen.findByRole('alert')).toHaveTextContent(/try again/i);
   expect(screen.getByRole('alert')).not.toHaveTextContent('pnpm db:reset');
 });
@@ -81,7 +82,7 @@ it('cancels stale Catalog requests so a late response cannot replace current res
     if (!url.searchParams.has('query')) { oldSignal = init?.signal; return oldResponse.promise; }
     return Response.json(catalogFixture([armchair]));
   } });
-  render(<CatalogPage />);
+  render(<CatalogPage />, { wrapper: RoomProvider });
   fireEvent.change(screen.getByRole('searchbox', { name: 'Search' }), { target: { value: ANTWERP_ARMCHAIR } });
   expect(await screen.findByText(ANTWERP_ARMCHAIR)).toBeVisible();
   expect(oldSignal?.aborted).toBe(true);
@@ -224,11 +225,13 @@ it('switches from product cards to the concrete variants view', async () => {
 
   expect(screen.getByRole('button', { name: 'Products view' })).toHaveAttribute('aria-pressed', 'false');
   expect(screen.getByRole('button', { name: /Load .* more/ })).toBeVisible();
-});
+  // Renders the full 280-product fixture, then 80 variant tiles, in jsdom.
+}, 15_000);
 
 it('sends parent category, multiple brands, price windows, and availability to Catalog', async () => {
   const fetchMock = mockApi();
   await renderCatalog();
+  await userEvent.click(screen.getByRole('button', { name: 'Filters' }));
   await userEvent.click(screen.getByRole('button', { name: 'Filter by Decor' }));
   await userEvent.click(screen.getByRole('checkbox', { name: 'Parachute Home' }));
   await userEvent.click(screen.getByRole('checkbox', { name: 'House of Leon' }));
@@ -254,10 +257,11 @@ it('uses the server-filtered variant list without reintroducing unavailable prod
     if (url.searchParams.get('inStockOnly') === 'true') result.variants = result.variants?.slice(1);
     return Response.json(result);
   } });
-  render(<CatalogPage />);
+  render(<CatalogPage />, { wrapper: RoomProvider });
   await screen.findByRole('button', { name: 'View Linen Box Quilt (Bone)' });
   await userEvent.click(screen.getByRole('button', { name: 'Variants view' }));
   expect(screen.getByRole('button', { name: 'View Linen Box Quilt (Bone), Twin/Twin XL / Bone' })).toBeVisible();
+  await userEvent.click(screen.getByRole('button', { name: 'Filters' }));
   await userEvent.click(screen.getByRole('checkbox', { name: 'Available to order only' }));
   expect(await screen.findByRole('button', { name: 'View Linen Box Quilt (Bone), Full/Queen / Bone' })).toBeVisible();
   expect(screen.queryByRole('button', { name: 'View Linen Box Quilt (Bone), Twin/Twin XL / Bone' })).not.toBeInTheDocument();
@@ -292,7 +296,7 @@ it('preselects the exact SKU that opened product details', async () => {
 
   expect(
     screen.getByRole('radio', {
-      name: 'Twin/Twin XL / Bone — $223 — Unavailable',
+      name: 'Twin/Twin XL / Bone, $223, Unavailable',
     }),
   ).toBeChecked();
 
@@ -318,7 +322,7 @@ it('updates variant-specific details when a visitor chooses another option', asy
   );
 
   const availableOption = screen.getByRole('radio', {
-    name: 'Full/Queen / Bone — $309 — Available',
+    name: 'Full/Queen / Bone, $309, Available',
   });
   await user.click(availableOption);
 
@@ -341,7 +345,7 @@ it('switches the detail image when a selected SKU has a distinct staging image',
   const vintageBlackSource = vintageBlackImage.getAttribute('src');
 
   await user.click(
-    within(dialog).getByRole('radio', { name: 'Bone — $1,750 — Available' }),
+    within(dialog).getByRole('radio', { name: 'Bone, $1,750, Available' }),
   );
 
   const boneImage = within(dialog).getByAltText('Antwerp Armchair — Bone');
@@ -360,7 +364,7 @@ it('retains the primary image when a selected SKU has no staging image assignmen
   const primarySource = primaryImage.getAttribute('src');
 
   await user.click(
-    within(dialog).getByRole('radio', { name: 'King/Cal King / Dusk — $329 — Available' }),
+    within(dialog).getByRole('radio', { name: 'King/Cal King / Dusk, $329, Available' }),
   );
 
   expect(within(dialog).getByAltText(`${LINEN_BOX_QUILT} by Parachute Home`)).toHaveAttribute(
@@ -383,14 +387,14 @@ it('updates variant-specific details with keyboard option selection', async () =
   );
 
   const initiallySelected = screen.getByRole('radio', {
-    name: 'Twin/Twin XL / Bone — $223 — Unavailable',
+    name: 'Twin/Twin XL / Bone, $223, Unavailable',
   });
   await user.click(initiallySelected);
   await user.keyboard('{ArrowDown}');
 
   expect(
     screen.getByRole('radio', {
-      name: 'Full/Queen / Bone — $309 — Available',
+      name: 'Full/Queen / Bone, $309, Available',
     }),
   ).toBeChecked();
   const selectedVariant = within(screen.getByRole('status', { name: 'Selected variant' }));
@@ -409,7 +413,7 @@ it('keeps Tab focus inside product details after the active variant option', asy
   );
 
   const selectedOption = screen.getByRole('radio', {
-    name: 'Twin/Twin XL / Bone — $223 — Unavailable',
+    name: 'Twin/Twin XL / Bone, $223, Unavailable',
   });
   await user.click(selectedOption);
   expect(selectedOption).toHaveFocus();
@@ -478,6 +482,7 @@ it('opens a product detail dialog from a catalog card', async () => {
 it('restores catalog results when a cleared price field has no constraint', async () => {
   const user = userEvent.setup();
   await renderCatalog();
+  await user.click(screen.getByRole('button', { name: 'Filters' }));
 
   const maximumPrice = screen.getByLabelText('Maximum price');
   await user.type(maximumPrice, '100');

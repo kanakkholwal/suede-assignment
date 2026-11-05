@@ -22,7 +22,7 @@ export function ProductFacts({ product, dimensions }: { product: CatalogProduct;
         <div className="col-span-2 min-w-0">
           <p className="text-[10px] font-semibold uppercase tracking-[0.1em] text-[#81766d]">Dimensions · W × D × H</p>
           {dimensions ? (
-            <SummaryDimensionLine summary={dimensions} className="mt-1 text-sm" />
+            <SummaryDimensionLine summary={dimensions} showUnknown className="mt-1 text-sm" />
           ) : (
             <p className="mt-1 font-medium text-[#211b17]">Not on file</p>
           )}

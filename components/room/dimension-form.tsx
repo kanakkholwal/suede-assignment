@@ -3,6 +3,7 @@
 import { type FormEvent, useId, useState } from 'react';
 
 import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
 import { DIMENSION_FIELDS, type DimensionField, type DimensionValues, type ResolvedDimensions } from '@/lib/dimensions';
 import { formatInchValue, parseLength } from '@/lib/units';
 
@@ -56,34 +57,35 @@ export function DimensionForm({ current, onSave, onCancel, onClear }: DimensionF
   };
 
   return (
-    <form onSubmit={submit} className="mt-2 flex flex-col gap-2.5 rounded-lg border border-border bg-[#fbf9f6] p-3" aria-label="Enter size">
+    <form onSubmit={submit} className="enter mt-1 flex flex-col gap-2.5 rounded-lg bg-muted/60 p-3" aria-label="Enter size">
       <div className="grid grid-cols-3 gap-2">
         {DIMENSION_FIELDS.map((field) => {
           const known = current[field];
           return (
             <label key={field} htmlFor={`${formId}-${field}`} className="flex min-w-0 flex-col gap-1">
-              <span className="text-[10px] font-semibold uppercase tracking-[0.1em] text-muted-foreground">{FIELD_LABEL[field]}</span>
-              <input
+              <span className="text-xs text-muted-foreground">{FIELD_LABEL[field]}</span>
+              <Input
+                size="sm"
                 id={`${formId}-${field}`}
                 inputMode="decimal"
                 value={text[field]}
                 onChange={(event) => setText((previous) => ({ ...previous, [field]: event.target.value }))}
                 placeholder={known.value !== null && known.source !== 'designer' ? formatInchValue(known.value) : 'in'}
-                className="h-8 min-w-0 rounded-md border border-input bg-white px-2 text-sm tabular-nums outline-none focus:border-ring focus:ring-2 focus:ring-ring/15"
+                className="min-w-0 tabular-nums"
               />
             </label>
           );
         })}
       </div>
       <label htmlFor={`${formId}-note`} className="flex flex-col gap-1">
-        <span className="text-[10px] font-semibold uppercase tracking-[0.1em] text-muted-foreground">Where is this from?</span>
-        <input
+        <span className="text-xs text-muted-foreground">Where is this from?</span>
+        <Input
+          size="sm"
           id={`${formId}-note`}
           value={note}
           maxLength={280}
           onChange={(event) => setNote(event.target.value)}
           placeholder="Brand spec sheet, showroom tape, vendor email…"
-          className="h-8 rounded-md border border-input bg-white px-2 text-sm outline-none focus:border-ring focus:ring-2 focus:ring-ring/15"
         />
       </label>
       {error ? <p role="alert" className="text-xs text-destructive-strong">{error}</p> : null}

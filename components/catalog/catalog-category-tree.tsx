@@ -61,9 +61,9 @@ export function CatalogCategoryTree({ nodes, selected, onSelect }: CatalogCatego
               aria-label={`${isOpen ? 'Collapse' : 'Expand'} ${node.name}`}
               aria-expanded={isOpen}
               onClick={() => toggle(node.id)}
-              className="grid size-6 shrink-0 place-items-center rounded text-[#82776d] hover:bg-[#efeae4] focus-visible:outline-2 focus-visible:outline-[#886b54]"
+              className="grid size-6 shrink-0 place-items-center rounded-md text-muted-foreground outline-none transition-colors duration-(--duration-fast) hover:bg-foreground/[0.06] hover:text-foreground focus-visible:ring-2 focus-visible:ring-ring"
             >
-              <ChevronRight className={`size-3.5 transition-transform ${isOpen ? 'rotate-90' : ''}`} aria-hidden="true" />
+              <ChevronRight className={`size-3.5 transition-transform duration-(--duration-base) ease-(--ease-ui-out) ${isOpen ? 'rotate-90' : ''}`} aria-hidden="true" />
             </button>
           ) : (
             <span className="inline-block size-6 shrink-0" aria-hidden="true" />
@@ -73,31 +73,29 @@ export function CatalogCategoryTree({ nodes, selected, onSelect }: CatalogCatego
             aria-label={`Filter by ${node.name}`}
             aria-pressed={isSelected}
             onClick={() => onSelect(node.id)}
-            className={`flex min-w-0 flex-1 items-center justify-between gap-2 rounded px-1.5 py-1.5 text-left text-sm transition focus-visible:outline-2 focus-visible:outline-[#886b54] ${
-              isSelected
-                ? 'bg-[#ebe3da] font-medium text-[#241c17]'
-                : 'text-[#3c322b] hover:bg-[#f0ece7]'
+            className={`flex min-w-0 flex-1 items-center justify-between gap-2 rounded-md px-1.5 py-1.5 text-left text-sm outline-none transition-[background-color,color,scale] duration-(--duration-fast) focus-visible:ring-2 focus-visible:ring-ring active:scale-(--press-scale-row) ${
+              isSelected ? 'bg-primary/10 font-medium text-foreground' : 'text-foreground hover:bg-foreground/[0.04]'
             }`}
           >
             <span className="truncate">{node.name}</span>
-            <span className="shrink-0 text-[11px] tabular-nums text-[#8a7f76]" aria-hidden="true">
+            <span className="shrink-0 text-xs tabular-nums text-muted-foreground" aria-hidden="true">
               {node.count}
             </span>
           </button>
         </div>
-        {hasChildren && isOpen ? node.children.map((child) => renderNode(child, depth + 1)) : null}
+        {hasChildren && isOpen ? <div className="enter">{node.children.map((child) => renderNode(child, depth + 1))}</div> : null}
       </div>
     );
   };
 
   return (
-    <div className="max-h-72 overflow-y-auto pr-1" role="group" aria-label="Category tree">
+    <div className="flex flex-col" role="group" aria-label="Category tree">
       <button
         type="button"
         aria-pressed={selected === null}
         onClick={() => onSelect(null)}
-        className={`mb-1 flex w-full items-center rounded px-2 py-1.5 text-left text-sm transition hover:bg-[#f0ece7] focus-visible:outline-2 focus-visible:outline-[#886b54] ${
-          selected === null ? 'bg-[#ebe3da] font-medium text-[#241c17]' : 'text-[#3c322b]'
+        className={`mb-0.5 flex w-full items-center rounded-md px-2 py-1.5 text-left text-sm outline-none transition-[background-color,scale] duration-(--duration-fast) focus-visible:ring-2 focus-visible:ring-ring active:scale-(--press-scale-row) ${
+          selected === null ? 'bg-primary/10 font-medium text-foreground' : 'text-foreground hover:bg-foreground/[0.04]'
         }`}
       >
         All categories

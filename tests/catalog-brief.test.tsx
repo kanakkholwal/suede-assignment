@@ -4,9 +4,10 @@ import { expect, it } from 'vitest';
 
 import CatalogPage from '@/app/catalog/page';
 import { armchair, mockApi } from './api-fixtures';
+import { RoomProvider } from '@/components/room/room-provider';
 
 async function renderCatalog() {
-  render(<CatalogPage />);
+  render(<CatalogPage />, { wrapper: RoomProvider });
   await screen.findByRole('button', { name: 'View Antwerp Armchair' });
 }
 

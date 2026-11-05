@@ -20,10 +20,13 @@ interface AddToRoomButtonProps {
   inRoom: boolean;
   disabled: boolean;
   onToggle: () => void;
+  size?: 'sm' | 'default';
   className?: string;
 }
 
-export function AddToRoomButton({ productName, inRoom, disabled, onToggle, className }: AddToRoomButtonProps) {
+/** Toggles a piece on the room shortlist; the icon swaps with a small pop so the change registers. */
+export function AddToRoomButton({ productName, inRoom, disabled, onToggle, size = 'sm', className }: AddToRoomButtonProps) {
+  const Icon = inRoom ? Check : Plus;
   return (
     <button
       type="button"
@@ -35,14 +38,17 @@ export function AddToRoomButton({ productName, inRoom, disabled, onToggle, class
         onToggle();
       }}
       className={cn(
-        'inline-flex h-7 shrink-0 items-center gap-1 rounded-md border px-2 text-xs font-medium transition-[background-color,border-color,color,scale] duration-(--duration-fast) active:scale-[var(--press-scale-sm)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring disabled:opacity-50',
+        'inline-flex shrink-0 items-center gap-1 rounded-md border font-medium outline-none',
+        'transition-[background-color,border-color,color,scale] duration-(--duration-fast) ease-(--ease-ui-out) active:scale-(--press-scale-sm)',
+        'focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-card disabled:opacity-50',
+        size === 'sm' ? 'h-7 px-2 text-xs [&_svg]:size-3.5' : 'h-9 px-3.5 text-sm [&_svg]:size-4',
         inRoom
-          ? 'border-primary bg-primary text-primary-foreground hover:bg-(--primary-hover)'
-          : 'border-input bg-white text-[#4a3e35] hover:border-primary hover:text-primary',
+          ? 'border-primary bg-primary text-primary-foreground hover:bg-primary-hover'
+          : 'border-border-strong bg-card text-foreground hover:border-primary hover:text-primary',
         className,
       )}
     >
-      {inRoom ? <Check className="size-3.5" aria-hidden="true" /> : <Plus className="size-3.5" aria-hidden="true" />}
+      <Icon key={String(inRoom)} className="pop" aria-hidden="true" />
       {inRoom ? 'In room' : 'Room'}
     </button>
   );

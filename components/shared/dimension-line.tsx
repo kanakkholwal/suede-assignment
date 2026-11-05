@@ -14,16 +14,16 @@ function rangeText(field: FieldSummary | null): string {
   if (!field) return '?';
   return field.min === field.max
     ? formatInchValue(field.min)
-    : `${formatInchValue(field.min)}–${formatInchValue(field.max)}`;
+    : `${formatInchValue(field.min)} to ${formatInchValue(field.max)}`;
 }
 
-/** A catalog product's size across its options: `72–120 × 40 × 33 in`, with the weakest source. */
-export function SummaryDimensionLine({ summary, className }: { summary: DimensionSummary; className?: string }) {
+/** A catalog product's size across its options: `72 to 120 × 40 × 33 in`, with the weakest source. */
+export function SummaryDimensionLine({ summary, showUnknown = false, className }: { summary: DimensionSummary; showUnknown?: boolean; className?: string }) {
   const known = [summary.width, summary.depth].filter((field): field is FieldSummary => field !== null);
   const partial = summary.unmeasuredVariants > 0 && summary.unmeasuredVariants < summary.variantCount;
 
   if (known.length === 0) {
-    return <p className={cn('text-xs text-muted-foreground', className)}>Size not on file</p>;
+    return showUnknown ? <p className={cn('text-xs text-muted-foreground', className)}>Size not on file</p> : null;
   }
   if (known.length === 1 && summary.width) {
     return (

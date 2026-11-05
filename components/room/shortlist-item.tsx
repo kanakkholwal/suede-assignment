@@ -5,6 +5,8 @@ import Image from 'next/image';
 import { useId, useState } from 'react';
 
 import { DimensionForm } from '@/components/room/dimension-form';
+import { Button } from '@/components/ui/button';
+import { NativeSelect } from '@/components/ui/native-select';
 import { ResolvedDimensionLine } from '@/components/shared/dimension-line';
 import type { CatalogProduct } from '@/data/product-types';
 import type { DimensionValues } from '@/lib/dimensions';
@@ -41,23 +43,25 @@ export function ShortlistItem({
     (field) => field.source === 'designer',
   );
   const sizeBlocked = gaps.some((gap) => gap.kind === 'size-missing');
+  // The option picker already says "Choose an option"; repeating it as a gap is noise.
+  const notes = gaps.filter((gap) => gap.kind !== 'size-missing' && gap.kind !== 'option');
 
   return (
-    <li className="flex flex-col gap-2.5 py-4 first:pt-0 last:pb-0">
+    <li className="enter flex flex-col gap-2.5 rounded-lg py-3">
       <div className="flex gap-3">
-        <div className="relative size-14 shrink-0 overflow-hidden rounded-md bg-[#ebe7e1]">
+        <div className="relative size-14 shrink-0 overflow-hidden rounded-lg bg-muted">
           {image ? <Image src={image.src} alt="" fill sizes="56px" className="object-cover" /> : null}
         </div>
         <div className="flex min-w-0 flex-1 flex-col gap-1">
-          <p className="text-[10px] font-semibold uppercase tracking-[0.12em] text-[#877c72]">{product.brand}</p>
-          <p className="line-clamp-2 font-serif text-base leading-tight tracking-[-0.02em] text-foreground">{product.name}</p>
+          <p className="truncate text-xs text-muted-foreground">{product.brand}</p>
+          <p className="line-clamp-2 text-sm leading-snug font-medium text-foreground">{product.name}</p>
         </div>
         <button
           type="button"
           onClick={onRemove}
           disabled={disabled}
           aria-label={`Remove ${product.name} from room`}
-          className="grid size-7 shrink-0 place-items-center rounded-md text-muted-foreground hover:bg-accent hover:text-foreground disabled:opacity-50"
+          className="grid size-7 shrink-0 place-items-center rounded-md text-muted-foreground outline-none transition-[background-color,color,scale] duration-(--duration-fast) hover:bg-foreground/[0.06] hover:text-foreground focus-visible:ring-2 focus-visible:ring-ring active:scale-(--press-scale-icon) disabled:opacity-50"
         >
           <X className="size-3.5" aria-hidden="true" />
         </button>
@@ -66,12 +70,13 @@ export function ShortlistItem({
       {product.variants.length > 1 ? (
         <div>
           <label htmlFor={selectId} className="sr-only">Option for {product.name}</label>
-          <select
+          <NativeSelect
             id={selectId}
+            size="sm"
             value={item.variantId ?? ''}
             disabled={disabled}
             onChange={(event) => onSelectVariant(event.target.value || null)}
-            className="h-8 w-full rounded-md border border-input bg-white px-2 text-xs text-foreground outline-none focus:border-ring focus:ring-2 focus:ring-ring/15"
+            className="w-full"
           >
             <option value="">Choose an option…</option>
             {product.variants.map((candidate) => (
@@ -80,24 +85,24 @@ export function ShortlistItem({
                 {candidate.available ? '' : ' · unavailable'}
               </option>
             ))}
-          </select>
+          </NativeSelect>
         </div>
       ) : null}
 
-      <ResolvedDimensionLine dimensions={item.dimensions} />
+      {sizeBlocked ? (
+        <p className="flex items-center gap-1.5 text-xs text-muted-foreground">
+          <CircleAlert className="size-3.5 shrink-0 text-destructive-strong" aria-label="Blocks fit check" />
+          No width and depth on file, so it can’t go on the plan yet.
+        </p>
+      ) : (
+        <ResolvedDimensionLine dimensions={item.dimensions} />
+      )}
 
-      {gaps.length ? (
+      {notes.length ? (
         <ul className="flex flex-col gap-1">
-          {gaps.map((gap) => (
-            <li
-              key={gap.kind}
-              className={`flex items-start gap-1.5 text-xs leading-snug ${gap.severity === 'blocker' ? 'text-destructive-strong' : 'text-warning-strong'}`}
-            >
-              {gap.severity === 'blocker' ? (
-                <CircleAlert className="mt-px size-3.5 shrink-0" aria-label="Blocks fit check" />
-              ) : (
-                <TriangleAlert className="mt-px size-3.5 shrink-0" aria-label="Check before presenting" />
-              )}
+          {notes.map((gap) => (
+            <li key={gap.kind} className="flex items-start gap-1.5 text-xs text-muted-foreground">
+              <TriangleAlert className="mt-px size-3.5 shrink-0 text-warning-strong" aria-label="Check before presenting" />
               <span>{gap.message}</span>
             </li>
           ))}
@@ -114,15 +119,19 @@ export function ShortlistItem({
             setEditing(false);
           } : undefined}
         />
+      ) : sizeBlocked ? (
+        <Button size="xs" variant="outline" className="w-fit" disabled={disabled} onClick={() => setEditing(true)}>
+          <Ruler aria-hidden="true" /> Enter size
+        </Button>
       ) : (
         <button
           type="button"
           onClick={() => setEditing(true)}
           disabled={disabled}
-          className={`inline-flex w-fit items-center gap-1.5 text-xs font-medium underline-offset-4 hover:underline disabled:opacity-50 ${sizeBlocked ? 'text-primary' : 'text-muted-foreground'}`}
+          className="inline-flex w-fit items-center gap-1.5 rounded-sm text-xs text-muted-foreground underline-offset-4 outline-none hover:text-foreground hover:underline focus-visible:ring-2 focus-visible:ring-ring disabled:opacity-50"
         >
           <Ruler className="size-3.5" aria-hidden="true" />
-          {hasDesignerEntry ? 'Edit my measurement' : sizeBlocked ? 'Enter size' : 'Enter my own measurement'}
+          {hasDesignerEntry ? 'Edit my measurement' : 'Use my own measurement'}
         </button>
       )}
     </li>
