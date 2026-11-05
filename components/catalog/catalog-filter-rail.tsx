@@ -1,12 +1,12 @@
 'use client';
 
-import { RotateCcw, Search } from '@/components/icons';
+import { Search } from '@/components/icons';
 import type { ReactNode } from 'react';
 
 import { CatalogCategoryTree } from '@/components/catalog/catalog-category-tree';
-import { Button } from '@/components/ui/button';
+import { Checkbox } from '@/components/ui/checkbox';
 import { Input } from '@/components/ui/input';
-import { type CatalogCategoryNode, type CatalogFilters, emptyCatalogFilters } from '@/lib/catalog-contract';
+import type { CatalogCategoryNode, CatalogFilters } from '@/lib/catalog-contract';
 
 interface CatalogFilterRailProps {
   filters: CatalogFilters;
@@ -30,65 +30,67 @@ function priceText(cents: number | null): string {
   return cents === null ? '' : String(cents / 100);
 }
 
-function Group({ legend, children }: { legend: string; children: ReactNode }) {
+function Section({ title, children }: { title: string; children: ReactNode }) {
   return (
     <fieldset className="flex min-w-0 flex-col gap-2">
-      <legend className="mb-2 text-xs font-medium text-muted-foreground">{legend}</legend>
+      <legend className="mb-2 text-sm font-semibold text-foreground">{title}</legend>
       {children}
     </fieldset>
   );
 }
 
-const CHECK_ROW = 'flex cursor-pointer items-center gap-2.5 rounded-md px-1.5 py-1 text-sm text-foreground transition-colors duration-(--duration-fast) hover:bg-foreground/[0.04] [&_input]:size-4 [&_input]:accent-primary';
+const ROW = 'flex h-9 items-center rounded-lg px-2 transition-colors duration-(--duration-fast) hover:bg-foreground/[0.04]';
 
 export function CatalogFilterRail({ filters, brands, categoryTree, onChange }: CatalogFilterRailProps) {
-  const hasActiveFilters = activeFilterCount(filters) > 0 || Boolean(filters.query);
-
   return (
-    <div className="flex w-full flex-col gap-6" role="group" aria-label="Catalog filters">
-      <Group legend="Category">
+    <div className="flex w-full flex-col gap-7" role="group" aria-label="Catalog filters">
+      <Section title="Category">
         <CatalogCategoryTree nodes={categoryTree} selected={filters.category} onSelect={(category) => onChange({ ...filters, category })} />
-      </Group>
+      </Section>
 
-      <Group legend="Brand">
-        <div className="flex max-h-52 flex-col overflow-y-auto">
+      <Section title="Brand">
+        <div className="-mx-2 flex flex-col">
           {brands.map((brand) => {
             const checked = filters.brands.includes(brand);
             return (
-              <label key={brand} className={CHECK_ROW}>
-                <input
-                  type="checkbox"
+              <div key={brand} className={ROW}>
+                <Checkbox
+                  label={brand}
                   checked={checked}
-                  onChange={() =>
+                  onCheckedChange={() =>
                     onChange({ ...filters, brands: checked ? filters.brands.filter((item) => item !== brand) : [...filters.brands, brand] })
                   }
+                  className="w-full"
                 />
-                <span className="truncate">{brand}</span>
-              </label>
+              </div>
             );
           })}
         </div>
-      </Group>
+      </Section>
 
-      <Group legend="Price, USD">
-        <div className="grid grid-cols-2 gap-2">
-          <label className="sr-only" htmlFor="catalog-min-price">Minimum price</label>
-          <Input id="catalog-min-price" size="sm" inputMode="numeric" placeholder="Min" value={priceText(filters.minPriceCents)} onChange={(event) => onChange({ ...filters, minPriceCents: parsePrice(event.target.value) })} className="min-w-0 tabular-nums" />
-          <label className="sr-only" htmlFor="catalog-max-price">Maximum price</label>
-          <Input id="catalog-max-price" size="sm" inputMode="numeric" placeholder="Max" value={priceText(filters.maxPriceCents)} onChange={(event) => onChange({ ...filters, maxPriceCents: parsePrice(event.target.value) })} className="min-w-0 tabular-nums" />
+      <Section title="Price">
+        <div className="flex items-center gap-2">
+          <PriceField id="catalog-min-price" label="Minimum price" placeholder="Min" value={filters.minPriceCents} onChange={(minPriceCents) => onChange({ ...filters, minPriceCents })} />
+          <span className="text-sm text-muted-foreground">to</span>
+          <PriceField id="catalog-max-price" label="Maximum price" placeholder="Max" value={filters.maxPriceCents} onChange={(maxPriceCents) => onChange({ ...filters, maxPriceCents })} />
         </div>
-      </Group>
+      </Section>
 
-      <label className={CHECK_ROW}>
-        <input type="checkbox" checked={filters.inStockOnly} onChange={(event) => onChange({ ...filters, inStockOnly: event.target.checked })} />
-        Available to order only
-      </label>
+      <Section title="Availability">
+        <div className={`${ROW} -mx-2`}>
+          <Checkbox label="Available to order only" checked={filters.inStockOnly} onCheckedChange={(inStockOnly) => onChange({ ...filters, inStockOnly })} className="w-full" />
+        </div>
+      </Section>
+    </div>
+  );
+}
 
-      {hasActiveFilters ? (
-        <Button variant="ghost" size="sm" className="pop w-fit" onClick={() => onChange(emptyCatalogFilters)}>
-          <RotateCcw aria-hidden="true" /> Clear all
-        </Button>
-      ) : null}
+function PriceField({ id, label, placeholder, value, onChange }: { id: string; label: string; placeholder: string; value: number | null; onChange: (cents: number | null) => void }) {
+  return (
+    <div className="relative min-w-0 flex-1">
+      <label className="sr-only" htmlFor={id}>{label}</label>
+      <span className="pointer-events-none absolute top-1/2 left-3 -translate-y-1/2 text-sm text-muted-foreground" aria-hidden="true">$</span>
+      <Input id={id} inputMode="numeric" placeholder={placeholder} value={priceText(value)} onChange={(event) => onChange(parsePrice(event.target.value))} className="w-full pl-6 tabular-nums" />
     </div>
   );
 }

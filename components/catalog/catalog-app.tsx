@@ -1,6 +1,6 @@
 'use client';
 
-import { ArrowRight, SlidersHorizontal } from '@/components/icons';
+import { ArrowRight, RotateCcw, SlidersHorizontal } from '@/components/icons';
 import { useCallback, useMemo, useRef, useState } from 'react';
 
 import { BriefBar } from '@/components/catalog/brief-bar';
@@ -201,12 +201,24 @@ export function CatalogApp() {
         onClose={() => setFiltersOpen(false)}
         label="Catalog filters"
         closeLabel="Close filters"
-        title="Catalog filters"
+        title={
+          <span className="inline-flex items-baseline gap-2">
+            Filters
+            {filterCount ? <span className="text-xs font-normal text-muted-foreground tabular-nums">{filterCount} active</span> : null}
+          </span>
+        }
         returnFocusRef={filterTriggerRef}
         footer={
-          <Button className="w-full" onClick={() => setFiltersOpen(false)}>
-            Show {plural(resultCount, 'result')}
-          </Button>
+          <div className="flex items-center gap-2">
+            {filterCount || filters.query ? (
+              <Button variant="ghost" onClick={() => setFilters(emptyCatalogFilters)}>
+                <RotateCcw aria-hidden="true" /> Clear all
+              </Button>
+            ) : null}
+            <Button className="flex-1" onClick={() => setFiltersOpen(false)}>
+              Show {plural(resultCount, 'result')}
+            </Button>
+          </div>
         }
       >
         {filterRail}
