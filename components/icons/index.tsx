@@ -34,6 +34,7 @@ function createIcon(name: keyof typeof ICONS): IconComponent {
 
 export const Armchair = createIcon('Armchair');
 export const ArrowRight = createIcon('ArrowRight');
+export const ArrowUp = createIcon('ArrowUp');
 export const BadgeCheck = createIcon('BadgeCheck');
 export const Bookmark = createIcon('Bookmark');
 export const BookmarkMinus = createIcon('BookmarkMinus');
