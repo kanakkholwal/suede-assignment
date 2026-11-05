@@ -90,16 +90,19 @@ export function CatalogCategoryTree({ nodes, selected, onSelect }: CatalogCatego
 
   return (
     <div className="flex flex-col" role="group" aria-label="Category tree">
+      <div className="flex items-center gap-0.5">
+      <span className="inline-block size-6 shrink-0" aria-hidden="true" />
       <button
         type="button"
         aria-pressed={selected === null}
         onClick={() => onSelect(null)}
-        className={`mb-0.5 flex w-full items-center rounded-md px-2 py-1.5 text-left text-sm outline-none transition-[background-color,scale] duration-(--duration-fast) focus-visible:ring-2 focus-visible:ring-ring active:scale-(--press-scale-row) ${
+        className={`flex min-w-0 flex-1 items-center rounded-md px-1.5 py-1.5 text-left text-sm outline-none transition-[background-color,scale] duration-(--duration-fast) focus-visible:ring-2 focus-visible:ring-ring active:scale-(--press-scale-row) ${
           selected === null ? 'bg-primary/10 font-medium text-foreground' : 'text-foreground hover:bg-foreground/[0.04]'
         }`}
       >
         All categories
       </button>
+      </div>
       {nodes.map((node) => renderNode(node, 0))}
     </div>
   );
