@@ -1,6 +1,6 @@
 'use client';
 
-import { CardFitDetails } from '@/components/catalog/card-fit-details';
+import { CardFitLines, CardRoomToggle } from '@/components/catalog/card-fit-details';
 import { ProductTile } from '@/components/catalog/product-tile';
 import type { ShortlistContext } from '@/components/room/add-to-room-button';
 import { ProductActionsMenu } from '@/components/shared/product-actions-menu';
@@ -45,8 +45,10 @@ export function CatalogCard({ product, library, onView, shortlist }: CatalogCard
       viewLabel={`View ${product.name}`}
       onView={() => onView(product)}
       actions={<ProductActionsMenu product={product} saved={library.savedIds.includes(product.id)} {...library} />}
+      imageAction={<CardRoomToggle product={product} variantId={null} shortlist={shortlist} />}
+      price={price === undefined ? 'Price not provided' : `From ${formatPrice(price)}`}
     >
-      <CardFitDetails product={product} variantId={null} shortlist={shortlist} priceLabel={price === undefined ? 'Price not provided' : `From ${formatPrice(price)}`} />
+      <CardFitLines product={product} shortlist={shortlist} />
     </ProductTile>
   );
 }

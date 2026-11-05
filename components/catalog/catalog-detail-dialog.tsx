@@ -146,7 +146,7 @@ function CatalogDetailContent({ product, initialVariantId, dimensions, room }: C
               inRoom={room.inRoom}
               disabled={room.disabled}
               onToggle={() => room.onToggle(selectedVariant?.id ?? null)}
-              size="default"
+              tone="primary"
             />
             <p className="text-xs text-muted-foreground">
               {room.inRoom ? 'On the room shortlist.' : 'Adds the selected option to the room shortlist.'}

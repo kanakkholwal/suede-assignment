@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 
-import { CardFitDetails } from '@/components/catalog/card-fit-details';
+import { CardFitLines, CardRoomToggle } from '@/components/catalog/card-fit-details';
 import type { LibraryActions } from '@/components/catalog/catalog-card';
 import { NoMatches, ProductTile, TILE_GRID } from '@/components/catalog/product-tile';
 import type { ShortlistContext } from '@/components/room/add-to-room-button';
@@ -47,8 +47,10 @@ export function CatalogVariantGrid({ items, library, onView, shortlist }: Catalo
               viewLabel={`View ${product.name}, ${label}`}
               onView={() => onView(product, variant.id)}
               actions={<ProductActionsMenu product={product} saved={saved} {...library} />}
+              imageAction={<CardRoomToggle product={product} variantId={variant.id} shortlist={shortlist} />}
+              price={formatPrice(variant.priceCents)}
             >
-              <CardFitDetails product={product} variantId={variant.id} shortlist={shortlist} priceLabel={formatPrice(variant.priceCents)} />
+              <CardFitLines product={product} shortlist={shortlist} />
             </ProductTile>
           );
         })}

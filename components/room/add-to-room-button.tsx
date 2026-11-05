@@ -20,13 +20,28 @@ interface AddToRoomButtonProps {
   inRoom: boolean;
   disabled: boolean;
   onToggle: () => void;
-  size?: 'sm' | 'default';
+  /** `overlay` sits on a product photo; `primary` is the main action in a detail view. */
+  tone?: 'overlay' | 'primary';
   className?: string;
 }
 
+const TONE = {
+  overlay: {
+    base: 'h-8 rounded-lg px-2.5 text-xs backdrop-blur-sm [&_svg]:size-3.5',
+    off: 'bg-card/95 text-foreground hover:bg-card',
+    on: 'bg-foreground text-background',
+  },
+  primary: {
+    base: 'h-9 rounded-lg px-3.5 text-sm [&_svg]:size-4',
+    off: 'bg-primary text-primary-foreground hover:bg-primary-hover',
+    on: 'bg-muted text-foreground hover:bg-foreground/[0.08]',
+  },
+} as const;
+
 /** Toggles a piece on the room shortlist; the icon swaps with a small pop so the change registers. */
-export function AddToRoomButton({ productName, inRoom, disabled, onToggle, size = 'sm', className }: AddToRoomButtonProps) {
+export function AddToRoomButton({ productName, inRoom, disabled, onToggle, tone = 'overlay', className }: AddToRoomButtonProps) {
   const Icon = inRoom ? Check : Plus;
+  const style = TONE[tone];
   return (
     <button
       type="button"
@@ -38,13 +53,11 @@ export function AddToRoomButton({ productName, inRoom, disabled, onToggle, size 
         onToggle();
       }}
       className={cn(
-        'inline-flex shrink-0 items-center gap-1 rounded-md border font-medium outline-none',
-        'transition-[background-color,border-color,color,scale] duration-(--duration-fast) ease-(--ease-ui-out) active:scale-(--press-scale-sm)',
+        'inline-flex shrink-0 items-center gap-1 font-medium outline-none',
+        'transition-[background-color,color,scale] duration-(--duration-fast) ease-(--ease-ui-out) active:scale-(--press-scale-sm)',
         'focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-card disabled:opacity-50',
-        size === 'sm' ? 'h-7 px-2 text-xs [&_svg]:size-3.5' : 'h-9 px-3.5 text-sm [&_svg]:size-4',
-        inRoom
-          ? 'border-primary bg-primary text-primary-foreground hover:bg-primary-hover'
-          : 'border-border-strong bg-card text-foreground hover:border-primary hover:text-primary',
+        style.base,
+        inRoom ? style.on : style.off,
         className,
       )}
     >

@@ -31,16 +31,9 @@ export function LibraryCard({ product, collections, isBlocked, onView, onRemove,
       viewLabel={`View ${product.name}`}
       onView={() => onView(product)}
       actions={null}
-    >
-      <p className="text-sm tabular-nums text-foreground">{price === undefined ? 'Price not provided' : `From ${formatPrice(price)}`}</p>
-      {productCollections.length ? (
-        <div className="flex flex-wrap gap-1">
-          {productCollections.map((collection) => (
-            <span key={collection.id} className="pop rounded-md bg-muted px-1.5 py-0.5 text-xs text-muted-foreground">{collection.name}</span>
-          ))}
-        </div>
-      ) : null}
-      <div className="pointer-events-auto mt-auto flex items-center gap-2 pt-1.5">
+      price={price === undefined ? 'Price not provided' : `From ${formatPrice(price)}`}
+      footer={
+      <div className="-mx-1.5 flex items-center gap-2">
         <button
           type="button"
           disabled={isBlocked({ operation: 'toggleSaved', productId: product.id })}
@@ -70,6 +63,15 @@ export function LibraryCard({ product, collections, isBlocked, onView, onRemove,
           </label>
         ) : null}
       </div>
+      }
+    >
+      {productCollections.length ? (
+        <div className="flex flex-wrap gap-1">
+          {productCollections.map((collection) => (
+            <span key={collection.id} className="pop rounded-md bg-muted px-1.5 py-0.5 text-xs text-muted-foreground">{collection.name}</span>
+          ))}
+        </div>
+      ) : null}
     </ProductTile>
   );
 }
