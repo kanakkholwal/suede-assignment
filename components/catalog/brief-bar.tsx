@@ -16,8 +16,10 @@ const EXAMPLES = [
 interface BriefBarProps {
   filters: CatalogFilters;
   softTerms: readonly string[];
+  /** The brief as last run, from the URL; the composer starts from it and follows back/forward. */
+  brief: string;
   vocabulary: BriefVocabulary;
-  onApply: (brief: ParsedBrief) => void;
+  onApply: (text: string, parsed: ParsedBrief) => void;
   onRemoveChip: (key: FilterChipKey) => void;
   onRemoveSoftTerm: (term: string) => void;
 }
@@ -56,8 +58,13 @@ function Row({ label, children }: { label: ReactNode; children: ReactNode }) {
  * The brief as a composer: type what the client said, the catalog turns what it can into filters
  * and keeps the rest visible as words it could not use.
  */
-export function BriefBar({ filters, softTerms, vocabulary, onApply, onRemoveChip, onRemoveSoftTerm }: BriefBarProps) {
-  const [text, setText] = useState('');
+export function BriefBar({ filters, softTerms, brief, vocabulary, onApply, onRemoveChip, onRemoveSoftTerm }: BriefBarProps) {
+  const [text, setText] = useState(brief);
+  const [shownBrief, setShownBrief] = useState(brief);
+  if (brief !== shownBrief) {
+    setShownBrief(brief);
+    setText(brief);
+  }
   const inputId = useId();
   const hintId = useId();
   const chips = describeFilters(filters, vocabulary.categories);
@@ -66,7 +73,8 @@ export function BriefBar({ filters, softTerms, vocabulary, onApply, onRemoveChip
   const apply = (value: string) => {
     if (!value.trim()) return;
     setText(value);
-    onApply(parseBrief(value, vocabulary));
+    setShownBrief(value);
+    onApply(value, parseBrief(value, vocabulary));
   };
 
   const submit = (event: FormEvent<HTMLFormElement>) => {

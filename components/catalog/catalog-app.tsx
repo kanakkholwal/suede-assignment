@@ -18,7 +18,8 @@ import { Island } from '@/components/shell/island';
 import { Button, button } from '@/components/ui/button';
 import type { CatalogProduct } from '@/data/product-types';
 import { type BriefVocabulary, type FilterChipKey, type ParsedBrief, removeFilterChip } from '@/lib/brief';
-import { emptyCatalogFilters, type CatalogFilters, type CatalogVariantItem } from '@/lib/catalog-contract';
+import { emptyCatalogFilters, type CatalogVariantItem } from '@/lib/catalog-contract';
+import { useCatalogUrlState, useRoomHref } from '@/lib/url-state';
 import { useCatalog } from '@/lib/use-catalog';
 import { useLibrary } from '@/lib/use-library';
 
@@ -27,14 +28,13 @@ function plural(count: number, one: string, many = `${one}s`): string {
 }
 
 export function CatalogApp() {
-  const [filters, setFilters] = useState<CatalogFilters>(emptyCatalogFilters);
-  const [softTerms, setSoftTerms] = useState<string[]>([]);
-  const [view, setView] = useState<CatalogView>('products');
+  const url = useCatalogUrlState();
+  const { filters, setFilters } = url;
+  const { terms: softTerms, view, brief } = url.state;
+  const roomHref = useRoomHref();
   const [filtersOpen, setFiltersOpen] = useState(false);
   const [roomOpen, setRoomOpen] = useState(false);
   const [revision, setRevision] = useState(0);
-  const [detailProduct, setDetailProduct] = useState<CatalogProduct | null>(null);
-  const [detailVariantId, setDetailVariantId] = useState<string | null>(null);
   const filterTriggerRef = useRef<HTMLButtonElement>(null);
   const roomTriggerRef = useRef<HTMLButtonElement>(null);
   const library = useLibrary();
@@ -87,23 +87,29 @@ export function CatalogApp() {
     onCreateCollection: library.createCollection,
   };
 
-  const applyBrief = useCallback((brief: ParsedBrief) => {
-    setFilters(brief.filters);
-    setSoftTerms(brief.softTerms);
-  }, []);
+  const { setState: setUrlState } = url;
+  const applyBrief = useCallback(
+    (text: string, parsed: ParsedBrief) => {
+      setFilters(parsed.filters);
+      void setUrlState({ brief: text, terms: parsed.softTerms });
+    },
+    [setFilters, setUrlState],
+  );
 
-  const removeChip = useCallback((key: FilterChipKey) => setFilters((current) => removeFilterChip(current, key)), []);
+  const removeChip = useCallback((key: FilterChipKey) => setFilters((current) => removeFilterChip(current, key)), [setFilters]);
+  const setView = useCallback((next: CatalogView) => void setUrlState({ view: next }), [setUrlState]);
+  const detailProduct = useMemo(
+    () => (url.state.product ? (catalog.data?.products.find((product) => product.id === url.state.product) ?? null) : null),
+    [catalog.data, url.state.product],
+  );
+  const detailVariantId = url.state.option;
   const refreshResults = useCallback(() => setRevision((value) => value + 1), []);
 
-  const openDetail = useCallback((product: CatalogProduct, variantId: string | null = null) => {
-    setDetailProduct(product);
-    setDetailVariantId(variantId);
-  }, []);
-
-  const closeDetail = useCallback(() => {
-    setDetailProduct(null);
-    setDetailVariantId(null);
-  }, []);
+  const openDetail = useCallback(
+    (product: CatalogProduct, variantId: string | null = null) => void setUrlState({ product: product.id, option: variantId }),
+    [setUrlState],
+  );
+  const closeDetail = useCallback(() => void setUrlState({ product: null, option: null }), [setUrlState]);
 
   const shortlistPanel = <RoomShortlist capturedAt={capturedAt} onDimensionsChanged={refreshResults} />;
   const filterRail = <CatalogFilterRail filters={filters} brands={brands} categoryTree={categoryTree} onChange={setFilters} />;
@@ -118,10 +124,11 @@ export function CatalogApp() {
           <BriefBar
             filters={filters}
             softTerms={softTerms}
+            brief={brief}
             vocabulary={vocabulary}
             onApply={applyBrief}
             onRemoveChip={removeChip}
-            onRemoveSoftTerm={(term) => setSoftTerms((terms) => terms.filter((candidate) => candidate !== term))}
+            onRemoveSoftTerm={(term) => void setUrlState({ terms: softTerms.filter((candidate) => candidate !== term) })}
           />
         </div>
         <div className="flex shrink-0 flex-wrap items-center justify-between gap-x-3 gap-y-2 px-3 pt-5 pb-1 sm:px-4">
@@ -189,7 +196,7 @@ export function CatalogApp() {
           >
             Room shortlist <span className="tabular-nums text-background/70">· {roomCount}</span>
           </button>
-          <Button href="/room?view=plan" size="sm" className="rounded-xl">
+          <Button href={roomHref('/room?view=plan')} size="sm" className="rounded-xl">
             Fit the room <ArrowRight aria-hidden="true" />
           </Button>
         </div>
