@@ -87,7 +87,7 @@ export function RoomFactsPanel({ room, features, disabled, onUpdateRoom, onUpdat
                   <ChevronDown className={cn('size-3.5 text-muted-foreground transition-transform duration-(--duration-base) ease-(--ease-ui-out)', open && 'rotate-180')} aria-hidden="true" />
                 </span>
               </button>
-              <div id={panelId} className="collapse" data-open={open} inert={!open}>
+              <div id={panelId} className="disclosure" data-open={open} inert={!open}>
                 <div>
                   <div className="flex flex-col gap-1 px-1.5 pt-0.5 pb-3 pl-7.5">
                     {feature.clientSaid ? <p className="text-xs text-foreground">Client: “{feature.clientSaid}”</p> : null}

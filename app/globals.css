@@ -619,8 +619,8 @@
     animation: pop var(--duration-base) var(--ease-ui-out) both;
   }
 
-  /* Disclosure: animate height through grid rows instead of mounting. */
-  .collapse {
+  /* Disclosure: animate height through grid rows instead of mounting. Not `.collapse`: Tailwind owns that name. */
+  .disclosure {
     display: grid;
     grid-template-rows: 0fr;
     transition: grid-template-rows var(--duration-collapse) var(--ease-out-quad), opacity var(--duration-collapse) var(--ease-out-quad);

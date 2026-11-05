@@ -22,7 +22,7 @@ export function PlanLegend() {
   const id = useId();
   return (
     <div className="flex flex-col items-start gap-1.5">
-      <div id={id} className="collapse" data-open={open} inert={!open}>
+      <div id={id} className="disclosure" data-open={open} inert={!open}>
         <div>
           <ul aria-label="Legend" className="grid grid-cols-2 gap-x-4 gap-y-1 rounded-lg bg-muted/70 p-2.5 text-xs text-muted-foreground">
             {ITEMS.map((item) => (
