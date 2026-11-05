@@ -66,7 +66,7 @@ export function RoomShortlist({ capturedAt, onDimensionsChanged }: RoomShortlist
               <Armchair className="size-5" aria-hidden="true" />
             </span>
             <p className="text-sm font-medium text-foreground">No pieces yet</p>
-            <p className="max-w-56 text-xs text-muted-foreground">Add pieces from the results with <span className="font-medium whitespace-nowrap text-foreground">+ Room</span> to check them against this room.</p>
+            <p className="max-w-56 text-xs text-muted-foreground">Tap <span className="font-medium text-foreground">+</span> on any photo to check that piece against this room.</p>
           </div>
         ) : (
           <>

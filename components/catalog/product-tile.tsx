@@ -16,9 +16,9 @@ interface ProductTileProps {
   onView: () => void;
   /** Overflow menu, top-right of the image, revealed on hover for fine pointers. */
   actions: ReactNode;
-  /** The tile's one primary action, bottom-right of the image and always visible. */
+  /** The tile's one primary action, top-right of the image and always visible. */
   imageAction?: ReactNode;
-  /** Price line, kept with the text block it belongs to. */
+  /** Leads the second line, ahead of the brand or option, as on most marketplaces. */
   price: string;
   /** Size and fit lines between the brand and the price. */
   children?: ReactNode;
@@ -28,12 +28,12 @@ interface ProductTileProps {
 
 /**
  * One product in a results grid. Order is fixed so rows scan alike:
- * image, name, brand, size and fit, price.
+ * image, name, price with brand, then size and fit.
  */
 export function ProductTile({ image, brand, name, subtitle, flag, saved, viewLabel, onView, actions, imageAction, price, children, footer }: ProductTileProps) {
   return (
-    <article className="group/tile relative flex min-w-0 flex-col gap-2.5">
-      <div className="relative aspect-square overflow-hidden rounded-xl bg-muted">
+    <article className="group/tile relative flex min-w-0 flex-col gap-2.5" title={name}>
+      <div className="relative aspect-square overflow-hidden rounded-2xl bg-muted">
         {image ? (
           <Image
             src={image.src}
@@ -45,33 +45,33 @@ export function ProductTile({ image, brand, name, subtitle, flag, saved, viewLab
           />
         ) : null}
         {flag ? (
-          <span className="absolute top-2 left-2 z-10 rounded-md bg-card/90 px-1.5 py-0.5 text-xs text-muted-foreground backdrop-blur-sm">{flag}</span>
+          <span className="absolute top-2.5 left-2.5 z-10 rounded-full bg-card/90 px-2.5 py-1 text-xs font-medium text-foreground backdrop-blur-sm">{flag}</span>
         ) : null}
         {saved ? (
-          <span className="pop absolute bottom-2 left-2 z-10 grid size-8 place-items-center rounded-full bg-card/90 text-foreground backdrop-blur-sm">
+          <span className="pop absolute bottom-2.5 left-2.5 z-10 grid size-8 place-items-center rounded-full bg-card/90 text-foreground backdrop-blur-sm">
             <Bookmark className="size-3.5 fill-current" aria-label="Saved" />
           </span>
         ) : null}
-        {actions ? (
-          <div
-            className={cn(
-              'absolute top-2 right-2 z-20 transition-opacity duration-(--duration-fast)',
-              'pointer-fine:opacity-0 pointer-fine:group-hover/tile:opacity-100 pointer-fine:focus-within:opacity-100 pointer-fine:has-[[aria-expanded=true]]:opacity-100',
-            )}
-          >
-            {actions}
-          </div>
-        ) : null}
-        {imageAction ? <div className="absolute right-2 bottom-2 z-20">{imageAction}</div> : null}
+        <div className="absolute top-2.5 right-2.5 z-20 flex items-center gap-1.5">
+          {actions ? (
+            <div
+              className={cn(
+                'transition-opacity duration-(--duration-fast)',
+                'pointer-fine:opacity-0 pointer-fine:group-hover/tile:opacity-100 pointer-fine:focus-within:opacity-100 pointer-fine:has-[[aria-expanded=true]]:opacity-100',
+              )}
+            >
+              {actions}
+            </div>
+          ) : null}
+          {imageAction}
+        </div>
       </div>
-      <div className="pointer-events-none relative z-10 flex min-w-0 flex-1 flex-col px-0.5">
-        <h2 className="line-clamp-2 text-sm leading-5 font-medium text-foreground">{name}</h2>
+      <div className="pointer-events-none relative z-10 flex min-w-0 flex-col">
+        <h2 className="truncate text-sm leading-5 font-medium text-foreground">{name}</h2>
         <p className="truncate text-sm leading-5 text-muted-foreground">
-          {brand}
-          {subtitle ? ` · ${subtitle}` : ''}
+          <span className="tabular-nums text-foreground">{price}</span> · {subtitle ?? brand}
         </p>
-        {children ? <div className="mt-1.5 flex flex-col gap-0.5">{children}</div> : null}
-        <p className="pt-1 text-sm tabular-nums text-foreground">{price}</p>
+        {children ? <div className="mt-1 flex flex-col gap-0.5">{children}</div> : null}
         {footer ? <div className="pointer-events-auto mt-2">{footer}</div> : null}
       </div>
       <button
@@ -85,7 +85,7 @@ export function ProductTile({ image, brand, name, subtitle, flag, saved, viewLab
 }
 
 /** Shared result grid track: two columns on phones, fluid columns from `sm`. */
-export const TILE_GRID = 'grid grid-cols-2 gap-x-4 gap-y-8 sm:grid-cols-[repeat(auto-fill,minmax(11rem,1fr))]';
+export const TILE_GRID = 'grid grid-cols-2 gap-x-5 gap-y-8 sm:grid-cols-[repeat(auto-fill,minmax(12rem,1fr))]';
 
 export function NoMatches({ hint }: { hint: string }) {
   return (
