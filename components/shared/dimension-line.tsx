@@ -28,7 +28,7 @@ export function SummaryDimensionLine({ summary, showUnknown = false, className }
   if (known.length === 1 && summary.width) {
     return (
       <p className={cn('flex min-w-0 flex-wrap items-center gap-x-2 gap-y-1 text-xs text-muted-foreground', className)}>
-        <span><span className="tabular-nums text-foreground">{rangeText(summary.width)}″ wide</span> · depth not on file</span>
+        <span><span className="tabular-nums text-foreground">{rangeText(summary.width)}″ wide</span> · depth unknown</span>
         <SourceBadge source={summary.width.source} />
       </p>
     );
