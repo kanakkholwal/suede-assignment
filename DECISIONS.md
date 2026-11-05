@@ -4,7 +4,7 @@
 
 One room, three steps, always visible at the top of the app:
 
-1. **Find pieces** (`/catalog`). Type the brief as a sentence: *"warm, durable family-room sofa under $6k, 84 to 96 inches, in stock"*. It becomes editable chips (Sofa, 84″ to 96″ wide, up to $6,000, available to order) that drive the same filters as the rail. Words the catalog has no data for (*warm, durable, family room*) stay on screen as "judge yourself" chips instead of silently failing the search. Results lead with pieces whose width is on file and fits; the rest fold under one line. Each card shows its size and where that size came from. Shortlisting adds the piece to the room.
+1. **Find pieces** (`/catalog`). Type the brief as a sentence: *"warm, durable family-room sofa under $6k, 84 to 96 inches, in stock"*. It becomes editable chips (Sofa, 84″ to 96″ wide, up to $6,000, available to order) that drive the same filters as the rail. Words the catalog has no data for (*warm, durable, family room*) stay on screen as "not used as filters" chips instead of silently failing the search. Results lead with pieces whose width is on file and fits; the rest fold under one line. Each card shows its size and where that size came from. Shortlisting adds the piece to the room.
 2. **Fit the room** (`/room`). A true-scale plan built from the client's message. Drag pieces (or use the keyboard); a live fit check explains every problem in designer terms and says which assumptions it rests on.
 3. **Show the client** (`/room?view=wall`, `?view=tape`). A wall elevation at true scale against the 8′ 6″ ceiling and a 5′ 6″ person, and a printable sheet for taping each outline on the real floor.
 

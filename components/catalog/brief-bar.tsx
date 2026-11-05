@@ -93,9 +93,9 @@ export function BriefBar({ filters, softTerms, vocabulary, onApply, onRemoveChip
             </Badge>
           ))}
           {softTerms.length ? (
-            <span className="ml-1 inline-flex flex-wrap items-center gap-1.5" title="The catalog has no material, durability, comfort or room data. Judge these from the product page.">
+            <span className="ml-1 inline-flex flex-wrap items-center gap-1.5" title="These words don’t map to catalog data such as category, size, price or stock, so they don’t narrow the results. Judge them from the product page.">
               <span className="inline-flex items-center gap-1 text-xs text-muted-foreground">
-                <CircleHelp className="size-3.5" aria-hidden="true" /> Not in the data, judge yourself:
+                <CircleHelp className="size-3.5" aria-hidden="true" /> Not used as filters:
               </span>
               {softTerms.map((term) => (
                 <Badge key={term} variant="outline" size="lg" className="border-dashed pr-1 text-muted-foreground">

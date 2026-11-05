@@ -29,7 +29,7 @@ it('turns a sentence brief into filters, chips and openly unfiltered terms', asy
   expect(within(brief).getByText('Up to $2,000')).toBeVisible();
   expect(within(brief).getByText('Available to order')).toBeVisible();
   expect(within(brief).getByText('cozy')).toBeVisible();
-  expect(within(brief).getByText(/Not in the data/)).toBeVisible();
+  expect(within(brief).getByText(/Not used as filters/)).toBeVisible();
 
   await userEvent.click(within(brief).getByRole('button', { name: 'Remove Up to $2,000' }));
   await waitFor(() => expect(catalogCalls(fetchMock).at(-1)).toBe('/api/catalog?category=30&inStockOnly=true'));
