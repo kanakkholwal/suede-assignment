@@ -30,7 +30,7 @@
   --accent: oklch(16% 0.002 265 / 0.06);
   --accent-foreground: var(--foreground);
   --border: oklch(16% 0.002 265 / 0.08);
-  --input: oklch(16% 0.002 265 / 0.46);
+  --input: oklch(16% 0.002 265 / 0.14);
   --ring: var(--suede);
   --destructive: oklch(55% 0.19 27);
   --radius: 0.625rem;
