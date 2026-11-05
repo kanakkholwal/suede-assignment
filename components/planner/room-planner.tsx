@@ -1,7 +1,6 @@
 'use client';
 
 import { Columns3, MapIcon, Printer, Ruler } from '@/components/icons';
-import { useRouter, useSearchParams } from 'next/navigation';
 import { useCallback, useMemo, useState } from 'react';
 
 import { ElevationView } from '@/components/planner/elevation-view';
@@ -26,9 +25,7 @@ import { defaultPlacement, type Placement, type PlanPiece, planPieces, rotateClo
 import type { RoomItem, Wall } from '@/lib/room-state';
 import { WALLS } from '@/lib/room-state';
 import { formatFeetInches } from '@/lib/units';
-
-type PlannerView = 'plan' | 'wall' | 'tape';
-type InspectorTab = 'fit' | 'pieces' | 'room';
+import { type InspectorTab, type PlannerView, usePlannerUrlState } from '@/lib/url-state';
 
 const VIEWS: readonly SegmentOption<PlannerView>[] = [
   { value: 'plan', label: 'Plan', icon: MapIcon },
@@ -50,14 +47,6 @@ const VIEW_COPY: Record<PlannerView, { title: string; lede: string }> = {
 
 const OPPOSITE: Record<Wall, Wall> = { north: 'south', south: 'north', east: 'west', west: 'east' };
 
-function parseTab(value: string | null): InspectorTab | null {
-  return value === 'fit' || value === 'pieces' || value === 'room' ? value : null;
-}
-
-function parseView(value: string | null): PlannerView {
-  return value === 'wall' || value === 'tape' ? value : 'plan';
-}
-
 function Count({ value, tone = 'muted' }: { value: number; tone?: 'muted' | 'alert' }) {
   if (!value) return null;
   return (
@@ -72,21 +61,13 @@ function Count({ value, tone = 'muted' }: { value: number; tone?: 'muted' | 'ale
 
 export function RoomPlanner() {
   const room = useRoomStore();
-  const router = useRouter();
-  const params = useSearchParams();
-  const view = parseView(params.get('view'));
-  const urlTab = parseTab(params.get('tab'));
-  const setView = useCallback((next: PlannerView) => router.replace(`/room?view=${next}`, { scroll: false }), [router]);
-  const [selectedId, setSelectedId] = useState<string | null>(null);
+  const [url, setUrl] = usePlannerUrlState();
+  const { view, tab, wall: chosenWall, piece: selectedId } = url;
+  const setView = useCallback((next: PlannerView) => void setUrl({ view: next }), [setUrl]);
+  const setSelectedId = useCallback((piece: string | null) => void setUrl({ piece }), [setUrl]);
+  const setChosenWall = useCallback((wall: Wall) => void setUrl({ wall }), [setUrl]);
+  const setTab = useCallback((next: InspectorTab) => void setUrl({ tab: next }), [setUrl]);
   const [overrides, setOverrides] = useState<Record<string, Placement>>({});
-  const [chosenWall, setChosenWall] = useState<Wall | null>(null);
-  const [tab, setTab] = useState<InspectorTab | null>(urlTab);
-  const [seenUrlTab, setSeenUrlTab] = useState(urlTab);
-  // A link such as the top bar's Room facts can ask for a tab while the planner is already open.
-  if (urlTab !== seenUrlTab) {
-    setSeenUrlTab(urlTab);
-    if (urlTab) setTab(urlTab);
-  }
   const snapshot = room.snapshot;
 
   const pieces = useMemo(() => (snapshot ? planPieces(snapshot, overrides) : []), [snapshot, overrides]);
@@ -131,8 +112,7 @@ export function RoomPlanner() {
     const width = item.dimensions.width.value as number;
     const depth = item.dimensions.depth.value as number;
     commit(item.id, snapPlacement(details, defaultPlacement(details, pieceKind(product), width, depth), width, depth));
-    setSelectedId(item.id);
-    setTab('pieces');
+    void setUrl({ piece: item.id, tab: 'pieces' });
   };
 
   const rotate = (piece: PlanPiece) => {

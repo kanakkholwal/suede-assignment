@@ -11,6 +11,7 @@ import { type DimensionValues, hasFootprint } from '@/lib/dimensions';
 import { type PlanPiece, shortName } from '@/lib/plan-model';
 import type { RoomItem } from '@/lib/room-state';
 import { formatDimensionTriple } from '@/lib/units';
+import { useRoomHref } from '@/lib/url-state';
 import { cn } from '@/lib/utils';
 
 interface PiecesPanelProps {
@@ -36,11 +37,12 @@ function Thumb({ product, variantId }: { product: CatalogProduct; variantId: str
 /** Every shortlisted piece: on the plan, ready to place, or missing a size. */
 export function PiecesPanel({ items, products, pieces, selectedId, disabled, onSelect, onPlace, onSaveDimensions }: PiecesPanelProps) {
   const placedIds = new Set(pieces.map((piece) => piece.id));
+  const roomHref = useRoomHref();
 
   if (items.length === 0) {
     return (
       <p className="px-1 py-6 text-center text-sm text-muted-foreground">
-        The shortlist is empty. <Link href="/catalog" className="font-medium text-primary underline-offset-4 hover:underline">Add pieces in the catalog</Link>.
+        The shortlist is empty. <Link href={roomHref('/catalog')} className="font-medium text-primary underline-offset-4 hover:underline">Add pieces in the catalog</Link>.
       </p>
     );
   }

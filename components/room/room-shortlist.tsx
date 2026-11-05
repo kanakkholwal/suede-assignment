@@ -4,6 +4,7 @@ import { ArrowRight, Armchair } from '@/components/icons';
 import type { ReactNode } from 'react';
 
 import { useRoomStore } from '@/components/room/room-provider';
+import { useRoomHref } from '@/lib/url-state';
 import { ShortlistItem } from '@/components/room/shortlist-item';
 import { Button } from '@/components/ui/button';
 import { formatCalendarDate } from '@/lib/format';
@@ -32,6 +33,7 @@ function plural(count: number, one: string, many: string): string {
 /** The room's working shortlist and everything still missing before it can be presented. */
 export function RoomShortlist({ capturedAt, onDimensionsChanged }: RoomShortlistProps) {
   const room = useRoomStore();
+  const roomHref = useRoomHref();
   const { snapshot } = room;
 
   if (room.loading) return <p role="status" className="p-4 text-sm text-muted-foreground">Loading room…</p>;
@@ -100,7 +102,7 @@ export function RoomShortlist({ capturedAt, onDimensionsChanged }: RoomShortlist
 
       {rows.length ? (
         <footer className="shrink-0 p-3 pt-1">
-          <Button href="/room?view=plan" className="w-full">
+          <Button href={roomHref('/room?view=plan')} className="w-full">
             Open floor plan <ArrowRight aria-hidden="true" />
           </Button>
         </footer>
