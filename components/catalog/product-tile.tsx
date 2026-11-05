@@ -67,11 +67,11 @@ export function ProductTile({ image, brand, name, subtitle, flag, saved, viewLab
         </div>
       </div>
       <div className="pointer-events-none relative z-10 flex min-w-0 flex-col">
-        <h2 className="truncate text-sm leading-5 font-medium text-foreground">{name}</h2>
+        <h2 className="truncate text-base leading-6 font-medium tracking-tight text-foreground">{name}</h2>
         <p className="truncate text-sm leading-5 text-muted-foreground">
-          <span className="tabular-nums text-foreground">{price}</span> · {subtitle ?? brand}
+          <span className="font-medium tabular-nums text-foreground">{price}</span> · {subtitle ?? brand}
         </p>
-        {children ? <div className="mt-1 flex flex-col gap-0.5">{children}</div> : null}
+        {children ? <div className="mt-1.5 flex flex-col gap-0.5">{children}</div> : null}
         {footer ? <div className="pointer-events-auto mt-2">{footer}</div> : null}
       </div>
       <button
