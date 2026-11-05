@@ -27,8 +27,8 @@ interface AddToRoomButtonProps {
 
 const TONE = {
   overlay: {
-    base: 'h-8 rounded-lg px-2.5 text-xs backdrop-blur-sm [&_svg]:size-3.5',
-    off: 'bg-card/95 text-foreground hover:bg-card',
+    base: 'size-8 justify-center rounded-full backdrop-blur-sm [&_svg]:size-4',
+    off: 'bg-card/90 text-foreground hover:bg-card',
     on: 'bg-foreground text-background',
   },
   primary: {
@@ -46,6 +46,7 @@ export function AddToRoomButton({ productName, inRoom, disabled, onToggle, tone 
     <button
       type="button"
       aria-pressed={inRoom}
+      title={tone === 'overlay' ? (inRoom ? 'In the room shortlist' : 'Add to room shortlist') : undefined}
       aria-label={inRoom ? `Remove ${productName} from room shortlist` : `Add ${productName} to room shortlist`}
       disabled={disabled}
       onClick={(event) => {
@@ -62,7 +63,7 @@ export function AddToRoomButton({ productName, inRoom, disabled, onToggle, tone 
       )}
     >
       <Icon key={String(inRoom)} className="pop" aria-hidden="true" />
-      {inRoom ? 'In room' : 'Room'}
+      {tone === 'overlay' ? null : inRoom ? 'In room' : 'Add to room'}
     </button>
   );
 }

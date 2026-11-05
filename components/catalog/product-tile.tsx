@@ -18,7 +18,7 @@ interface ProductTileProps {
   actions: ReactNode;
   /** The tile's one primary action, bottom-right of the image and always visible. */
   imageAction?: ReactNode;
-  /** Price line, pinned to the bottom so prices align across a row. */
+  /** Price line, kept with the text block it belongs to. */
   price: string;
   /** Size and fit lines between the brand and the price. */
   children?: ReactNode;
@@ -32,7 +32,7 @@ interface ProductTileProps {
  */
 export function ProductTile({ image, brand, name, subtitle, flag, saved, viewLabel, onView, actions, imageAction, price, children, footer }: ProductTileProps) {
   return (
-    <article className="group/tile relative flex min-w-0 flex-col gap-3">
+    <article className="group/tile relative flex min-w-0 flex-col gap-2.5">
       <div className="relative aspect-square overflow-hidden rounded-xl bg-muted">
         {image ? (
           <Image
@@ -65,13 +65,13 @@ export function ProductTile({ image, brand, name, subtitle, flag, saved, viewLab
         {imageAction ? <div className="absolute right-2 bottom-2 z-20">{imageAction}</div> : null}
       </div>
       <div className="pointer-events-none relative z-10 flex min-w-0 flex-1 flex-col px-0.5">
-        <h2 className="line-clamp-2 min-h-10 text-sm leading-5 font-medium text-foreground">{name}</h2>
-        <p className="mt-0.5 truncate text-xs text-muted-foreground">
+        <h2 className="line-clamp-2 text-sm leading-5 font-medium text-foreground">{name}</h2>
+        <p className="truncate text-sm leading-5 text-muted-foreground">
           {brand}
           {subtitle ? ` · ${subtitle}` : ''}
         </p>
-        {children ? <div className="mt-2 flex flex-col gap-1">{children}</div> : null}
-        <p className="mt-auto pt-2 text-sm font-medium tabular-nums text-foreground">{price}</p>
+        {children ? <div className="mt-1.5 flex flex-col gap-0.5">{children}</div> : null}
+        <p className="pt-1 text-sm tabular-nums text-foreground">{price}</p>
         {footer ? <div className="pointer-events-auto mt-2">{footer}</div> : null}
       </div>
       <button
