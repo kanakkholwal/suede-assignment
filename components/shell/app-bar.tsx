@@ -7,8 +7,8 @@ import { usePathname, useSearchParams } from 'next/navigation';
 import { useLayoutEffect, useRef, useState } from 'react';
 
 import { type RoomProgress, useRoomProgress, useRoomStore } from '@/components/room/room-provider';
-import { MeasurementStatusBadge } from '@/components/room/measurement-status-badge';
-import { ROOM_PRESETS } from '@/data/room-presets';
+import { RoomThumb } from '@/components/room/room-thumb';
+import { ROOM_PRESETS, type RoomPresetId, roomPreset } from '@/data/room-presets';
 import { button } from '@/components/ui/button';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { attachSegmentPill } from '@/components/ui/toggle-group';
@@ -101,71 +101,77 @@ function StepNav({ active }: { active: WorkflowStep | null }) {
   );
 }
 
-/** The room being worked on; opens its facts so the context is one click away from any step. */
+/** The room being worked on, and the switch to the other rooms. Stays in place while a room loads. */
 function RoomMenu() {
-  const { snapshot } = useRoomStore();
+  const { snapshot, loading } = useRoomStore();
   const [open, setOpen] = useState(false);
   const [preset, setPreset] = useRoomPreset();
   const [, setPiece] = useQueryState('piece');
   const roomHref = useRoomHref();
-  if (!snapshot) return null;
-  const { room, features } = snapshot;
-  const assumed = features.filter((feature) => feature.status !== 'confirmed').length;
+  const current = roomPreset(preset).template;
+  const room = snapshot?.room.preset === preset ? snapshot.room : null;
+  const lengthIn = room?.lengthIn ?? current.lengthIn;
+  const widthIn = room?.widthIn ?? current.widthIn;
+  const assumed = snapshot?.features.filter((feature) => feature.status !== 'confirmed').length ?? 0;
+
+  const choose = (id: RoomPresetId) => {
+    setOpen(false);
+    if (id === preset) return;
+    void setPiece(null);
+    void setPreset(id, { history: 'push' });
+  };
 
   return (
     <Popover open={open} onOpenChange={setOpen}>
-      <PopoverTrigger className="hidden h-8 min-w-0 items-baseline gap-2 rounded-lg px-2 transition-colors duration-(--duration-fast) hover:bg-foreground/[0.06] data-[popup-open]:bg-foreground/[0.06] lg:inline-flex">
-        <span className="truncate font-serif text-base leading-8 text-foreground">{room.name}</span>
-        <span className="text-xs tabular-nums text-muted-foreground">
-          {formatFeetInches(room.lengthIn)} × {formatFeetInches(room.widthIn)}
+      <PopoverTrigger
+        aria-label={`Room: ${current.name}. Switch room`}
+        className="hidden h-8 min-w-0 items-center gap-2 rounded-lg pr-2 pl-1 transition-colors duration-(--duration-fast) hover:bg-foreground/[0.06] data-[popup-open]:bg-foreground/[0.06] lg:inline-flex"
+      >
+        <span className="grid size-6 shrink-0 place-items-center rounded-md bg-card">
+          {loading ? <span className="spinner size-3.5 rounded-full border-2 border-muted-foreground/30 border-t-muted-foreground" aria-hidden="true" /> : <RoomThumb room={current} className="size-5" />}
         </span>
-        <ChevronDown className="size-3.5 self-center text-muted-foreground" aria-hidden="true" />
+        <span key={preset} className="pop truncate font-serif text-base text-foreground">{current.name}</span>
+        <span className="text-xs tabular-nums text-muted-foreground">
+          {formatFeetInches(lengthIn)} × {formatFeetInches(widthIn)}
+        </span>
+        <ChevronDown className="size-3.5 text-muted-foreground" aria-hidden="true" />
       </PopoverTrigger>
-      <PopoverContent align="start" className="flex w-80 flex-col gap-3 p-4">
-        <ul aria-label="Rooms" className="-mx-2 -mt-1 flex flex-col">
+      <PopoverContent align="start" className="flex w-96 flex-col gap-1 p-2">
+        <p className="px-2 pt-1 pb-1.5 text-xs font-medium text-muted-foreground">Rooms</p>
+        <ul aria-label="Rooms" className="flex flex-col gap-0.5">
           {ROOM_PRESETS.map((option) => {
-            const current = option.id === preset;
+            const selected = option.id === preset;
             return (
               <li key={option.id}>
                 <button
                   type="button"
-                  aria-pressed={current}
-                  onClick={() => {
-                    void setPiece(null);
-                    void setPreset(option.id, { history: 'push' });
-                  }}
+                  aria-pressed={selected}
+                  onClick={() => choose(option.id)}
                   className={cn(
-                    'flex w-full items-center gap-3 rounded-lg px-2 py-1.5 text-left outline-none transition-[background-color,scale] duration-(--duration-fast) hover:bg-foreground/[0.04] focus-visible:ring-2 focus-visible:ring-ring active:scale-(--press-scale-row)',
-                    current && 'bg-primary/10 hover:bg-primary/10',
+                    'flex w-full items-center gap-3 rounded-lg p-2 text-left outline-none transition-[background-color,scale] duration-(--duration-fast) focus-visible:ring-2 focus-visible:ring-ring active:scale-(--press-scale-row)',
+                    selected ? 'bg-primary/[0.08]' : 'hover:bg-foreground/[0.04]',
                   )}
                 >
+                  <span className="grid h-11 w-14 shrink-0 place-items-center rounded-md bg-muted/70 p-1.5">
+                    <RoomThumb room={option.template} className="max-h-full max-w-full" />
+                  </span>
                   <span className="flex min-w-0 flex-1 flex-col">
                     <span className="truncate text-sm font-medium text-foreground">{option.template.name}</span>
                     <span className="truncate text-xs text-muted-foreground">
-                      {formatFeetInches(option.template.lengthIn)} × {formatFeetInches(option.template.widthIn)} · {option.summary}
+                      <span className="tabular-nums">{formatFeetInches(option.template.lengthIn)} × {formatFeetInches(option.template.widthIn)}</span> · {option.summary}
                     </span>
                   </span>
-                  {current ? <Check className="size-3.5 text-primary" aria-hidden="true" /> : null}
+                  {selected ? <Check className="size-4 shrink-0 text-primary" aria-hidden="true" /> : null}
                 </button>
               </li>
             );
           })}
         </ul>
-        <div className="h-px bg-border" aria-hidden="true" />
-        <div className="flex flex-col gap-1">
-          <p className="font-serif text-xl leading-tight text-foreground">{room.name}</p>
-          <p className="flex flex-wrap items-center gap-x-2 text-sm tabular-nums text-foreground">
-            {formatFeetInches(room.lengthIn)} × {formatFeetInches(room.widthIn)}
-            {room.ceilingIn ? <><span className="text-muted-foreground" aria-hidden="true">·</span><span className="text-muted-foreground">{formatFeetInches(room.ceilingIn)} ceiling</span></> : null}
-            <MeasurementStatusBadge status={room.dimensionsStatus} />
+        <div className="mt-1 flex items-center justify-between gap-3 rounded-lg bg-muted/50 py-2 pr-2 pl-3">
+          <p className="text-xs text-muted-foreground">
+            {snapshot ? (assumed ? `${assumed} assumption${assumed === 1 ? '' : 's'} to confirm in this room` : 'Everything in this room is confirmed') : 'Loading room…'}
           </p>
-        </div>
-        {room.clientMessage ? (
-          <blockquote className="rounded-lg bg-muted/60 p-3 font-serif text-sm leading-relaxed text-foreground italic">“{room.clientMessage}”</blockquote>
-        ) : null}
-        <div className="flex items-center justify-between gap-3">
-          <p className="text-xs text-muted-foreground">{assumed ? `${assumed} assumption${assumed === 1 ? '' : 's'} to confirm` : 'Everything confirmed'}</p>
-          <Link href={roomHref('/room?view=plan&tab=room')} onClick={() => setOpen(false)} className={button({ variant: 'outline', size: 'sm' })}>
+          <Link href={roomHref('/room?view=plan&tab=room')} onClick={() => setOpen(false)} className={button({ variant: 'outline', size: 'xs' })}>
             Room facts
           </Link>
         </div>
