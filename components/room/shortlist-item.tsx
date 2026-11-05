@@ -54,7 +54,7 @@ export function ShortlistItem({
       <div className="flex min-w-0 items-start gap-2">
         <div className="flex min-w-0 flex-1 flex-col">
           <p className="line-clamp-2 text-sm leading-5 font-medium text-foreground">{product.name}</p>
-          <p className="truncate text-xs text-muted-foreground">{product.brand}</p>
+          <p className="truncate text-sm text-muted-foreground">{product.brand}</p>
         </div>
         <button
           type="button"
