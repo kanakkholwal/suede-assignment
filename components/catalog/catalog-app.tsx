@@ -114,7 +114,7 @@ export function CatalogApp() {
   return (
     <main className="grid flex-1 gap-1.5 lg:min-h-0 xl:grid-cols-[minmax(0,1fr)_22rem]">
       <Island aria-label="Catalog results">
-        <div className="flex shrink-0 flex-col gap-3 p-3 pb-1 sm:p-4 sm:pb-1">
+        <div className="shrink-0 px-3 pt-3 sm:px-4 sm:pt-4">
           <BriefBar
             filters={filters}
             softTerms={softTerms}
@@ -124,7 +124,7 @@ export function CatalogApp() {
             onRemoveSoftTerm={(term) => setSoftTerms((terms) => terms.filter((candidate) => candidate !== term))}
           />
         </div>
-        <div className="flex shrink-0 flex-wrap items-center justify-between gap-x-3 gap-y-2 px-3 pt-3 sm:px-4">
+        <div className="flex shrink-0 flex-wrap items-center justify-between gap-x-3 gap-y-2 px-3 pt-5 pb-1 sm:px-4">
           <div className="flex min-w-0 items-baseline gap-2">
             <h1 className="text-sm font-semibold text-foreground">Catalog</h1>
             <p className="truncate text-xs tabular-nums text-muted-foreground" aria-live="polite">{meta}</p>
@@ -138,7 +138,7 @@ export function CatalogApp() {
             <CatalogViewToggle view={view} onChange={setView} />
           </div>
         </div>
-        <div className="min-h-0 flex-1 p-3 pb-24 sm:p-4 sm:pb-24 lg:overflow-y-auto xl:pb-4">
+        <div className="min-h-0 flex-1 p-3 pb-24 sm:p-4 sm:pb-24 lg:overflow-y-auto lg:[mask-image:linear-gradient(to_bottom,transparent,black_1rem)] xl:pb-4">
           {catalog.error ? <p role="alert" className="mb-4 rounded-lg border border-destructive/30 bg-destructive/[0.06] p-3 text-sm text-destructive-strong">{catalog.error}</p> : null}
           {library.error ? <p role="alert" className="mb-4 text-sm text-destructive-strong">{library.error}</p> : null}
           {catalog.loading ? (
