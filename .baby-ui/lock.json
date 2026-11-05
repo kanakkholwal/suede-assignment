@@ -42,6 +42,78 @@
 				"https://baby-ui.pages.dev/r/tokens.json"
 			]
 		},
+		"https://baby-ui.pages.dev/r/checkbox.json": {
+			"name": "checkbox",
+			"type": "registry:ui",
+			"framework": "react",
+			"installedAt": "2026-11-05T09:41:09.807Z",
+			"itemHash": "ea18f671e117fb2c2c656bdc91928438d276eff561cf3c896427e99526cda87f",
+			"files": {
+				"components/ui/checkbox/checkbox.tsx": "9bcc4f608f8d1526627b07453eb72f2dc2899153dc2ae32a14605637352331b1",
+				"components/ui/checkbox/index.ts": "9ad57004d579fac57a0c65b49b7cff1aa913d2be09e63bc5c039cf73c029a67b",
+				"components/ui/checkbox/variants.ts": "05e06ce6628b7425f81c8b2e629897aeeb761cbabb0b8786880d1b3bb0f335e4",
+				"lib/cn.ts": "0fca478853f3fc4310e40ebff727a53da7ec677938f4e3e0d5ecaa62e936a199"
+			},
+			"dependencies": [
+				"@base-ui/react",
+				"clsx",
+				"tailwind-merge",
+				"tailwind-variants"
+			],
+			"registryDependencies": [
+				"https://baby-ui.pages.dev/r/tokens.json"
+			]
+		},
+		"https://baby-ui.pages.dev/r/combobox.json": {
+			"name": "combobox",
+			"type": "registry:ui",
+			"framework": "react",
+			"installedAt": "2026-11-05T09:41:09.807Z",
+			"itemHash": "ab28d8e15c57acfee54474b2505d4a185a10e6b69afac87d0344153db3d9dd47",
+			"files": {
+				"components/ui/combobox/combobox.tsx": "76d3fddf42901be4f62491d604602e711ddb8d71afadf635d190760d425211b4",
+				"components/ui/combobox/index.ts": "e86e3a6e30fe928a87b31608cfe2df990b3e1447ff6b329baee46a8446b3ebc0",
+				"components/ui/combobox/variants.ts": "106271e5d56e0b3648adc6f840f6b6666a97914288b1b600f997d467819873d3",
+				"lib/control.ts": "6651c5c33695c4cff0bb3416216e7006ed696724e413160f31460cd97bb67ca6"
+			},
+			"dependencies": [
+				"clsx",
+				"tailwind-merge",
+				"tailwind-variants"
+			],
+			"registryDependencies": [
+				"https://baby-ui.pages.dev/r/command.json",
+				"https://baby-ui.pages.dev/r/popover.json",
+				"https://baby-ui.pages.dev/r/tokens.json"
+			]
+		},
+		"https://baby-ui.pages.dev/r/command.json": {
+			"name": "command",
+			"type": "registry:ui",
+			"framework": "react",
+			"installedAt": "2026-11-05T09:41:09.805Z",
+			"itemHash": "2266a165140c3b538013034f6037e8ea45f1a9493685b936f5bcfff4a594f2d4",
+			"files": {
+				"components/ui/command/command.tsx": "d0b8c78b6bc13c49af8ca6a05ec33d99cf369f256d05f3aebd0b05537fb65f47",
+				"components/ui/command/index.ts": "d8a7cc617c7612d5889fe877d17ec4dfcbe265d15d917d4b9613d3718fa6bb21",
+				"components/ui/command/score.ts": "4ef0f870c7799f283005499dd9ee53ae458a5fef8eb589fc8a8a9e3afb623ced",
+				"components/ui/command/variants.ts": "e0da12868c818abd9787b4653a85fb0e3889c524239094ec7493eaac4d6101c3",
+				"lib/pill.ts": "e92a6a73691d44d7184d1a0a73720e7bde1af949de374c17029b84180571be90"
+			},
+			"dependencies": [
+				"@base-ui/react",
+				"clsx",
+				"cmdk",
+				"tailwind-merge",
+				"tailwind-variants"
+			],
+			"registryDependencies": [
+				"https://baby-ui.pages.dev/r/dialog.json",
+				"https://baby-ui.pages.dev/r/toggle-group.json",
+				"https://baby-ui.pages.dev/r/tooltip.json",
+				"https://baby-ui.pages.dev/r/tokens.json"
+			]
+		},
 		"https://baby-ui.pages.dev/r/dialog.json": {
 			"name": "dialog",
 			"type": "registry:ui",
@@ -117,6 +189,28 @@
 				"components/ui/popover/variants.ts": "7c84e54076446d47362b493194ecbb7d6627364100b21b8e4131f3121e782557",
 				"lib/anchor.ts": "74990cb64561bf90cdf0410bf7af180b8fd8127ec7dcd2ec407018701a3ca98b",
 				"lib/anchored-surface.ts": "3fb3b6cfd87464ff66e7bc62722ecb1c47f949a1b0e50153b6b78a520c954968"
+			},
+			"dependencies": [
+				"@base-ui/react",
+				"clsx",
+				"tailwind-merge",
+				"tailwind-variants"
+			],
+			"registryDependencies": [
+				"https://baby-ui.pages.dev/r/tokens.json"
+			]
+		},
+		"https://baby-ui.pages.dev/r/select.json": {
+			"name": "select",
+			"type": "registry:ui",
+			"framework": "react",
+			"installedAt": "2026-11-05T09:41:09.804Z",
+			"itemHash": "1c7fe446e8475879f0fcf7df595ac29413deb2b96890fd7a8d48c4ea06b91f3d",
+			"files": {
+				"components/ui/select/index.ts": "90d0865caaa6705c7ad061730e8575ab5df622d4fdfdc645df0cccdfa0c99657",
+				"components/ui/select/select.tsx": "902ca6f00453c8dfcf1eebf2114bd77450b9dac8db93b31aecc7d8a91e86d4b4",
+				"components/ui/select/variants.ts": "3be1d83586d6390477bb6f2fbc7f759df62a12c284370a57b1e15895784486f2",
+				"lib/menu.ts": "ba32ef01b59644f8429265143699d70e8ded9b2123e07407408875e671b7cc59"
 			},
 			"dependencies": [
 				"@base-ui/react",
