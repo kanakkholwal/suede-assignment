@@ -1,17 +1,16 @@
 'use client';
 
-import { Bookmark, Check, ChevronDown } from '@/components/icons';
+import { Bookmark, Check, ChevronDown, ChevronRight } from '@/components/icons';
 import Link from 'next/link';
 import { useQueryState } from 'nuqs';
 import { usePathname, useSearchParams } from 'next/navigation';
-import { useLayoutEffect, useRef, useState } from 'react';
+import { useState } from 'react';
 
 import { type RoomProgress, useRoomProgress, useRoomStore } from '@/components/room/room-provider';
 import { RoomThumb } from '@/components/room/room-thumb';
 import { ROOM_PRESETS, type RoomPresetId, roomPreset } from '@/data/room-presets';
 import { button } from '@/components/ui/button';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import { attachSegmentPill } from '@/components/ui/toggle-group';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import { formatFeetInches } from '@/lib/units';
 import { useRoomHref, useRoomPreset } from '@/lib/url-state';
@@ -23,19 +22,19 @@ interface Step {
   id: WorkflowStep;
   label: string;
   href: string;
-  /** Short live count shown beside the label on wide screens. */
-  status: (progress: RoomProgress) => string | null;
+  /** Short live count shown beside the label on wide screens; `alert` when something needs fixing. */
+  status: (progress: RoomProgress) => { text: string; tone: 'muted' | 'alert' } | null;
   done: (progress: RoomProgress) => boolean;
 }
 
 const STEPS: readonly Step[] = [
-  { id: 'find', label: 'Find pieces', href: '/catalog', status: ({ shortlisted }) => (shortlisted ? String(shortlisted) : null), done: ({ shortlisted }) => shortlisted > 0 },
+  { id: 'find', label: 'Find pieces', href: '/catalog', status: ({ shortlisted }) => (shortlisted ? { text: `${shortlisted} shortlisted`, tone: 'muted' } : null), done: ({ shortlisted }) => shortlisted > 0 },
   {
     id: 'fit',
     label: 'Fit the room',
     href: '/room?view=plan',
     status: ({ shortlisted, placed, problems }) =>
-      !shortlisted ? null : problems ? `${problems} to fix` : `${placed}/${shortlisted}`,
+      !shortlisted ? null : problems ? { text: `${problems} to fix`, tone: 'alert' } : { text: `${placed} of ${shortlisted} placed`, tone: 'muted' },
     done: ({ shortlisted, placed, problems }) => shortlisted > 0 && placed === shortlisted && problems === 0,
   },
   { id: 'present', label: 'Show the client', href: '/room?view=wall', status: () => null, done: () => false },
@@ -47,50 +46,44 @@ function activeStep(pathname: string, view: string | null): WorkflowStep | null 
   return null;
 }
 
+/** The three-step job as navigation, underlined like the planner's tabs; each step says how far along it is. */
 function StepNav({ active }: { active: WorkflowStep | null }) {
   const progress = useRoomProgress();
   const roomHref = useRoomHref();
-  const trackRef = useRef<HTMLOListElement>(null);
-  const pillRef = useRef<HTMLSpanElement>(null);
-
-  useLayoutEffect(() => {
-    if (!trackRef.current || !pillRef.current) return;
-    return attachSegmentPill(trackRef.current, pillRef.current);
-  }, []);
 
   return (
-    <nav aria-label="Workflow" className="min-w-0 overflow-x-auto scrollbar-none">
-      <ol ref={trackRef} className="relative isolate flex items-center gap-0.5 rounded-xl bg-foreground/[0.05] p-0.5">
-        <span
-          ref={pillRef}
-          aria-hidden="true"
-          className="pointer-events-none absolute top-0 left-0 -z-1 rounded-lg bg-card data-[ready=true]:transition-[translate,width,opacity] data-[ready=true]:duration-(--duration-spring-snappy) data-[ready=true]:ease-(--ease-spring-snappy)"
-        />
+    <nav aria-label="Workflow" className="h-full min-w-0 overflow-x-auto scrollbar-none">
+      <ol className="flex h-full items-center">
         {STEPS.map((step, index) => {
           const current = step.id === active;
           const done = !current && step.done(progress);
+          const status = step.status(progress);
           return (
-            <li key={step.id} className="shrink-0">
+            <li key={step.id} className="flex h-full shrink-0 items-center">
+              {index > 0 ? <ChevronRight className="mx-1 size-3.5 text-muted-foreground/60" aria-hidden="true" /> : null}
               <Link
                 href={roomHref(step.href)}
                 aria-current={current ? 'step' : undefined}
-                data-state={current ? 'on' : 'off'}
                 className={cn(
-                  'group flex h-8 items-center gap-2 rounded-lg px-2.5 outline-none transition-[color,scale] duration-(--duration-fast) focus-visible:ring-2 focus-visible:ring-ring active:scale-(--press-scale-sm)',
-                  current ? 'text-foreground' : 'text-muted-foreground hover:text-foreground',
+                  'group relative flex h-full items-center gap-2 px-2 outline-none transition-colors duration-(--duration-fast)',
+                  'after:absolute after:inset-x-2 after:bottom-0 after:h-0.5 after:rounded-full after:transition-colors after:duration-(--duration-base)',
+                  'focus-visible:after:bg-ring',
+                  current ? 'text-foreground after:bg-primary' : 'text-muted-foreground after:bg-transparent hover:text-foreground',
                 )}
               >
                 <span
                   className={cn(
-                    'grid size-4.5 place-items-center rounded-full text-xs font-semibold tabular-nums transition-colors duration-(--duration-base)',
+                    'grid size-4.5 shrink-0 place-items-center rounded-full text-xs leading-none font-semibold tabular-nums transition-colors duration-(--duration-base)',
                     current ? 'bg-primary text-primary-foreground' : done ? 'bg-foreground text-background' : 'bg-foreground/[0.07] text-muted-foreground group-hover:text-foreground',
                   )}
                 >
                   {done ? <Check key="done" className="pop size-3" aria-label="done" /> : index + 1}
                 </span>
                 <span className={cn('text-sm font-medium whitespace-nowrap', !current && 'sr-only sm:not-sr-only')}>{step.label}</span>
-                {step.status(progress) ? (
-                  <span key={step.status(progress)} className="pop hidden text-xs text-muted-foreground tabular-nums lg:inline">{step.status(progress)}</span>
+                {status ? (
+                  <span key={status.text} className={cn('pop hidden text-xs whitespace-nowrap tabular-nums lg:inline', status.tone === 'alert' ? 'font-medium text-destructive-strong' : 'text-muted-foreground')}>
+                    {status.text}
+                  </span>
                 ) : null}
               </Link>
             </li>
@@ -188,7 +181,7 @@ export function AppBar() {
   const roomHref = useRoomHref();
 
   return (
-    <header className="flex h-13 shrink-0 items-center gap-3 px-3 [view-transition-name:app-bar] sm:gap-5 sm:px-4 print:hidden">
+    <header className="flex h-13 shrink-0 items-stretch gap-3 px-3 [view-transition-name:app-bar] sm:gap-5 sm:px-4 print:hidden">
       <div className="flex shrink-0 items-center gap-3 sm:min-w-0 sm:flex-1 sm:shrink">
         <Link
           href={roomHref('/catalog')}
@@ -200,7 +193,7 @@ export function AppBar() {
         <RoomMenu />
       </div>
       <StepNav active={activeStep(pathname, view)} />
-      <div className="flex shrink-0 justify-end sm:flex-1">
+      <div className="flex shrink-0 items-center justify-end sm:flex-1">
         <Tooltip>
           <TooltipTrigger
             render={
