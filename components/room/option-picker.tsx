@@ -28,7 +28,7 @@ export function OptionPicker({ product, value, disabled, onChange }: OptionPicke
       </ComboboxTrigger>
       <ComboboxContent size="sm" align="start" className="w-72">
         <ComboboxInput placeholder="Search options" />
-        <ComboboxList>
+        <ComboboxList className="pt-1">
           <ComboboxEmpty>No option matches.</ComboboxEmpty>
           {product.variants.map((variant) => (
             <ComboboxItem
