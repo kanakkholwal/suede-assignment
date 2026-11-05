@@ -14,6 +14,7 @@ One room, three steps, always visible at the top of the app:
 - **Less on screen.** Filters sit behind one button because the brief bar sets them; tiles show a size only when one is on file; separation comes from tone, not borders or shadows.
 - **Motion with a job.** Chips, rows and the selected piece animate; whole panels never do. Durations come from baby-ui's tokens and drop to fades under reduced motion.
 - **Brand.** Suede's brown, Inter and EB Garamond are unchanged; neutrals are baby-ui's. The original warm palette is one commit back if Suede wants it kept.
+- **Icons.** [Solar](https://github.com/480-Design/Solar-Icon-Set) (CC BY 4.0), generated at build time from `components/icons/icons.json` (`pnpm icons`), so no icon package ships at runtime.
 
 ## What I prioritised from the research, and why
 
