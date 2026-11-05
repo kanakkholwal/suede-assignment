@@ -9,6 +9,7 @@ import { AddToRoomButton } from '@/components/room/add-to-room-button';
 import { ProductFacts } from '@/components/shared/product-facts';
 import type { DimensionSummary } from '@/lib/dimensions';
 import { formatPrice } from '@/lib/format';
+import { cn } from '@/lib/utils';
 
 export interface DetailRoomActions {
   inRoom: boolean;
@@ -114,6 +115,7 @@ function CatalogDetailContent({ product, initialVariantId, dimensions, room }: C
     product.variants.find((variant) => variant.id === selectedVariantId) ?? initialVariant;
   const image = selectedVariant?.image ?? product.images[0];
   const hasVariantImage = Boolean(selectedVariant?.image);
+  const [expanded, setExpanded] = useState(false);
 
   return (
     <div className="grid gap-7 p-4 sm:grid-cols-[minmax(0,1.1fr)_minmax(260px,0.9fr)] sm:p-6">
@@ -136,7 +138,7 @@ function CatalogDetailContent({ product, initialVariantId, dimensions, room }: C
             : 'Primary product image captured with the static staging snapshot.'}
         </figcaption>
       </figure>
-      <div className="flex min-w-0 flex-col">
+      <div className="flex min-w-0 flex-col sm:pr-8">
         <p className="text-sm text-muted-foreground">{product.brand}</p>
         <h2 id="catalog-detail-title" className="mt-1.5 font-serif text-4xl leading-none text-foreground">{product.name}</h2>
         {room ? (
@@ -153,8 +155,7 @@ function CatalogDetailContent({ product, initialVariantId, dimensions, room }: C
             </p>
           </div>
         ) : null}
-        <p className="mt-4 text-sm leading-relaxed text-muted-foreground">{product.description}</p>
-        <div className="mt-6"><ProductFacts product={product} dimensions={dimensions} /></div>
+        <div className="mt-5"><ProductFacts product={product} dimensions={dimensions} /></div>
         <VariantPicker
           productId={product.id}
           productName={product.name}
@@ -162,6 +163,15 @@ function CatalogDetailContent({ product, initialVariantId, dimensions, room }: C
           selectedVariant={selectedVariant}
           onSelect={setSelectedVariantId}
         />
+        <section className="mt-7 flex flex-col gap-1.5" aria-label="Description">
+          <h3 className="text-sm font-semibold text-foreground">About this piece</h3>
+          <p className={cn('text-sm leading-relaxed text-muted-foreground', !expanded && 'line-clamp-4')}>{product.description}</p>
+          {product.description.length > 280 ? (
+            <button type="button" onClick={() => setExpanded((value) => !value)} className="w-fit rounded-sm text-sm font-medium text-foreground underline-offset-4 outline-none hover:underline focus-visible:ring-2 focus-visible:ring-ring">
+              {expanded ? 'Show less' : 'Read more'}
+            </button>
+          ) : null}
+        </section>
       </div>
     </div>
   );
@@ -218,9 +228,8 @@ export function CatalogDetailDialog({ product, selectedVariantId = null, onClose
   return (
     <div className="fixed inset-0 z-50 grid place-items-end bg-foreground/25 p-0 transition-opacity duration-(--duration-backdrop) ease-(--ease-ui-out) starting:opacity-0 sm:place-items-center sm:p-6" onMouseDown={onClose}>
       <section ref={dialogRef} role="dialog" aria-modal="true" aria-labelledby="catalog-detail-title" onKeyDown={trapFocus} onMouseDown={(event) => event.stopPropagation()} className="max-h-[94svh] w-full max-w-4xl overflow-y-auto rounded-t-2xl bg-popover shadow-overlay transition-[opacity,scale,translate] duration-(--duration-overlay) ease-(--ease-out-quad) starting:translate-y-4 starting:opacity-0 sm:rounded-2xl sm:starting:translate-y-0 sm:starting:scale-(--modal-enter-scale) motion-reduce:starting:translate-y-0">
-        <div className="sticky top-0 z-10 flex items-center justify-between bg-popover/90 py-2 pr-2 pl-4 backdrop-blur-sm sm:pl-6">
-          <p className="text-xs text-muted-foreground">Catalog item</p>
-          <button ref={closeButtonRef} type="button" aria-label="Close details" onClick={onClose} className="grid size-8 place-items-center rounded-lg text-muted-foreground outline-none transition-[background-color,color,scale] duration-(--duration-fast) hover:bg-foreground/[0.06] hover:text-foreground focus-visible:ring-2 focus-visible:ring-ring active:scale-(--press-scale-icon)">
+        <div className="sticky top-0 z-10 -mb-12 flex justify-end p-2">
+          <button ref={closeButtonRef} type="button" aria-label="Close details" onClick={onClose} className="grid size-8 place-items-center rounded-lg bg-popover/90 text-muted-foreground outline-none backdrop-blur-sm transition-[background-color,color,scale] duration-(--duration-fast) hover:bg-muted hover:text-foreground focus-visible:ring-2 focus-visible:ring-ring active:scale-(--press-scale-icon)">
             <X className="size-4" aria-hidden="true" />
           </button>
         </div>
