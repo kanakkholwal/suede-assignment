@@ -50,6 +50,10 @@ const VIEW_COPY: Record<PlannerView, { title: string; lede: string }> = {
 
 const OPPOSITE: Record<Wall, Wall> = { north: 'south', south: 'north', east: 'west', west: 'east' };
 
+function parseTab(value: string | null): InspectorTab | null {
+  return value === 'fit' || value === 'pieces' || value === 'room' ? value : null;
+}
+
 function parseView(value: string | null): PlannerView {
   return value === 'wall' || value === 'tape' ? value : 'plan';
 }
@@ -69,12 +73,20 @@ function Count({ value, tone = 'muted' }: { value: number; tone?: 'muted' | 'ale
 export function RoomPlanner() {
   const room = useRoomStore();
   const router = useRouter();
-  const view = parseView(useSearchParams().get('view'));
+  const params = useSearchParams();
+  const view = parseView(params.get('view'));
+  const urlTab = parseTab(params.get('tab'));
   const setView = useCallback((next: PlannerView) => router.replace(`/room?view=${next}`, { scroll: false }), [router]);
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [overrides, setOverrides] = useState<Record<string, Placement>>({});
   const [chosenWall, setChosenWall] = useState<Wall | null>(null);
-  const [tab, setTab] = useState<InspectorTab | null>(null);
+  const [tab, setTab] = useState<InspectorTab | null>(urlTab);
+  const [seenUrlTab, setSeenUrlTab] = useState(urlTab);
+  // A link such as the top bar's Room facts can ask for a tab while the planner is already open.
+  if (urlTab !== seenUrlTab) {
+    setSeenUrlTab(urlTab);
+    if (urlTab) setTab(urlTab);
+  }
   const snapshot = room.snapshot;
 
   const pieces = useMemo(() => (snapshot ? planPieces(snapshot, overrides) : []), [snapshot, overrides]);
