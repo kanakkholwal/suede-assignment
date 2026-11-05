@@ -661,3 +661,8 @@
     animation: none;
   }
 }
+
+/* The browser's own search clear button ignores tokens; Escape and select-all cover it. */
+input[type='search']::-webkit-search-cancel-button {
+  appearance: none;
+}
