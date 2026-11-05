@@ -96,7 +96,7 @@ export function SideSheet({ open, onClose, label, closeLabel, title, children, f
             <X className="size-4" aria-hidden="true" />
           </button>
         </div>
-        <div className={cn('flex min-h-0 flex-1 flex-col overflow-y-auto', !flush && 'p-4')}>{children}</div>
+        <div className={cn('scrollbar-none flex min-h-0 flex-1 flex-col overflow-y-auto', !flush && 'p-4')}>{children}</div>
         {footer ? <div className="p-3">{footer}</div> : null}
       </section>
     </div>
