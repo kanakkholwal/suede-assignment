@@ -154,7 +154,7 @@ export function ProductActionsMenu({
             openMenu();
           }
         }}
-        className="grid size-8 place-items-center rounded-full bg-white/88 text-[#201a16] shadow-sm ring-1 ring-black/5 backdrop-blur transition hover:bg-white focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#886b54]"
+        className="grid size-8 place-items-center rounded-full bg-card/90 text-foreground backdrop-blur-sm outline-none transition-[background-color,scale] duration-(--duration-fast) hover:bg-card focus-visible:ring-2 focus-visible:ring-ring active:scale-(--press-scale-icon)"
       >
         <MoreHorizontal className="size-4" aria-hidden="true" />
       </button>
@@ -165,7 +165,7 @@ export function ProductActionsMenu({
           role="menu"
           aria-label={`Actions for ${product.name}`}
           onKeyDown={handleMenuKeyDown}
-          className="fixed z-40 w-56 rounded-lg border border-[#ded9d3] bg-white p-1.5 shadow-[0_14px_38px_rgba(43,35,29,0.16)]"
+          className="fixed z-40 w-56 origin-top-right rounded-xl bg-popover p-1 shadow-overlay transition-[opacity,scale] duration-(--duration-dropdown) ease-(--ease-ui-out) starting:scale-(--popover-enter-scale) starting:opacity-0"
           style={{
             left: menuPosition?.left ?? 0,
             top: menuPosition?.top ?? 0,
@@ -178,14 +178,14 @@ export function ProductActionsMenu({
             role="menuitem"
             disabled={isBlocked({ operation: 'toggleSaved', productId: product.id })}
             onClick={() => onToggleSaved(product.id)}
-            className="flex w-full items-center gap-2.5 rounded-md px-2.5 py-2 text-left text-sm text-[#29221e] hover:bg-[#f4f1ed]"
+            className="flex w-full items-center gap-2.5 rounded-lg px-2.5 py-1.5 text-left text-sm text-foreground outline-none transition-[background-color,scale] duration-(--duration-fast) hover:bg-foreground/[0.06] focus-visible:bg-foreground/[0.06] active:scale-(--press-scale-row) disabled:opacity-50 [&_svg]:size-4 [&_svg]:shrink-0"
           >
-            <Heart className={`size-4 ${saved ? 'fill-[#29221e]' : ''}`} aria-hidden="true" />
+            <Heart className={saved ? 'fill-current' : undefined} aria-hidden="true" />
             {saved ? 'Remove from library' : 'Save to library'}
           </button>
-          <div className="my-1 border-t border-[#eeeae6]" />
+          <div className="mx-2.5 my-1 h-px bg-border" />
           {collections.length ? (
-            <div className="px-2.5 pb-1 pt-1 text-[10px] font-semibold uppercase tracking-[0.11em] text-[#81766d]">
+            <div className="px-2.5 pt-1 pb-0.5 text-xs text-muted-foreground">
               Add to collection
             </div>
           ) : null}
@@ -198,15 +198,15 @@ export function ProductActionsMenu({
                 role="menuitem"
                 disabled={isBlocked({ operation: 'addToCollection', collectionId: collection.id, productId: product.id })}
                 onClick={() => onAddToCollection(collection.id, product.id)}
-                className="flex w-full items-center gap-2.5 rounded-md px-2.5 py-2 text-left text-sm text-[#29221e] hover:bg-[#f4f1ed]"
+                className="flex w-full items-center gap-2.5 rounded-lg px-2.5 py-1.5 text-left text-sm text-foreground outline-none transition-[background-color,scale] duration-(--duration-fast) hover:bg-foreground/[0.06] focus-visible:bg-foreground/[0.06] active:scale-(--press-scale-row) disabled:opacity-50 [&_svg]:size-4 [&_svg]:shrink-0"
               >
-                {selected ? <Check className="size-4 text-[#6b5544]" aria-hidden="true" /> : <FolderPlus className="size-4" aria-hidden="true" />}
+                {selected ? <Check className="pop text-primary" aria-hidden="true" /> : <FolderPlus aria-hidden="true" />}
                 <span className="truncate">{collection.name}</span>
               </button>
             );
           })}
           {creating ? (
-            <div className="mt-1 rounded-md bg-[#f4f1ed] p-2">
+            <div className="enter mt-1 rounded-lg bg-muted/70 p-2">
               <label className="sr-only" htmlFor={`collection-${product.id}`}>
                 Collection name
               </label>
@@ -221,21 +221,21 @@ export function ProductActionsMenu({
                   if (event.key === 'Escape') { createRevision.current += 1; setCreating(false); }
                 }}
                 placeholder="Collection name"
-                className="h-8 w-full rounded border border-[#d9d2ca] bg-white px-2 text-sm outline-none focus:border-[#886b54]"
+                className="h-8 w-full rounded-md border border-input bg-field px-2 text-base outline-none transition-[border-color,box-shadow] duration-(--duration-fast) focus:border-ring focus:ring-3 focus:ring-ring/20 md:text-sm"
               />
               <div className="mt-2 flex justify-end gap-1">
                 <button
                   type="button"
                   aria-label="Cancel collection"
                   onClick={() => { createRevision.current += 1; setCreating(false); }}
-                  className="grid size-7 place-items-center rounded text-[#70665d] hover:bg-white"
+                  className="grid size-7 place-items-center rounded-md text-muted-foreground outline-none hover:bg-foreground/[0.06] hover:text-foreground focus-visible:ring-2 focus-visible:ring-ring"
                 >
-                  <X className="size-3.5" />
+                  <X className="size-3.5" aria-hidden="true" />
                 </button>
                 <button
                   type="button"
                   onClick={submitCollection}
-                  className="rounded bg-[#29221e] px-2 py-1 text-xs font-medium text-white disabled:opacity-50"
+                  className="rounded-md bg-primary px-2.5 py-1 text-xs font-medium text-primary-foreground outline-none transition-[background-color,scale] duration-(--duration-fast) hover:bg-primary-hover focus-visible:ring-2 focus-visible:ring-ring active:scale-(--press-scale-sm) disabled:opacity-50"
                   disabled={!name.trim() || isBlocked({ operation: 'createCollection', name: name.trim(), productId: product.id })}
                 >
                   Create
@@ -247,9 +247,9 @@ export function ProductActionsMenu({
               type="button"
               role="menuitem"
               onClick={() => { createRevision.current += 1; setCreating(true); }}
-              className="flex w-full items-center gap-2.5 rounded-md px-2.5 py-2 text-left text-sm text-[#29221e] hover:bg-[#f4f1ed]"
+              className="flex w-full items-center gap-2.5 rounded-lg px-2.5 py-1.5 text-left text-sm text-foreground outline-none transition-[background-color,scale] duration-(--duration-fast) hover:bg-foreground/[0.06] focus-visible:bg-foreground/[0.06] active:scale-(--press-scale-row) disabled:opacity-50 [&_svg]:size-4 [&_svg]:shrink-0"
             >
-              <Plus className="size-4" aria-hidden="true" />
+              <Plus aria-hidden="true" />
               New collection…
             </button>
           )}
