@@ -45,29 +45,29 @@ function VariantPicker({ productId, productName, variants, selectedVariant, onSe
   if (!selectedVariant) return null;
 
   return (
-    <section className="mt-6 border-t border-[#e4ded7] pt-5" aria-labelledby="catalog-variants-title">
+    <section className="mt-7 flex flex-col gap-3" aria-labelledby="catalog-variants-title">
       <div className="flex items-baseline justify-between gap-4">
-        <h3 id="catalog-variants-title" className="font-serif text-2xl tracking-[-0.025em] text-[#29211d]">Variants</h3>
-        <span className="text-xs tabular-nums text-[#776d65]">{variants.length} options</span>
+        <h3 id="catalog-variants-title" className="text-sm font-semibold text-foreground">Options</h3>
+        <span className="text-xs tabular-nums text-muted-foreground">{variants.length} options</span>
       </div>
-      <p className="mt-1 text-xs leading-relaxed text-[#796f67]">Choose an option to inspect its exact price and availability from the staging snapshot.</p>
+      <p className="text-xs text-muted-foreground">Each option has its own price and availability in the snapshot.</p>
 
-      <div role="status" aria-live="polite" aria-label="Selected variant" className="mt-4 flex items-center justify-between gap-4 rounded-md border border-[#d9cec4] bg-[#f4efe9] px-3.5 py-3">
+      <div role="status" aria-live="polite" aria-label="Selected variant" className="flex items-center justify-between gap-4 rounded-lg bg-muted/70 px-3.5 py-3">
         <div className="min-w-0">
-          <p className="text-[10px] font-semibold uppercase tracking-[0.12em] text-[#77695f]">Selected option</p>
-          <p className="mt-1 truncate text-sm font-medium text-[#2f2620]">{selectedVariant.label || 'Default option'}</p>
+          <p className="text-xs text-muted-foreground">Selected option</p>
+          <p className="mt-0.5 truncate text-sm font-medium text-foreground">{selectedVariant.label || 'Default option'}</p>
         </div>
         <div className="shrink-0 text-right">
-          <p className="font-medium tabular-nums text-[#2f2620]">{formatPrice(selectedVariant.priceCents)}</p>
-          <p className={`mt-0.5 text-xs ${selectedVariant.available ? 'text-[#586d5d]' : 'text-[#8a7465]'}`}>
+          <p className="font-medium tabular-nums text-foreground">{formatPrice(selectedVariant.priceCents)}</p>
+          <p className={`mt-0.5 text-xs ${selectedVariant.available ? 'text-success-strong' : 'text-muted-foreground'}`}>
             {selectedVariant.available ? 'Available to order' : 'Unavailable in snapshot'}
           </p>
         </div>
       </div>
 
-      <fieldset className="mt-4">
-        <legend className="text-[10px] font-semibold uppercase tracking-[0.12em] text-[#776c63]">Choose an option</legend>
-        <div className="mt-2 max-h-56 space-y-1.5 overflow-y-auto pr-1" aria-label={`${productName} variants`}>
+      <fieldset>
+        <legend className="text-xs text-muted-foreground">Choose an option</legend>
+        <div className="mt-2 flex max-h-56 flex-col gap-0.5 overflow-y-auto pr-1" aria-label={`${productName} variants`}>
           {variants.map((variant) => {
             const isSelected = variant.id === selectedVariant.id;
             const label = variant.label || 'Default option';
@@ -84,11 +84,11 @@ function VariantPicker({ productId, productName, variants, selectedVariant, onSe
                   aria-label={`${label}, ${formatPrice(variant.priceCents)}, ${availability}`}
                   className="peer sr-only"
                 />
-                <span className={`flex items-center justify-between gap-4 rounded-md border px-3 py-2.5 text-sm transition ${isSelected ? 'border-[#9e8069] bg-[#f4efe9] text-[#2f2620]' : 'border-[#e4ded7] bg-white/60 text-[#40362f] hover:border-[#cfc1b5] hover:bg-[#fcfaf7]'} peer-focus-visible:outline-2 peer-focus-visible:outline-offset-2 peer-focus-visible:outline-[#886b54]`}>
+                <span className={`flex items-center justify-between gap-4 rounded-lg px-3 py-2.5 text-sm text-foreground transition-[background-color,scale] duration-(--duration-fast) active:scale-(--press-scale-row) peer-focus-visible:ring-2 peer-focus-visible:ring-ring ${isSelected ? 'bg-primary/10' : 'hover:bg-foreground/[0.04]'}`}>
                   <span className="min-w-0 truncate">{label}</span>
                   <span className="flex shrink-0 items-center gap-2">
-                    <span className="font-medium tabular-nums text-[#302720]">{formatPrice(variant.priceCents)}</span>
-                    <span className={variant.available ? 'text-[#586d5d]' : 'text-[#8a7465]'}>{availability}</span>
+                    <span className="font-medium tabular-nums">{formatPrice(variant.priceCents)}</span>
+                    <span className={variant.available ? 'text-success-strong' : 'text-muted-foreground'}>{availability}</span>
                   </span>
                 </span>
               </label>
@@ -116,9 +116,9 @@ function CatalogDetailContent({ product, initialVariantId, dimensions, room }: C
   const hasVariantImage = Boolean(selectedVariant?.image);
 
   return (
-    <div className="grid gap-7 p-5 sm:grid-cols-[minmax(0,1.1fr)_minmax(260px,0.9fr)] sm:p-7">
+    <div className="grid gap-7 p-4 sm:grid-cols-[minmax(0,1.1fr)_minmax(260px,0.9fr)] sm:p-6">
       <figure>
-        <div className="relative aspect-square overflow-hidden rounded-lg bg-[#eeeae5]">
+        <div className="relative aspect-square overflow-hidden rounded-xl bg-muted">
           {image ? (
             <Image
               key={image.src}
@@ -130,15 +130,15 @@ function CatalogDetailContent({ product, initialVariantId, dimensions, room }: C
             />
           ) : null}
         </div>
-        <figcaption className="mt-2 text-[11px] leading-relaxed text-[#7d7167]">
+        <figcaption className="mt-2 text-xs text-muted-foreground">
           {hasVariantImage
             ? 'Image assigned to the selected option in the static staging snapshot.'
             : 'Primary product image captured with the static staging snapshot.'}
         </figcaption>
       </figure>
       <div className="flex min-w-0 flex-col">
-        <p className="text-[11px] font-semibold uppercase tracking-[0.12em] text-[#7d7167]">{product.brand}</p>
-        <h2 id="catalog-detail-title" className="mt-2 font-serif text-4xl leading-[0.96] tracking-[-0.04em] text-[#1f1814]">{product.name}</h2>
+        <p className="text-sm text-muted-foreground">{product.brand}</p>
+        <h2 id="catalog-detail-title" className="mt-1.5 font-serif text-4xl leading-none text-foreground">{product.name}</h2>
         {room ? (
           <div className="mt-4 flex items-center gap-3">
             <AddToRoomButton
@@ -146,14 +146,14 @@ function CatalogDetailContent({ product, initialVariantId, dimensions, room }: C
               inRoom={room.inRoom}
               disabled={room.disabled}
               onToggle={() => room.onToggle(selectedVariant?.id ?? null)}
-              className="h-8 px-3"
+              size="default"
             />
             <p className="text-xs text-muted-foreground">
               {room.inRoom ? 'On the room shortlist.' : 'Adds the selected option to the room shortlist.'}
             </p>
           </div>
         ) : null}
-        <p className="mt-4 text-sm leading-relaxed text-[#635a52]">{product.description}</p>
+        <p className="mt-4 text-sm leading-relaxed text-muted-foreground">{product.description}</p>
         <div className="mt-6"><ProductFacts product={product} dimensions={dimensions} /></div>
         <VariantPicker
           productId={product.id}
@@ -216,11 +216,11 @@ export function CatalogDetailDialog({ product, selectedVariantId = null, onClose
   };
 
   return (
-    <div className="fixed inset-0 z-50 grid place-items-end bg-black/35 p-0 backdrop-blur-[1px] sm:place-items-center sm:p-6" onMouseDown={onClose}>
-      <section ref={dialogRef} role="dialog" aria-modal="true" aria-labelledby="catalog-detail-title" onKeyDown={trapFocus} onMouseDown={(event) => event.stopPropagation()} className="max-h-[94svh] w-full max-w-4xl overflow-y-auto rounded-t-xl bg-[#fdfcfa] shadow-2xl sm:rounded-xl">
-        <div className="sticky top-0 z-10 flex items-center justify-between border-b border-[#e6e0da] bg-[#fdfcfa]/95 px-5 py-4 backdrop-blur sm:px-7">
-          <p className="text-[10px] font-semibold uppercase tracking-[0.12em] text-[#806f63]">Catalog item</p>
-          <button ref={closeButtonRef} type="button" aria-label="Close details" onClick={onClose} className="grid size-8 place-items-center rounded-full text-[#564b43] hover:bg-[#f0ece7] focus-visible:outline-2 focus-visible:outline-[#886b54]">
+    <div className="fixed inset-0 z-50 grid place-items-end bg-foreground/25 p-0 transition-opacity duration-(--duration-backdrop) ease-(--ease-ui-out) starting:opacity-0 sm:place-items-center sm:p-6" onMouseDown={onClose}>
+      <section ref={dialogRef} role="dialog" aria-modal="true" aria-labelledby="catalog-detail-title" onKeyDown={trapFocus} onMouseDown={(event) => event.stopPropagation()} className="max-h-[94svh] w-full max-w-4xl overflow-y-auto rounded-t-2xl bg-popover shadow-overlay transition-[opacity,scale,translate] duration-(--duration-overlay) ease-(--ease-out-quad) starting:translate-y-4 starting:opacity-0 sm:rounded-2xl sm:starting:translate-y-0 sm:starting:scale-(--modal-enter-scale) motion-reduce:starting:translate-y-0">
+        <div className="sticky top-0 z-10 flex items-center justify-between bg-popover/90 py-2 pr-2 pl-4 backdrop-blur-sm sm:pl-6">
+          <p className="text-xs text-muted-foreground">Catalog item</p>
+          <button ref={closeButtonRef} type="button" aria-label="Close details" onClick={onClose} className="grid size-8 place-items-center rounded-lg text-muted-foreground outline-none transition-[background-color,color,scale] duration-(--duration-fast) hover:bg-foreground/[0.06] hover:text-foreground focus-visible:ring-2 focus-visible:ring-ring active:scale-(--press-scale-icon)">
             <X className="size-4" aria-hidden="true" />
           </button>
         </div>
