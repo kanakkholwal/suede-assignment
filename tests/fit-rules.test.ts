@@ -35,7 +35,7 @@ function rules(pieces: PlannedPiece[], roomOverride: Room = room, featureList: R
   return evaluateFit({ room: roomOverride, features: featureList, pieces }).map((warning) => warning.rule);
 }
 
-// Sofa against the south wall facing north, clear of the door at x 144–176.
+// Sofa against the south wall facing north, clear of the door at x 144 to 176.
 const sofa = (x = 80, rotation: Rotation = 180) => piece('Sofa', 'sofa', [x, 144 - 19.125], [86.5, 38.25], rotation);
 
 describe('geometry', () => {
@@ -85,7 +85,7 @@ describe('evaluateFit', () => {
     expect(rules([sofa(), piece('Rug', 'rug', [80, 100], [96, 120])])).not.toContain('overlap');
   });
 
-  it('wants 14–18″ between seating and its coffee table', () => {
+  it('wants 14 to 18″ between seating and its coffee table', () => {
     const close = piece('Table', 'coffee-table', [80, 144 - 38.25 - 8 - 10.5], [60, 21]);
     const right = piece('Table', 'coffee-table', [80, 144 - 38.25 - 16 - 10.5], [60, 21]);
     const far = piece('Table', 'coffee-table', [80, 144 - 38.25 - 26 - 10.5], [60, 21]);

@@ -81,7 +81,7 @@ function VariantPicker({ productId, productName, variants, selectedVariant, onSe
                   value={variant.id}
                   checked={isSelected}
                   onChange={() => onSelect(variant.id)}
-                  aria-label={`${label} — ${formatPrice(variant.priceCents)} — ${availability}`}
+                  aria-label={`${label}, ${formatPrice(variant.priceCents)}, ${availability}`}
                   className="peer sr-only"
                 />
                 <span className={`flex items-center justify-between gap-4 rounded-md border px-3 py-2.5 text-sm transition ${isSelected ? 'border-[#9e8069] bg-[#f4efe9] text-[#2f2620]' : 'border-[#e4ded7] bg-white/60 text-[#40362f] hover:border-[#cfc1b5] hover:bg-[#fcfaf7]'} peer-focus-visible:outline-2 peer-focus-visible:outline-offset-2 peer-focus-visible:outline-[#886b54]`}>

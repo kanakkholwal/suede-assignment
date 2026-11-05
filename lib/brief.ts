@@ -196,7 +196,7 @@ function rangeLabel(
   format: (value: number) => string,
   suffix = '',
 ): string {
-  if (min !== null && max !== null) return `${format(min)}–${format(max)}${suffix}`;
+  if (min !== null && max !== null) return `${format(min)} to ${format(max)}${suffix}`;
   if (max !== null) return `Up to ${format(max)}${suffix}`;
   return `At least ${format(min as number)}${suffix}`;
 }

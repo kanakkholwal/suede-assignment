@@ -57,7 +57,7 @@ function optionGap(item: RoomItem, product: CatalogProduct): Gap | null {
     message:
       low === high
         ? `Choose one of ${product.variants.length} options.`
-        : `Choose an option. Price ranges ${formatPrice(low)}–${formatPrice(high)}.`,
+        : `Choose an option. Price ranges ${formatPrice(low)} to ${formatPrice(high)}.`,
   };
 }
 

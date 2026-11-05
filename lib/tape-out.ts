@@ -6,7 +6,7 @@ import { formatFeetInches } from '@/lib/units';
 export interface TapeOutStep {
   pieceId: string;
   name: string;
-  /** East–west by north–south extent on the floor, after rotation. */
+  /** East-west by north-south extent on the floor, after rotation. */
   size: string;
   anchors: Array<{ wall: Wall; distance: string }>;
   facing: Side;

@@ -86,8 +86,8 @@ describe('filter chips', () => {
     const chips = describeFilters(filters, vocabulary.categories);
     expect(chips.map((chip) => chip.label)).toEqual([
       'Sofa',
-      '84″–96″ wide',
-      '$2,000–$4,000',
+      '84″ to 96″ wide',
+      '$2,000 to $4,000',
       'Available to order',
       'Sabai Design',
     ]);

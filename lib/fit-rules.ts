@@ -247,7 +247,7 @@ function coffeeTable(seat: PlannedPiece, table: PlannedPiece): FitWarning[] {
         'tight',
         [seat, table],
         `Only ${inch(facing.gap)} from ${seat.name} to ${table.name}`,
-        `Leave ${inch(CLEARANCE.coffeeTableMin)}–${inch(CLEARANCE.coffeeTableMax)} so knees clear and drinks stay in reach.`,
+        `Leave ${inch(CLEARANCE.coffeeTableMin)} to ${inch(CLEARANCE.coffeeTableMax)} so knees clear and drinks stay in reach.`,
       ),
     );
   } else if (facing.gap > CLEARANCE.coffeeTableMax) {
@@ -257,7 +257,7 @@ function coffeeTable(seat: PlannedPiece, table: PlannedPiece): FitWarning[] {
         'tip',
         [seat, table],
         `${inch(facing.gap)} from ${seat.name} to ${table.name}`,
-        `That is a stretch to reach a drink. ${inch(CLEARANCE.coffeeTableMin)}–${inch(CLEARANCE.coffeeTableMax)} is the usual range.`,
+        `That is a stretch to reach a drink. ${inch(CLEARANCE.coffeeTableMin)} to ${inch(CLEARANCE.coffeeTableMax)} is the usual range.`,
       ),
     );
   }
@@ -312,7 +312,7 @@ function rugBorder(room: Room, rug: PlannedPiece): FitWarning | null {
     'tip',
     [rug],
     `${rug.name} is ${inch(distance)} from the ${wall} wall`,
-    'In a room this size, 12–18″ of bare floor around a rug looks intentional. A rug almost touching the wall reads as too big.',
+    'In a room this size, 12 to 18″ of bare floor around a rug looks intentional. A rug almost touching the wall reads as too big.',
     { room },
   );
 }

@@ -7,7 +7,7 @@ it('formats catalog prices in whole-dollar USD', () => {
 });
 
 it('formats a lead-time range without inventing unavailable dates', () => {
-  expect(formatLeadTime({ min: 4, max: 6 })).toBe('4–6 weeks');
+  expect(formatLeadTime({ min: 4, max: 6 })).toBe('4 to 6 weeks');
   expect(formatLeadTime(null)).toBe('Not provided');
 });
 
