@@ -1,6 +1,6 @@
 'use client';
 
-import { RotateCcw, Search } from 'lucide-react';
+import { RotateCcw, Search } from '@/components/icons';
 import type { ReactNode } from 'react';
 
 import { CatalogCategoryTree } from '@/components/catalog/catalog-category-tree';

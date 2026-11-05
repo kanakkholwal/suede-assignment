@@ -1,9 +1,9 @@
-import { CircleCheck, CircleDashed, MessageSquareQuote, type LucideIcon } from 'lucide-react';
+import { CircleCheck, CircleDashed, MessageSquareQuote, type IconComponent } from '@/components/icons';
 
 import type { MeasurementStatus } from '@/lib/room-state';
 import { cn } from '@/lib/utils';
 
-const STATUS: Record<MeasurementStatus, { label: string; tone: string; icon: LucideIcon }> = {
+const STATUS: Record<MeasurementStatus, { label: string; tone: string; icon: IconComponent }> = {
   stated: { label: 'Client-stated', tone: 'text-muted-foreground', icon: MessageSquareQuote },
   assumed: { label: 'Assumed', tone: 'text-warning-strong', icon: CircleDashed },
   confirmed: { label: 'Confirmed', tone: 'text-success-strong', icon: CircleCheck },

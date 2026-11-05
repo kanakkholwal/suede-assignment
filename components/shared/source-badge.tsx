@@ -1,11 +1,11 @@
-import { BadgeCheck, CircleHelp, FlaskConical, PencilRuler, Tag, type LucideIcon } from 'lucide-react';
+import { BadgeCheck, CircleHelp, FlaskConical, PencilRuler, Tag, type IconComponent } from '@/components/icons';
 
 import { DIMENSION_SOURCE_LABEL, type DimensionSource } from '@/lib/dimensions';
 import { cn } from '@/lib/utils';
 
 type Source = DimensionSource | 'unknown';
 
-const SOURCE_STYLE: Record<Source, { tone: string; icon: LucideIcon; short: string }> = {
+const SOURCE_STYLE: Record<Source, { tone: string; icon: IconComponent; short: string }> = {
   designer: { tone: 'text-info-strong', icon: PencilRuler, short: 'Designer' },
   verified: { tone: 'text-success-strong', icon: BadgeCheck, short: 'Verified' },
   listing: { tone: 'text-muted-foreground', icon: Tag, short: 'From title' },

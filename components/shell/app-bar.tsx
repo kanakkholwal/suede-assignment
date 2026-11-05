@@ -1,6 +1,6 @@
 'use client';
 
-import { Bookmark } from 'lucide-react';
+import { Bookmark } from '@/components/icons';
 import Link from 'next/link';
 import { usePathname, useSearchParams } from 'next/navigation';
 import { useLayoutEffect, useRef } from 'react';

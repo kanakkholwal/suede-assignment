@@ -1,6 +1,6 @@
 'use client';
 
-import { ArrowRight, Armchair } from 'lucide-react';
+import { ArrowRight, Armchair } from '@/components/icons';
 import type { ReactNode } from 'react';
 
 import { useRoomStore } from '@/components/room/room-provider';

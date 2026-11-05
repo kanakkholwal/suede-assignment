@@ -1,6 +1,6 @@
 'use client';
 
-import { ArrowRight, SlidersHorizontal } from 'lucide-react';
+import { ArrowRight, SlidersHorizontal } from '@/components/icons';
 import { useCallback, useMemo, useRef, useState } from 'react';
 
 import { BriefBar } from '@/components/catalog/brief-bar';

@@ -1,6 +1,6 @@
 'use client';
 
-import { CircleHelp, CornerDownLeft, Sparkles, X } from 'lucide-react';
+import { CircleHelp, Sparkles, X } from '@/components/icons';
 import { type FormEvent, useId, useState } from 'react';
 
 import { Badge } from '@/components/ui/badge';
@@ -59,7 +59,7 @@ export function BriefBar({ filters, softTerms, vocabulary, onApply, onRemoveChip
           className="h-full min-w-0 flex-1 bg-transparent text-base text-foreground outline-none placeholder:text-muted-foreground/80 md:text-sm"
         />
         <Button type="submit" size="sm" disabled={!text.trim()}>
-          Find <CornerDownLeft aria-hidden="true" />
+          Find
         </Button>
       </form>
       <p id={hintId} className="sr-only">

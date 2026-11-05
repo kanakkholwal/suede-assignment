@@ -1,4 +1,4 @@
-import { Bookmark } from 'lucide-react';
+import { BookmarkSolid } from '@/components/icons';
 import Image from 'next/image';
 import type { ReactNode } from 'react';
 
@@ -49,7 +49,7 @@ export function ProductTile({ image, brand, name, subtitle, flag, saved, viewLab
         ) : null}
         {saved ? (
           <span className="pop absolute bottom-2.5 left-2.5 z-10 grid size-8 place-items-center rounded-full bg-card/90 text-foreground backdrop-blur-sm">
-            <Bookmark className="size-3.5 fill-current" aria-label="Saved" />
+            <BookmarkSolid className="size-3.5" aria-label="Saved" />
           </span>
         ) : null}
         <div className="absolute top-2.5 right-2.5 z-20 flex items-center gap-1.5">

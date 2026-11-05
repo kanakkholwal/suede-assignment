@@ -1,6 +1,6 @@
 'use client';
 
-import { Check, FolderPlus, Heart, MoreHorizontal, Plus, X } from 'lucide-react';
+import { Check, FolderPlus, Heart, HeartSolid, MoreHorizontal, Plus, X } from '@/components/icons';
 import { useCallback, useEffect, useLayoutEffect, useRef, useState, type KeyboardEvent, type MouseEvent } from 'react';
 import { createPortal } from 'react-dom';
 
@@ -180,7 +180,7 @@ export function ProductActionsMenu({
             onClick={() => onToggleSaved(product.id)}
             className="flex w-full items-center gap-2.5 rounded-lg px-2.5 py-1.5 text-left text-sm text-foreground outline-none transition-[background-color,scale] duration-(--duration-fast) hover:bg-foreground/[0.06] focus-visible:bg-foreground/[0.06] active:scale-(--press-scale-row) disabled:opacity-50 [&_svg]:size-4 [&_svg]:shrink-0"
           >
-            <Heart className={saved ? 'fill-current' : undefined} aria-hidden="true" />
+            {saved ? <HeartSolid aria-hidden="true" /> : <Heart aria-hidden="true" />}
             {saved ? 'Remove from library' : 'Save to library'}
           </button>
           <div className="mx-2.5 my-1 h-px bg-border" />

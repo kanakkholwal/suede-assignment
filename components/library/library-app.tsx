@@ -1,6 +1,6 @@
 'use client';
 
-import { Bookmark, Search } from 'lucide-react';
+import { Bookmark, Search } from '@/components/icons';
 import { useMemo, useState } from 'react';
 
 import { CatalogDetailDialog } from '@/components/catalog/catalog-detail-dialog';

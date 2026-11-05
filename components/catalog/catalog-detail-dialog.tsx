@@ -1,6 +1,6 @@
 'use client';
 
-import { X } from 'lucide-react';
+import { X } from '@/components/icons';
 import Image from 'next/image';
 import { useEffect, useRef, useState, type KeyboardEvent } from 'react';
 

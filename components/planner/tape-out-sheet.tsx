@@ -1,6 +1,6 @@
 'use client';
 
-import { TriangleAlert } from 'lucide-react';
+import { TriangleAlert } from '@/components/icons';
 
 import { PlanCanvas } from '@/components/planner/plan-canvas';
 import type { FitWarning } from '@/lib/fit-rules';

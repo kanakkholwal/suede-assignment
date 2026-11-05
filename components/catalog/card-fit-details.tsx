@@ -1,4 +1,4 @@
-import { Check } from 'lucide-react';
+import { Check } from '@/components/icons';
 
 import { AddToRoomButton, type ShortlistContext } from '@/components/room/add-to-room-button';
 import { SummaryDimensionLine } from '@/components/shared/dimension-line';

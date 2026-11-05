@@ -1,4 +1,4 @@
-import { ExternalLink } from 'lucide-react';
+import { ExternalLink } from '@/components/icons';
 
 import { SummaryDimensionLine } from '@/components/shared/dimension-line';
 import type { CatalogProduct, DataConfidence } from '@/data/product-types';

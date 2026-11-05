@@ -1,6 +1,6 @@
 'use client';
 
-import type { LucideIcon } from 'lucide-react';
+import type { IconComponent } from '@/components/icons';
 import { useLayoutEffect, useRef } from 'react';
 
 import { attachSegmentPill } from '@/components/ui/toggle-group';
@@ -10,7 +10,7 @@ export interface SegmentOption<T extends string> {
   value: T;
   label: string;
   ariaLabel?: string;
-  icon?: LucideIcon;
+  icon?: IconComponent;
 }
 
 interface SegmentedControlProps<T extends string> {

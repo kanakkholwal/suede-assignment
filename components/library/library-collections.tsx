@@ -1,6 +1,6 @@
 'use client';
 
-import { Check, FolderPlus, Pencil, Plus, Trash2, X } from 'lucide-react';
+import { Check, FolderPlus, Pencil, Plus, Trash2, X } from '@/components/icons';
 import { useRef, useState, type Dispatch, type SetStateAction } from 'react';
 
 import type { LibraryCollection } from '@/lib/library-state';

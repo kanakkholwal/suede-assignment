@@ -1,6 +1,6 @@
 'use client';
 
-import { MoveDown, Ruler } from 'lucide-react';
+import { MoveDown, Ruler } from '@/components/icons';
 import Image from 'next/image';
 import Link from 'next/link';
 import { useState } from 'react';

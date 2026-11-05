@@ -1,6 +1,6 @@
 'use client';
 
-import { CircleAlert, Ruler, TriangleAlert, X } from 'lucide-react';
+import { CircleAlert, Ruler, TriangleAlert, X } from '@/components/icons';
 import Image from 'next/image';
 import { useId, useState } from 'react';
 

@@ -1,6 +1,6 @@
 'use client';
 
-import { Check, Plus } from 'lucide-react';
+import { Check, Plus } from '@/components/icons';
 
 import type { CatalogFilters } from '@/lib/catalog-contract';
 import type { DimensionSummary } from '@/lib/dimensions';

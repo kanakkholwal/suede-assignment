@@ -1,6 +1,6 @@
 'use client';
 
-import { BookmarkMinus, FolderPlus } from 'lucide-react';
+import { BookmarkMinus, FolderPlus } from '@/components/icons';
 
 import { ProductTile } from '@/components/catalog/product-tile';
 import type { CatalogProduct } from '@/data/product-types';

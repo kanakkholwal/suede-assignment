@@ -1,6 +1,6 @@
 'use client';
 
-import { Columns3, Map as MapIcon, Printer, Ruler } from 'lucide-react';
+import { Columns3, MapIcon, Printer, Ruler } from '@/components/icons';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useCallback, useMemo, useState } from 'react';
 

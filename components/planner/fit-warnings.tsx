@@ -1,11 +1,11 @@
 'use client';
 
-import { CircleCheck, CircleDashed, Lightbulb, OctagonX, TriangleAlert, type LucideIcon } from 'lucide-react';
+import { CircleCheck, CircleDashed, Lightbulb, OctagonX, TriangleAlert, type IconComponent } from '@/components/icons';
 
 import type { FitSeverity, FitWarning } from '@/lib/fit-rules';
 import { cn } from '@/lib/utils';
 
-const SEVERITY: Record<FitSeverity, { label: string; possible: string; icon: LucideIcon; tone: string }> = {
+const SEVERITY: Record<FitSeverity, { label: string; possible: string; icon: IconComponent; tone: string }> = {
   conflict: { label: 'Won’t work', possible: 'Possible conflict', icon: OctagonX, tone: 'text-destructive-strong' },
   tight: { label: 'Tight', possible: 'Possibly tight', icon: TriangleAlert, tone: 'text-warning-strong' },
   tip: { label: 'Tip', possible: 'Tip', icon: Lightbulb, tone: 'text-muted-foreground' },

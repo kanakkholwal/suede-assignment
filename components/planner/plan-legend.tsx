@@ -1,6 +1,6 @@
 'use client';
 
-import { ChevronUp, Info } from 'lucide-react';
+import { ChevronUp, Info } from '@/components/icons';
 import { useId, useState } from 'react';
 
 import { cn } from '@/lib/utils';

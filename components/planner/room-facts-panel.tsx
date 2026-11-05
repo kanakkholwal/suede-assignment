@@ -1,6 +1,6 @@
 'use client';
 
-import { Check, ChevronDown, Copy, DoorOpen, Heater, PanelsTopLeft, Pencil, type LucideIcon } from 'lucide-react';
+import { Check, ChevronDown, Copy, DoorOpen, Heater, PanelsTopLeft, Pencil, type IconComponent } from '@/components/icons';
 import { type FormEvent, useId, useState } from 'react';
 
 import { MeasurementStatusBadge } from '@/components/room/measurement-status-badge';
@@ -13,7 +13,7 @@ import { WALLS } from '@/lib/room-state';
 import { clientQuestions } from '@/lib/tape-out';
 import { formatFeetInches, formatInches, parseLength } from '@/lib/units';
 
-const FEATURE_ICON: Record<RoomFeature['kind'], LucideIcon> = { window: PanelsTopLeft, door: DoorOpen, radiator: Heater };
+const FEATURE_ICON: Record<RoomFeature['kind'], IconComponent> = { window: PanelsTopLeft, door: DoorOpen, radiator: Heater };
 const FEATURE_LABEL: Record<RoomFeature['kind'], string> = { window: 'Window', door: 'Door', radiator: 'Radiator' };
 const LABEL = 'flex min-w-0 flex-col gap-1 text-xs text-muted-foreground';
 const FORM = 'enter flex flex-col gap-2.5 rounded-lg bg-muted/60 p-3';

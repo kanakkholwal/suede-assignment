@@ -1,6 +1,6 @@
 'use client';
 
-import { LayoutGrid, Rows3 } from 'lucide-react';
+import { LayoutGrid, Rows3 } from '@/components/icons';
 
 import { type SegmentOption, SegmentedControl } from '@/components/shared/segmented-control';
 

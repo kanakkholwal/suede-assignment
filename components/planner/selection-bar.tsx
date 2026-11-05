@@ -1,6 +1,6 @@
 'use client';
 
-import { RotateCw, Undo2, X } from 'lucide-react';
+import { RotateCw, Undo2, X } from '@/components/icons';
 
 import { SourceBadge } from '@/components/shared/source-badge';
 import { Button } from '@/components/ui/button';
