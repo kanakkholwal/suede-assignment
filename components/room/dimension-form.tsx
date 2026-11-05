@@ -57,17 +57,22 @@ export function DimensionForm({ current, onSave, onCancel, onClear }: DimensionF
   };
 
   return (
-    <form onSubmit={submit} className="enter mt-1 flex flex-col gap-2.5 rounded-lg bg-muted/60 p-3" aria-label="Enter size">
+    <form onSubmit={submit} className="flex flex-col gap-4" aria-label="Enter size">
+      <div className="flex flex-col gap-0.5">
+        <p className="text-sm font-semibold text-foreground">Your measurement</p>
+        <p className="text-xs text-muted-foreground">Saved as a designer entry, never mixed into brand or listing data.</p>
+      </div>
       <div className="grid grid-cols-3 gap-2">
         {DIMENSION_FIELDS.map((field) => {
           const known = current[field];
           return (
-            <label key={field} htmlFor={`${formId}-${field}`} className="flex min-w-0 flex-col gap-1">
+            <label key={field} htmlFor={`${formId}-${field}`} className="flex min-w-0 flex-col gap-1.5">
               <span className="text-xs text-muted-foreground">{FIELD_LABEL[field]}</span>
               <Input
                 size="sm"
                 id={`${formId}-${field}`}
                 inputMode="decimal"
+                autoFocus={field === 'width'}
                 value={text[field]}
                 onChange={(event) => setText((previous) => ({ ...previous, [field]: event.target.value }))}
                 placeholder={known.value !== null && known.source !== 'designer' ? formatInchValue(known.value) : 'in'}
@@ -77,26 +82,26 @@ export function DimensionForm({ current, onSave, onCancel, onClear }: DimensionF
           );
         })}
       </div>
-      <label htmlFor={`${formId}-note`} className="flex flex-col gap-1">
-        <span className="text-xs text-muted-foreground">Where is this from?</span>
+      <label htmlFor={`${formId}-note`} className="flex flex-col gap-1.5">
+        <span className="text-xs text-muted-foreground">Where is it from?</span>
         <Input
           size="sm"
           id={`${formId}-note`}
           value={note}
           maxLength={280}
           onChange={(event) => setNote(event.target.value)}
-          placeholder="Brand spec sheet, showroom tape, vendor email…"
+          placeholder="Spec sheet, showroom tape, vendor email"
         />
       </label>
       {error ? <p role="alert" className="text-xs text-destructive-strong">{error}</p> : null}
       <div className="flex items-center gap-2">
-        <Button type="submit" size="xs" loading={saving} loadingLabel="Saving">Save size</Button>
-        <Button type="button" size="xs" variant="ghost" onClick={onCancel}>Cancel</Button>
         {onClear ? (
-          <Button type="button" size="xs" variant="link" className="ml-auto text-destructive-strong" onClick={onClear}>
+          <Button type="button" size="sm" variant="ghost" className="-ml-2 text-destructive-strong" onClick={onClear}>
             Remove my entry
           </Button>
         ) : null}
+        <Button type="button" size="sm" variant="ghost" className="ml-auto" onClick={onCancel}>Cancel</Button>
+        <Button type="submit" size="sm" loading={saving} loadingLabel="Saving">Save size</Button>
       </div>
     </form>
   );

@@ -4,8 +4,8 @@ import { CircleAlert, Ruler, TriangleAlert, X } from '@/components/icons';
 import Image from 'next/image';
 import { useId, useState } from 'react';
 
-import { DimensionForm } from '@/components/room/dimension-form';
-import { Button } from '@/components/ui/button';
+import { SizeEditor } from '@/components/room/size-editor';
+import { button } from '@/components/ui/button';
 import { NativeSelect } from '@/components/ui/native-select';
 import { ResolvedDimensionLine } from '@/components/shared/dimension-line';
 import type { CatalogProduct } from '@/data/product-types';
@@ -35,7 +35,6 @@ export function ShortlistItem({
   onSaveDimensions,
   onClearDimensions,
 }: ShortlistItemProps) {
-  const [editing, setEditing] = useState(false);
   const selectId = useId();
   const variant = product.variants.find((candidate) => candidate.id === item.variantId);
   const image = variant?.image ?? product.images[0];
@@ -110,31 +109,20 @@ export function ShortlistItem({
         </ul>
       ) : null}
 
-      {editing ? (
-        <DimensionForm
-          current={item.dimensions}
-          onSave={onSaveDimensions}
-          onCancel={() => setEditing(false)}
-          onClear={hasDesignerEntry ? () => {
-            onClearDimensions();
-            setEditing(false);
-          } : undefined}
-        />
-      ) : sizeBlocked ? (
-        <Button size="sm" variant="outline" className="w-fit" disabled={disabled} onClick={() => setEditing(true)}>
-          <Ruler aria-hidden="true" /> Enter size
-        </Button>
-      ) : (
-        <button
-          type="button"
-          onClick={() => setEditing(true)}
-          disabled={disabled}
-          className="inline-flex w-fit items-center gap-1.5 rounded-sm text-xs text-muted-foreground underline-offset-4 outline-none hover:text-foreground hover:underline focus-visible:ring-2 focus-visible:ring-ring disabled:opacity-50"
-        >
-          <Ruler className="size-3.5" aria-hidden="true" />
-          {hasDesignerEntry ? 'Edit my measurement' : 'Use my own measurement'}
-        </button>
-      )}
+      <SizeEditor
+        current={item.dimensions}
+        onSave={onSaveDimensions}
+        onClear={hasDesignerEntry ? onClearDimensions : undefined}
+        disabled={disabled}
+        triggerClassName={
+          sizeBlocked
+            ? button({ variant: 'outline', size: 'sm', className: 'w-fit' })
+            : 'inline-flex w-fit items-center gap-1.5 rounded-sm text-xs text-muted-foreground underline-offset-4 outline-none hover:text-foreground hover:underline focus-visible:ring-2 focus-visible:ring-ring disabled:opacity-50 [&_svg]:size-3.5'
+        }
+      >
+        <Ruler aria-hidden="true" />
+        {sizeBlocked ? 'Enter size' : hasDesignerEntry ? 'Edit my measurement' : 'Use my own measurement'}
+      </SizeEditor>
       </div>
     </li>
   );

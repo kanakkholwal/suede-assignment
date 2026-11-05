@@ -3,10 +3,9 @@
 import { MoveDown, Ruler } from '@/components/icons';
 import Image from 'next/image';
 import Link from 'next/link';
-import { useState } from 'react';
 
-import { DimensionForm } from '@/components/room/dimension-form';
-import { Button } from '@/components/ui/button';
+import { SizeEditor } from '@/components/room/size-editor';
+import { Button, button } from '@/components/ui/button';
 import type { CatalogProduct } from '@/data/product-types';
 import { type DimensionValues, hasFootprint } from '@/lib/dimensions';
 import { type PlanPiece, shortName } from '@/lib/plan-model';
@@ -36,7 +35,6 @@ function Thumb({ product, variantId }: { product: CatalogProduct; variantId: str
 
 /** Every shortlisted piece: on the plan, ready to place, or missing a size. */
 export function PiecesPanel({ items, products, pieces, selectedId, disabled, onSelect, onPlace, onSaveDimensions }: PiecesPanelProps) {
-  const [editingId, setEditingId] = useState<string | null>(null);
   const placedIds = new Set(pieces.map((piece) => piece.id));
 
   if (items.length === 0) {
@@ -76,16 +74,16 @@ export function PiecesPanel({ items, products, pieces, selectedId, disabled, onS
                   <MoveDown aria-hidden="true" /> Place
                 </Button>
               ) : (
-                <Button size="xs" variant="outline" disabled={disabled} onClick={() => setEditingId(item.id)}>
+                <SizeEditor
+                  current={item.dimensions}
+                  onSave={(values, note) => onSaveDimensions(item, values, note)}
+                  disabled={disabled}
+                  triggerClassName={button({ variant: 'outline', size: 'xs' })}
+                >
                   <Ruler aria-hidden="true" /> Enter size
-                </Button>
+                </SizeEditor>
               )}
             </div>
-            {editingId === item.id ? (
-              <div className="px-1.5 pb-2">
-                <DimensionForm current={item.dimensions} onSave={(values, note) => onSaveDimensions(item, values, note)} onCancel={() => setEditingId(null)} />
-              </div>
-            ) : null}
           </li>
         );
       })}
