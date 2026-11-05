@@ -4,7 +4,7 @@ import { beforeEach, expect, it } from 'vitest';
 
 import CatalogPage from '@/app/catalog/page';
 import { armchair, boneQuilt, catalogFixture, deferred, fullCatalogProducts, libraryFixture, mockApi, quilt } from './api-fixtures';
-import { RoomProvider } from '@/components/room/room-provider';
+import { AppProviders } from './providers';
 
 const LINEN_BOX_QUILT = 'Linen Box Quilt (Dusk)';
 const ANTWERP_ARMCHAIR = 'Antwerp Armchair';
@@ -12,7 +12,7 @@ const ANTWERP_ARMCHAIR = 'Antwerp Armchair';
 beforeEach(() => { mockApi(); });
 
 async function renderCatalog() {
-  render(<CatalogPage />, { wrapper: RoomProvider });
+  render(<CatalogPage />, { wrapper: AppProviders });
   await screen.findByRole('button', { name: `View ${LINEN_BOX_QUILT}` });
 }
 
@@ -60,7 +60,7 @@ it('loads Catalog through the API and sends literal search text immediately', as
 it('shows loading and an accessible database recovery error without static fallback', async () => {
   const response = deferred<Response>();
   mockApi({ catalog: () => response.promise });
-  render(<CatalogPage />, { wrapper: RoomProvider });
+  render(<CatalogPage />, { wrapper: AppProviders });
   expect(screen.getByRole('status', { name: 'Loading catalog' })).toBeVisible();
   expect(screen.queryByText(LINEN_BOX_QUILT)).not.toBeInTheDocument();
   await act(async () => response.resolve(Response.json({ error: 'The local catalog database is unavailable. Run pnpm db:reset to restore it.' }, { status: 503 })));
@@ -70,7 +70,7 @@ it('shows loading and an accessible database recovery error without static fallb
 
 it('does not suggest resetting the database for a network failure', async () => {
   mockApi({ catalog: () => Promise.reject(new Error('offline')) });
-  render(<CatalogPage />, { wrapper: RoomProvider });
+  render(<CatalogPage />, { wrapper: AppProviders });
   expect(await screen.findByRole('alert')).toHaveTextContent(/try again/i);
   expect(screen.getByRole('alert')).not.toHaveTextContent('pnpm db:reset');
 });
@@ -82,7 +82,7 @@ it('cancels stale Catalog requests so a late response cannot replace current res
     if (!url.searchParams.has('query')) { oldSignal = init?.signal; return oldResponse.promise; }
     return Response.json(catalogFixture([armchair]));
   } });
-  render(<CatalogPage />, { wrapper: RoomProvider });
+  render(<CatalogPage />, { wrapper: AppProviders });
   fireEvent.change(screen.getByRole('searchbox', { name: 'Search' }), { target: { value: ANTWERP_ARMCHAIR } });
   expect(await screen.findByText(ANTWERP_ARMCHAIR)).toBeVisible();
   expect(oldSignal?.aborted).toBe(true);
@@ -257,7 +257,7 @@ it('uses the server-filtered variant list without reintroducing unavailable prod
     if (url.searchParams.get('inStockOnly') === 'true') result.variants = result.variants?.slice(1);
     return Response.json(result);
   } });
-  render(<CatalogPage />, { wrapper: RoomProvider });
+  render(<CatalogPage />, { wrapper: AppProviders });
   await screen.findByRole('button', { name: 'View Linen Box Quilt (Bone)' });
   await userEvent.click(screen.getByRole('button', { name: 'Variants view' }));
   expect(screen.getByRole('button', { name: 'View Linen Box Quilt (Bone), Twin/Twin XL / Bone' })).toBeVisible();

@@ -1,40 +1,12 @@
 import { render, screen, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { useSyncExternalStore } from 'react';
-import { beforeEach, expect, it, vi } from 'vitest';
-
-const navigation = vi.hoisted(() => {
-  let search = '';
-  const listeners = new Set<() => void>();
-  return {
-    reset: () => {
-      search = '';
-    },
-    subscribe: (listener: () => void) => {
-      listeners.add(listener);
-      return () => listeners.delete(listener);
-    },
-    read: () => search,
-    replace: (href: string) => {
-      search = href.split('?')[1] ?? '';
-      listeners.forEach((listener) => listener());
-    },
-  };
-});
-
-vi.mock('next/navigation', () => ({
-  useRouter: () => ({ replace: navigation.replace }),
-  useSearchParams: () => new URLSearchParams(useSyncExternalStore(navigation.subscribe, navigation.read)),
-  usePathname: () => '/room',
-}));
+import { expect, it } from 'vitest';
 
 import RoomPage from '@/app/room/page';
 import { resolveDimensions } from '@/lib/dimensions';
 import type { RoomSnapshot } from '@/lib/room-state';
 import { armchair, mockApi, roomFixture } from './api-fixtures';
-import { RoomProvider } from '@/components/room/room-provider';
-
-beforeEach(() => navigation.reset());
+import { AppProviders } from './providers';
 
 function roomWithChairInDoorway(): RoomSnapshot {
   const base = roomFixture();
@@ -51,7 +23,7 @@ function roomWithChairInDoorway(): RoomSnapshot {
 
 it('shows a door conflict as possible while the door is assumed, with questions for the client', async () => {
   mockApi({ room: roomWithChairInDoorway() });
-  render(<RoomPage />, { wrapper: RoomProvider });
+  render(<RoomPage />, { wrapper: AppProviders });
 
   const fitCheck = await screen.findByRole('region', { name: 'Fit check' });
   expect(within(fitCheck).getByText('Possible conflict')).toBeVisible();
@@ -66,7 +38,7 @@ it('shows a door conflict as possible while the door is assumed, with questions 
 
 it('switches to the wall view and the printable tape-out sheet', async () => {
   mockApi({ room: roomWithChairInDoorway() });
-  render(<RoomPage />, { wrapper: RoomProvider });
+  render(<RoomPage />, { wrapper: AppProviders });
   await screen.findByRole('region', { name: 'Fit check' });
 
   await userEvent.click(screen.getByRole('button', { name: 'Wall view' }));
@@ -75,4 +47,12 @@ it('switches to the wall view and the printable tape-out sheet', async () => {
   await userEvent.click(screen.getByRole('button', { name: 'Tape-out' }));
   expect(screen.getByRole('heading', { name: 'Tape it on your floor' })).toBeVisible();
   expect(screen.getByText(/rectangle \(east-west by north-south\)/)).toBeVisible();
+});
+
+it('opens the view and wall named in the URL', async () => {
+  mockApi({ room: roomWithChairInDoorway() });
+  render(<RoomPage />, { wrapper: ({ children }) => <AppProviders searchParams="?view=wall&wall=south">{children}</AppProviders> });
+
+  expect(await screen.findByRole('img', { name: /^south wall seen from inside/ })).toBeVisible();
+  expect(screen.getByRole('button', { name: 'south wall' })).toHaveAttribute('aria-pressed', 'true');
 });

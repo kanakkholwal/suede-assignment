@@ -4,10 +4,10 @@ import { expect, it } from 'vitest';
 
 import CatalogPage from '@/app/catalog/page';
 import { armchair, mockApi } from './api-fixtures';
-import { RoomProvider } from '@/components/room/room-provider';
+import { AppProviders } from './providers';
 
 async function renderCatalog() {
-  render(<CatalogPage />, { wrapper: RoomProvider });
+  render(<CatalogPage />, { wrapper: AppProviders });
   await screen.findByRole('button', { name: 'View Antwerp Armchair' });
 }
 
@@ -53,4 +53,19 @@ it('adds a product to the room shortlist from its card', async () => {
       }),
     ),
   );
+});
+
+it('restores the brief, its chips and the filters from the URL', async () => {
+  const fetchMock = mockApi();
+  render(<CatalogPage />, {
+    wrapper: ({ children }) => (
+      <AppProviders searchParams="?brief=cozy+armchair&terms=cozy&category=30&max=2000&stock=true">{children}</AppProviders>
+    ),
+  });
+
+  await waitFor(() => expect(catalogCalls(fetchMock)).toContain('/api/catalog?category=30&maxPriceCents=200000&inStockOnly=true'));
+  const brief = screen.getByRole('region', { name: 'Client brief' });
+  expect(within(brief).getByLabelText('Describe what the client needs')).toHaveValue('cozy armchair');
+  expect(within(brief).getByText('Up to $2,000')).toBeVisible();
+  expect(within(brief).getByText('cozy')).toBeVisible();
 });

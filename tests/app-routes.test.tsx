@@ -2,12 +2,12 @@ import { render, screen } from '@testing-library/react';
 import { describe, expect, it } from 'vitest';
 import CatalogPage from '@/app/catalog/page';
 import { mockApi } from './api-fixtures';
-import { RoomProvider } from '@/components/room/room-provider';
+import { AppProviders } from './providers';
 
 describe('public application routes', () => {
   it('renders the Catalog shell without an account prompt', async () => {
     mockApi();
-    render(<CatalogPage />, { wrapper: RoomProvider });
+    render(<CatalogPage />, { wrapper: AppProviders });
 
     expect(screen.getByRole('heading', { name: 'Catalog' })).toBeVisible();
     expect(screen.queryByText(/sign in|log in/i)).not.toBeInTheDocument();
