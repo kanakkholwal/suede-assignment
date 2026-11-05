@@ -43,9 +43,10 @@ Through a wall; overlap; blocking the door swing; sitting on or crowding the rad
 
 ## What I built, cut and traded off
 
-- **Built:** brief parser using the ontology's own aliases (*couch*, *end table*); width filter that drops only known-too-wide options and keeps unknowns visible; sourced dimension model; room model; SVG planner with snapping, rotation and keyboard control; fit check; wall view; tape-out sheet; client questions.
+- **Built:** brief parser using the ontology's own aliases (*couch*, *end table*); width filter that drops only known-too-wide options and keeps unknowns visible; sourced dimension model; room model; SVG planner with snapping, rotation and keyboard control; fit check; wall view; tape-out sheet; client questions; room presets (the client's room plus two rooms labelled *Example*, each with its own shortlist and layout).
 - **Cut:** 3D, photo-to-plan, multiple rooms, price tiers, LLM parsing. A deterministic parser runs without keys and is testable; an LLM would help with messy briefs but would need the same chip output to stay inspectable.
-- **Trade-offs:** rotations are 90° only (real rooms rarely need more, and it keeps the geometry exact). Walkways are checked pairwise, not as a path from the door. One room per workspace.
+- **Trade-offs:** rotations are 90° only (real rooms rarely need more, and it keeps the geometry exact). Walkways are checked pairwise, not as a path from the door. Example rooms are fictional and say so in their name and note.
+- **URL state:** the room, brief, filters, search, open product, planner view, tab, wall and selected piece live in the URL ([nuqs](https://nuqs.dev)). A link reproduces exactly what the designer sees, reload keeps it, and back walks through it.
 - **Infrastructure:** a stale local database is now rebuilt from the seed automatically. On Windows, `db:reset` could not replace a file the dev server held open.
 
 ## Turning a sketch, listing plan or photo into an accurate room
