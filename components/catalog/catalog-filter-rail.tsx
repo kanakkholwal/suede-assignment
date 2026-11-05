@@ -1,12 +1,14 @@
 'use client';
 
-import { Search } from '@/components/icons';
-import type { ReactNode } from 'react';
+import { type ReactNode, useId, useState } from 'react';
+
+import { ChevronDown, Search } from '@/components/icons';
 
 import { CatalogCategoryTree } from '@/components/catalog/catalog-category-tree';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Input } from '@/components/ui/input';
 import type { CatalogCategoryNode, CatalogFilters } from '@/lib/catalog-contract';
+import { cn } from '@/lib/utils';
 
 interface CatalogFilterRailProps {
   filters: CatalogFilters;
@@ -30,12 +32,53 @@ function priceText(cents: number | null): string {
   return cents === null ? '' : String(cents / 100);
 }
 
-function Section({ title, children }: { title: string; children: ReactNode }) {
+function findName(nodes: readonly CatalogCategoryNode[], id: CatalogFilters['category']): string | null {
+  for (const node of nodes) {
+    if (node.id === id) return node.name;
+    const child = findName(node.children, id);
+    if (child) return child;
+  }
+  return null;
+}
+
+function money(cents: number): string {
+  return `$${(cents / 100).toLocaleString()}`;
+}
+
+function priceSummary({ minPriceCents: min, maxPriceCents: max }: CatalogFilters): string | null {
+  if (min !== null && max !== null) return `${money(min)} to ${money(max)}`;
+  if (max !== null) return `Up to ${money(max)}`;
+  return min !== null ? `From ${money(min)}` : null;
+}
+
+/** One foldable filter group; its header carries the current value so a closed group still reports. */
+function Section({ title, summary, defaultOpen, children }: { title: string; summary: string | null; defaultOpen: boolean; children: ReactNode }) {
+  const [open, setOpen] = useState(defaultOpen || summary !== null);
+  const id = useId();
   return (
-    <fieldset className="flex min-w-0 flex-col gap-2">
-      <legend className="mb-2 text-sm font-semibold text-foreground">{title}</legend>
-      {children}
-    </fieldset>
+    <section className="flex flex-col">
+      <h3>
+        <button
+          type="button"
+          aria-expanded={open}
+          aria-controls={id}
+          onClick={() => setOpen((value) => !value)}
+          className="-mx-2 flex h-11 w-[calc(100%+1rem)] items-center gap-2 rounded-lg px-2 text-left outline-none transition-colors duration-(--duration-fast) hover:bg-foreground/[0.04] focus-visible:ring-2 focus-visible:ring-ring"
+        >
+          <span className="text-sm font-semibold text-foreground">{title}</span>
+          {summary ? <span className="pop min-w-0 truncate text-xs text-primary">{summary}</span> : null}
+          <ChevronDown className={cn('ml-auto size-4 shrink-0 text-muted-foreground transition-transform duration-(--duration-base) ease-(--ease-ui-out)', open && 'rotate-180')} aria-hidden="true" />
+        </button>
+      </h3>
+      <div id={id} className="disclosure" data-open={open} inert={!open}>
+        <div>
+          <fieldset className="flex min-w-0 flex-col gap-2 pt-1 pb-3">
+            <legend className="sr-only">{title}</legend>
+            {children}
+          </fieldset>
+        </div>
+      </div>
+    </section>
   );
 }
 
@@ -43,12 +86,12 @@ const ROW = 'flex h-9 items-center rounded-lg px-2 transition-colors duration-(-
 
 export function CatalogFilterRail({ filters, brands, categoryTree, onChange }: CatalogFilterRailProps) {
   return (
-    <div className="flex w-full flex-col gap-7" role="group" aria-label="Catalog filters">
-      <Section title="Category">
+    <div className="flex w-full flex-col" role="group" aria-label="Catalog filters">
+      <Section title="Category" summary={filters.category === null ? null : findName(categoryTree, filters.category)} defaultOpen>
         <CatalogCategoryTree nodes={categoryTree} selected={filters.category} onSelect={(category) => onChange({ ...filters, category })} />
       </Section>
 
-      <Section title="Brand">
+      <Section title="Brand" summary={filters.brands.length ? `${filters.brands.length} selected` : null} defaultOpen={false}>
         <div className="-mx-2 flex flex-col">
           {brands.map((brand) => {
             const checked = filters.brands.includes(brand);
@@ -68,7 +111,7 @@ export function CatalogFilterRail({ filters, brands, categoryTree, onChange }: C
         </div>
       </Section>
 
-      <Section title="Price">
+      <Section title="Price" summary={priceSummary(filters)} defaultOpen={false}>
         <div className="flex items-center gap-2">
           <PriceField id="catalog-min-price" label="Minimum price" placeholder="Min" value={filters.minPriceCents} onChange={(minPriceCents) => onChange({ ...filters, minPriceCents })} />
           <span className="text-sm text-muted-foreground">to</span>
@@ -76,7 +119,7 @@ export function CatalogFilterRail({ filters, brands, categoryTree, onChange }: C
         </div>
       </Section>
 
-      <Section title="Availability">
+      <Section title="Availability" summary={filters.inStockOnly ? 'Available to order' : null} defaultOpen={false}>
         <div className={`${ROW} -mx-2`}>
           <Checkbox label="Available to order only" checked={filters.inStockOnly} onCheckedChange={(inStockOnly) => onChange({ ...filters, inStockOnly })} className="w-full" />
         </div>
