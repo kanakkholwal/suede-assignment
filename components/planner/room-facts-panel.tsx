@@ -247,7 +247,7 @@ export function RoomFactsPanel({ room, features, disabled, onUpdateRoom, onUpdat
       </ul>
 
       {questions.length ? (
-        <div className="flex flex-col gap-2 rounded-lg border border-dashed border-border-strong p-3">
+        <div className="flex flex-col gap-2 rounded-lg bg-muted/50 p-3">
           <div className="flex items-center justify-between gap-2">
             <p className="text-xs font-medium text-foreground">Ask the client</p>
             <Button size="xs" variant="ghost" onClick={copyQuestions} aria-live="polite">

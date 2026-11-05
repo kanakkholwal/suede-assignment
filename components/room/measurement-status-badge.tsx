@@ -1,20 +1,21 @@
-import { CircleCheck, CircleDashed, MessageSquareQuote } from 'lucide-react';
+import { CircleCheck, CircleDashed, MessageSquareQuote, type LucideIcon } from 'lucide-react';
 
-import { Badge, type BadgeVariant } from '@/components/ui/badge';
 import type { MeasurementStatus } from '@/lib/room-state';
+import { cn } from '@/lib/utils';
 
-const STATUS: Record<MeasurementStatus, { label: string; variant: BadgeVariant; icon: typeof CircleCheck }> = {
-  stated: { label: 'Client-stated', variant: 'secondary', icon: MessageSquareQuote },
-  assumed: { label: 'Assumed', variant: 'warning', icon: CircleDashed },
-  confirmed: { label: 'Confirmed', variant: 'success', icon: CircleCheck },
+const STATUS: Record<MeasurementStatus, { label: string; tone: string; icon: LucideIcon }> = {
+  stated: { label: 'Client-stated', tone: 'text-muted-foreground', icon: MessageSquareQuote },
+  assumed: { label: 'Assumed', tone: 'text-warning-strong', icon: CircleDashed },
+  confirmed: { label: 'Confirmed', tone: 'text-success-strong', icon: CircleCheck },
 };
 
+/** How sure we are of a room measurement: a tinted icon and a muted word. */
 export function MeasurementStatusBadge({ status, className }: { status: MeasurementStatus; className?: string }) {
-  const { label, variant, icon: Icon } = STATUS[status];
+  const { label, tone, icon: Icon } = STATUS[status];
   return (
-    <Badge variant={variant} size="sm" className={className}>
-      <Icon aria-hidden="true" />
+    <span className={cn('inline-flex shrink-0 items-center gap-1 text-xs text-muted-foreground', className)}>
+      <Icon className={cn('size-3.5', tone)} aria-hidden="true" />
       {label}
-    </Badge>
+    </span>
   );
 }

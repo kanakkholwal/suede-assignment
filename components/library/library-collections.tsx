@@ -73,7 +73,7 @@ export function LibraryCollections({
   };
 
   return (
-    <aside className="flex w-full flex-col gap-4" aria-label="Library collections">
+    <aside className="flex min-h-full w-full flex-col gap-4" aria-label="Library collections">
       <div>
         <p className="px-1 text-xs font-medium text-muted-foreground">Collections</p>
         <div className="mt-2 flex flex-col gap-0.5">
@@ -155,8 +155,8 @@ export function LibraryCollections({
           <Plus className="size-4" aria-hidden="true" /> New collection
         </button>
       )}
-      <div className="mt-2 rounded-lg bg-muted/50 p-3 text-xs leading-relaxed text-muted-foreground">
-        <div className="mb-1 flex items-center gap-1.5 font-medium text-foreground"><FolderPlus className="size-3.5" aria-hidden="true" /> Local SQLite library</div>
+      <div className="mt-auto px-1 text-xs leading-relaxed text-muted-foreground">
+        <div className="mb-0.5 flex items-center gap-1.5 text-foreground"><FolderPlus className="size-3.5" aria-hidden="true" /> Local SQLite library</div>
         Saved items and collections are private to this locally running app. There is no account or sync.
       </div>
     </aside>
