@@ -8,6 +8,13 @@ One room, three steps, always visible at the top of the app:
 2. **Fit the room** (`/room`). A true-scale plan built from the client's message. Drag pieces (or use the keyboard); a live fit check explains every problem in designer terms and says which assumptions it rests on.
 3. **Show the client** (`/room?view=wall`, `?view=tape`). A wall elevation at true scale against the 8′ 6″ ceiling and a 5′ 6″ person, and a printable sheet for taping each outline on the real floor.
 
+## Design
+
+- **Workspace, not pages.** Each step is a set of rounded islands on a neutral canvas. The planner never scrolls on desktop, so the plan, the selected piece and the fit check are visible together.
+- **Less on screen.** Filters sit behind one button because the brief bar sets them; tiles show a size only when one is on file; separation comes from tone, not borders or shadows.
+- **Motion with a job.** Chips, rows and the selected piece animate; whole panels never do. Durations come from baby-ui's tokens and drop to fades under reduced motion.
+- **Brand.** Suede's brown, Inter and EB Garamond are unchanged; neutrals are baby-ui's. The original warm palette is one commit back if Suede wants it kept.
+
 ## What I prioritised from the research, and why
 
 I combined **D-01** (sentence brief → a short, explained starting set) and **D-05** (show what is missing, not just what is there). They are one problem for this room: the brief's hardest constraint is size, and size is exactly what the catalog does not have. So the sourcing change is a brief that understands sizes, plus a shortlist that names every gap before a client sees it: no size on file, size only from the title, synthetic placeholder, option not chosen, unavailable on the snapshot date.

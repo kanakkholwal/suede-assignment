@@ -4,10 +4,10 @@
 > [localhost:3000/catalog](http://localhost:3000/catalog). Decisions, trade-offs and next steps are in
 > [DECISIONS.md](DECISIONS.md).
 >
-> **Two-minute path:** click the first "Try" brief and add the Elevate 86″ sofa. Type "Kyoto coffee table", "Bacana
-> armchair" and "Copper rug" into the brief bar and add each (pick the 60″ table and 8′×10′ rug in the shortlist) →
-> **Fit the room** → *Place* each, drag the armchair into the door swing → **Show the client** for the wall view and
-> tape-out sheet.
+> **Two-minute path:** click the first "Try" brief and add the Elevate 86″ Sofa in Recycled Velvet. Type "Kyoto coffee
+> table", "Bacana armchair" and "Copper rug" into the brief bar and add each; in the shortlist pick the 60″ table and the
+> 8′×10′ rug. **Open floor plan** → *Place* each piece from the Pieces tab, drag the armchair into the door swing and read
+> the Fit check tab → **Show the client** for the wall view and tape-out sheet.
 >
 > Checks: `pnpm test`, `pnpm lint`, `pnpm build`. No keys or network needed at runtime.
 
