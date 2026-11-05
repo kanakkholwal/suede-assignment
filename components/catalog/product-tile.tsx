@@ -32,8 +32,8 @@ interface ProductTileProps {
  */
 export function ProductTile({ image, brand, name, subtitle, flag, saved, viewLabel, onView, actions, imageAction, price, children, footer }: ProductTileProps) {
   return (
-    <article className="group/tile relative flex min-w-0 flex-col gap-2.5" title={name}>
-      <div className="relative aspect-square overflow-hidden rounded-2xl bg-muted">
+    <article className="group/tile relative flex min-w-0 flex-col gap-3">
+      <div className="relative aspect-square overflow-hidden rounded-xl bg-muted">
         {image ? (
           <Image
             src={image.src}
@@ -67,8 +67,8 @@ export function ProductTile({ image, brand, name, subtitle, flag, saved, viewLab
         </div>
       </div>
       <div className="pointer-events-none relative z-10 flex min-w-0 flex-col">
-        <h2 className="truncate text-base leading-6 font-medium tracking-tight text-foreground">{name}</h2>
-        <p className="truncate text-sm leading-5 text-muted-foreground">
+        <h2 className="line-clamp-2 text-base leading-6 font-medium tracking-tight text-foreground">{name}</h2>
+        <p className="mt-0.5 truncate text-sm leading-5 text-muted-foreground">
           <span className="font-medium tabular-nums text-foreground">{price}</span> · {subtitle ?? brand}
         </p>
         {children ? <div className="mt-1.5 flex flex-col gap-0.5">{children}</div> : null}
@@ -85,7 +85,7 @@ export function ProductTile({ image, brand, name, subtitle, flag, saved, viewLab
 }
 
 /** Shared result grid track: two columns on phones, fluid columns from `sm`. */
-export const TILE_GRID = 'grid grid-cols-2 gap-x-5 gap-y-8 sm:grid-cols-[repeat(auto-fill,minmax(12rem,1fr))]';
+export const TILE_GRID = 'grid grid-cols-2 gap-x-4 gap-y-8 sm:grid-cols-[repeat(auto-fill,minmax(13.5rem,1fr))]';
 
 export function NoMatches({ hint }: { hint: string }) {
   return (

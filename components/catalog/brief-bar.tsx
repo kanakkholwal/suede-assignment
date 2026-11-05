@@ -42,7 +42,7 @@ export function BriefBar({ filters, softTerms, vocabulary, onApply, onRemoveChip
   };
 
   return (
-    <section aria-label="Client brief" className="flex flex-col gap-2.5">
+    <section aria-label="Client brief" className="flex flex-col gap-3">
       <form
         onSubmit={submit}
         className="flex h-12 items-center gap-2.5 rounded-xl border border-input bg-field pr-1.5 pl-4 transition-[border-color,box-shadow] duration-(--duration-fast) hover:border-border-strong focus-within:border-ring focus-within:ring-3 focus-within:ring-ring/20"
@@ -74,7 +74,7 @@ export function BriefBar({ filters, softTerms, vocabulary, onApply, onRemoveChip
               key={example}
               type="button"
               onClick={() => apply(example)}
-              className="rounded-md border border-dashed border-border-strong px-2 py-1 text-foreground outline-none transition-[background-color,border-color,scale] duration-(--duration-fast) hover:border-primary/50 hover:bg-primary/[0.06] focus-visible:ring-2 focus-visible:ring-ring active:scale-(--press-scale-sm)"
+              className="inline-flex h-7 items-center rounded-md border border-dashed border-border-strong px-2.5 text-foreground outline-none transition-[background-color,border-color,scale] duration-(--duration-fast) hover:border-primary/50 hover:bg-primary/[0.06] focus-visible:ring-2 focus-visible:ring-ring active:scale-(--press-scale-sm)"
             >
               {example}
             </button>
