@@ -1,6 +1,7 @@
 'use client';
 
 import { ArrowRight, Armchair } from 'lucide-react';
+import type { ReactNode } from 'react';
 
 import { useRoomStore } from '@/components/room/room-provider';
 import { ShortlistItem } from '@/components/room/shortlist-item';
@@ -13,6 +14,15 @@ interface RoomShortlistProps {
   capturedAt: string;
   /** Called after the designer saves or clears a measurement, so search can re-rank. */
   onDimensionsChanged: () => void;
+}
+
+function StatusDot({ tone, children }: { tone: string; children: ReactNode }) {
+  return (
+    <span className="inline-flex items-center gap-1.5">
+      <span className={`size-1.5 rounded-full ${tone}`} aria-hidden="true" />
+      {children}
+    </span>
+  );
 }
 
 function plural(count: number, one: string, many: string): string {
@@ -60,13 +70,12 @@ export function RoomShortlist({ capturedAt, onDimensionsChanged }: RoomShortlist
           </div>
         ) : (
           <>
-            <p className="mb-1 text-xs text-muted-foreground" aria-live="polite">
-              {totals.blocker ? <span className="font-medium text-destructive-strong">{plural(totals.blocker, 'needs a size', 'need a size')}</span> : null}
-              {totals.blocker && totals.check ? ' · ' : ''}
-              {totals.check ? <span className="font-medium text-warning-strong">{plural(totals.check, 'thing', 'things')} to confirm</span> : null}
-              {!totals.blocker && !totals.check ? 'Nothing left to check' : ''}
+            <p className="mb-1 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-muted-foreground" aria-live="polite">
+              {totals.blocker ? <StatusDot tone="bg-destructive">{plural(totals.blocker, 'needs a size', 'need a size')}</StatusDot> : null}
+              {totals.check ? <StatusDot tone="bg-warning">{plural(totals.check, 'thing', 'things')} to confirm</StatusDot> : null}
+              {!totals.blocker && !totals.check ? <StatusDot tone="bg-success">Ready for the floor plan</StatusDot> : null}
             </p>
-            <ul className="flex flex-col gap-1">
+            <ul className="flex flex-col">
               {rows.map(({ item, product, gaps }) => (
                 <ShortlistItem
                   key={item.id}

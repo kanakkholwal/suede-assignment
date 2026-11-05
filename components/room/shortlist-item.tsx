@@ -47,26 +47,27 @@ export function ShortlistItem({
   const notes = gaps.filter((gap) => gap.kind !== 'size-missing' && gap.kind !== 'option');
 
   return (
-    <li className="enter flex flex-col gap-2.5 rounded-lg py-3">
-      <div className="flex gap-3">
-        <div className="relative size-14 shrink-0 overflow-hidden rounded-lg bg-muted">
-          {image ? <Image src={image.src} alt="" fill sizes="56px" className="object-cover" /> : null}
-        </div>
-        <div className="flex min-w-0 flex-1 flex-col gap-1">
+    <li className="enter grid grid-cols-[3rem_minmax(0,1fr)] gap-x-3 gap-y-2.5 py-3">
+      <div className="relative size-12 overflow-hidden rounded-lg bg-muted">
+        {image ? <Image src={image.src} alt="" fill sizes="48px" className="object-cover" /> : null}
+      </div>
+      <div className="flex min-w-0 items-start gap-2">
+        <div className="flex min-w-0 flex-1 flex-col">
+          <p className="line-clamp-2 text-sm leading-5 font-medium text-foreground">{product.name}</p>
           <p className="truncate text-xs text-muted-foreground">{product.brand}</p>
-          <p className="line-clamp-2 text-sm leading-snug font-medium text-foreground">{product.name}</p>
         </div>
         <button
           type="button"
           onClick={onRemove}
           disabled={disabled}
           aria-label={`Remove ${product.name} from room`}
-          className="grid size-7 shrink-0 place-items-center rounded-md text-muted-foreground outline-none transition-[background-color,color,scale] duration-(--duration-fast) hover:bg-foreground/[0.06] hover:text-foreground focus-visible:ring-2 focus-visible:ring-ring active:scale-(--press-scale-icon) disabled:opacity-50"
+          className="-mt-1 -mr-1.5 grid size-8 shrink-0 place-items-center rounded-md text-muted-foreground outline-none transition-[background-color,color,scale] duration-(--duration-fast) hover:bg-foreground/[0.06] hover:text-foreground focus-visible:ring-2 focus-visible:ring-ring active:scale-(--press-scale-icon) disabled:opacity-50"
         >
           <X className="size-3.5" aria-hidden="true" />
         </button>
       </div>
 
+      <div className="col-start-2 flex min-w-0 flex-col gap-2">
       {product.variants.length > 1 ? (
         <div>
           <label htmlFor={selectId} className="sr-only">Option for {product.name}</label>
@@ -120,7 +121,7 @@ export function ShortlistItem({
           } : undefined}
         />
       ) : sizeBlocked ? (
-        <Button size="xs" variant="outline" className="w-fit" disabled={disabled} onClick={() => setEditing(true)}>
+        <Button size="sm" variant="outline" className="w-fit" disabled={disabled} onClick={() => setEditing(true)}>
           <Ruler aria-hidden="true" /> Enter size
         </Button>
       ) : (
@@ -134,6 +135,7 @@ export function ShortlistItem({
           {hasDesignerEntry ? 'Edit my measurement' : 'Use my own measurement'}
         </button>
       )}
+      </div>
     </li>
   );
 }
