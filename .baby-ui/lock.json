@@ -42,6 +42,28 @@
 				"https://baby-ui.pages.dev/r/tokens.json"
 			]
 		},
+		"https://baby-ui.pages.dev/r/dialog.json": {
+			"name": "dialog",
+			"type": "registry:ui",
+			"framework": "react",
+			"installedAt": "2026-11-05T09:36:41.706Z",
+			"itemHash": "e10f56e66c7c8b2b331a8c9d0f1ff24dd9bb0d474889e34c584bc787392c8235",
+			"files": {
+				"components/ui/dialog/dialog.tsx": "33041852685a89c319cc852170160e6bc90d920dd35d8b031e756d0603bed193",
+				"components/ui/dialog/index.ts": "0c3fddfb8f244c65a12368b2ecbceb45124ae99a257880627f46fb8237a1a80d",
+				"components/ui/dialog/variants.ts": "0ef82360bd4cf51e92f9befa22bee1c870535abf352264c4aa0e6c00f0f8b51e",
+				"lib/cn.ts": "0fca478853f3fc4310e40ebff727a53da7ec677938f4e3e0d5ecaa62e936a199"
+			},
+			"dependencies": [
+				"@base-ui/react",
+				"clsx",
+				"tailwind-merge",
+				"tailwind-variants"
+			],
+			"registryDependencies": [
+				"https://baby-ui.pages.dev/r/tokens.json"
+			]
+		},
 		"https://baby-ui.pages.dev/r/input.json": {
 			"name": "input",
 			"type": "registry:ui",
@@ -75,6 +97,29 @@
 				"lib/control.ts": "6651c5c33695c4cff0bb3416216e7006ed696724e413160f31460cd97bb67ca6"
 			},
 			"dependencies": [
+				"clsx",
+				"tailwind-merge",
+				"tailwind-variants"
+			],
+			"registryDependencies": [
+				"https://baby-ui.pages.dev/r/tokens.json"
+			]
+		},
+		"https://baby-ui.pages.dev/r/popover.json": {
+			"name": "popover",
+			"type": "registry:ui",
+			"framework": "react",
+			"installedAt": "2026-11-05T09:36:41.706Z",
+			"itemHash": "c9a2247fe85c5022153211c121a59492fe0d34631c52913d9a88c9f1f2987d8d",
+			"files": {
+				"components/ui/popover/index.ts": "bf281194a021beb399d456c6786516b8d16533198b3bd31f7805d446f8a53950",
+				"components/ui/popover/popover.tsx": "742ccdf8ecfc4918f77df6e6ac6d528291c88707ef895a6de405dc7c65798def",
+				"components/ui/popover/variants.ts": "7c84e54076446d47362b493194ecbb7d6627364100b21b8e4131f3121e782557",
+				"lib/anchor.ts": "74990cb64561bf90cdf0410bf7af180b8fd8127ec7dcd2ec407018701a3ca98b",
+				"lib/anchored-surface.ts": "3fb3b6cfd87464ff66e7bc62722ecb1c47f949a1b0e50153b6b78a520c954968"
+			},
+			"dependencies": [
+				"@base-ui/react",
 				"clsx",
 				"tailwind-merge",
 				"tailwind-variants"
@@ -126,6 +171,16 @@
 			"registryDependencies": [
 				"https://baby-ui.pages.dev/r/tokens.json"
 			]
+		},
+		"https://baby-ui.pages.dev/r/tokens.json": {
+			"name": "tokens",
+			"type": "registry:style",
+			"framework": "react",
+			"installedAt": "2026-11-05T09:36:41.699Z",
+			"itemHash": "b4b891381ccb1f0155bf14a0ec97eececcc5fbf041d5f8c82d8eaf88561cc0b4",
+			"files": {},
+			"dependencies": [],
+			"registryDependencies": []
 		},
 		"https://baby-ui.pages.dev/r/tooltip.json": {
 			"name": "tooltip",
