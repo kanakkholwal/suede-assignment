@@ -44,6 +44,8 @@ interface PlanCanvasProps {
   onUnplace?: (id: string) => void;
   /** Fills its container's height on large screens instead of keeping its own aspect ratio. */
   fill?: boolean;
+  /** Numbers drawn on pieces in place of their names, matching a numbered list beside the plan. */
+  markers?: ReadonlyMap<string, number>;
   className?: string;
 }
 
@@ -230,6 +232,7 @@ export function PlanCanvas({
   onCommit,
   onUnplace,
   fill = false,
+  markers,
   className,
 }: PlanCanvasProps) {
   const svgRef = useRef<SVGSVGElement>(null);
@@ -320,6 +323,8 @@ export function PlanCanvas({
   };
 
   const sizeUnmeasured = room.dimensionsStatus !== 'confirmed';
+  // Scaled to the room, so a marker stays about 20px across even on a phone-width plan.
+  const markerRadius = Math.max(5, Math.min(room.lengthIn, room.widthIn) * 0.04);
 
   return (
     <svg
@@ -431,7 +436,12 @@ export function PlanCanvas({
             ) : null}
             {estimated ? <rect x={local.x0} y={local.y0} width={width} height={height} rx={1.5} fill={`url(#${hatchId})`} pointerEvents="none" /> : null}
             {!rug ? <FrontEdge rect={local} rotation={piece.rotation} /> : null}
-            {outside ? (
+            {markers?.has(piece.id) ? (
+              <g pointerEvents="none">
+                <circle r={markerRadius} fill="var(--primary)" />
+                <text y={markerRadius * 0.36} textAnchor="middle" fontSize={markerRadius} fontWeight={600} fill="var(--primary-foreground)">{markers.get(piece.id)}</text>
+              </g>
+            ) : outside ? (
               <text x={0} y={local.y1 + 4.2} textAnchor="middle" fontSize={2.8} fill="var(--foreground)" fontWeight={600} stroke="var(--plan-floor)" strokeWidth={1.2} paintOrder="stroke" pointerEvents="none">
                 {piece.name}
               </text>
