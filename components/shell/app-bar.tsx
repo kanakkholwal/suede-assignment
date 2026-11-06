@@ -49,12 +49,12 @@ function activeStep(pathname: string): WorkflowStep | null {
 }
 
 /** The three-step job as navigation, underlined like the planner's tabs; each step says how far along it is. */
-function StepNav({ active }: { active: WorkflowStep | null }) {
+function StepNav({ active, className }: { active: WorkflowStep | null; className?: string }) {
   const progress = useRoomProgress();
   const roomHref = useRoomHref();
 
   return (
-    <nav aria-label="Workflow" className="h-full min-w-0 overflow-x-auto scrollbar-none">
+    <nav aria-label="Workflow" className={cn('min-w-0 overflow-x-auto scrollbar-none', className)}>
       <ol className="flex h-full items-center">
         {STEPS.map((step, index) => {
           const current = step.id === active;
@@ -62,13 +62,13 @@ function StepNav({ active }: { active: WorkflowStep | null }) {
           const status = step.status(progress);
           return (
             <li key={step.id} className="flex h-full shrink-0 items-center">
-              {index > 0 ? <ChevronRight className="mx-1 size-3.5 text-muted-foreground/60" aria-hidden="true" /> : null}
+              {index > 0 ? <ChevronRight className="size-3.5 text-muted-foreground/60 sm:mx-1" aria-hidden="true" /> : null}
               <Link
                 href={roomHref(step.href)}
                 aria-current={current ? 'step' : undefined}
                 className={cn(
-                  'group relative flex h-full items-center gap-2 px-2 outline-none transition-colors duration-(--duration-fast)',
-                  'after:absolute after:inset-x-2 after:bottom-0 after:h-0.5 after:rounded-full after:transition-colors after:duration-(--duration-base)',
+                  'group relative flex h-full items-center gap-1.5 px-1.5 outline-none transition-colors duration-(--duration-fast) sm:gap-2 sm:px-2',
+                  'after:absolute after:inset-x-1.5 sm:after:inset-x-2 after:bottom-0 after:h-0.5 after:rounded-full after:transition-colors after:duration-(--duration-base)',
                   'focus-visible:after:bg-ring',
                   current ? 'text-foreground after:bg-primary' : 'text-muted-foreground after:bg-transparent hover:text-foreground',
                 )}
@@ -81,7 +81,7 @@ function StepNav({ active }: { active: WorkflowStep | null }) {
                 >
                   {done ? <Check key="done" className="pop size-3" aria-label="done" /> : index + 1}
                 </span>
-                <span className={cn('text-sm font-medium whitespace-nowrap', !current && 'sr-only sm:not-sr-only')}>{step.label}</span>
+                <span className="text-xs font-medium whitespace-nowrap sm:text-sm">{step.label}</span>
                 {status ? (
                   <span key={status.text} className={cn('pop hidden text-xs whitespace-nowrap tabular-nums lg:inline', status.tone === 'alert' ? 'font-medium text-destructive-strong' : 'text-muted-foreground')}>
                     {status.text}
@@ -120,7 +120,7 @@ function RoomMenu() {
     <Popover open={open} onOpenChange={setOpen}>
       <PopoverTrigger
         aria-label={`Room: ${current.name}. Switch room`}
-        className="hidden h-8 min-w-0 items-center gap-2 rounded-lg px-2 transition-colors duration-(--duration-fast) hover:bg-foreground/[0.06] data-[popup-open]:bg-foreground/[0.06] lg:inline-flex"
+        className="inline-flex h-8 min-w-0 items-center gap-2 rounded-lg px-2 transition-colors duration-(--duration-fast) hover:bg-foreground/6 data-popup-open:bg-foreground/6"
       >
         <span key={preset} className="pop truncate font-serif text-base font-medium tracking-tight text-foreground">{current.name}</span>
         <span className="hidden shrink-0 text-xs whitespace-nowrap tabular-nums text-muted-foreground 2xl:inline">
@@ -132,7 +132,7 @@ function RoomMenu() {
           <ChevronDown className="size-3.5 text-muted-foreground" aria-hidden="true" />
         )}
       </PopoverTrigger>
-      <PopoverContent align="start" className="flex w-96 flex-col gap-1 p-2">
+      <PopoverContent align="start" className="flex w-96 max-w-[calc(100vw-1.5rem)] flex-col gap-1 p-2">
         <p className="px-2 pt-1 pb-1.5 text-xs font-medium text-muted-foreground">Rooms</p>
         <ul aria-label="Rooms" className="flex flex-col gap-0.5">
           {ROOM_PRESETS.map((option) => {
@@ -183,8 +183,9 @@ export function AppBar() {
   const roomHref = useRoomHref();
 
   return (
-    <header className="flex h-13 shrink-0 items-stretch gap-3 px-3 [view-transition-name:app-bar] sm:gap-5 sm:px-4 print:hidden">
-      <div className="flex shrink-0 items-center gap-3 sm:min-w-0 sm:flex-1 sm:shrink">
+    // Below lg the steps take a second row, so the room and all three step names stay visible.
+    <header className="flex shrink-0 flex-wrap items-stretch gap-x-3 px-3 [view-transition-name:app-bar] sm:px-4 lg:h-13 lg:flex-nowrap lg:gap-x-5 print:hidden">
+      <div className="flex h-13 min-w-0 flex-1 items-center gap-3 lg:h-auto">
         <Link
           href={roomHref('/catalog')}
           aria-label="Suede catalog"
@@ -194,8 +195,8 @@ export function AppBar() {
         </Link>
         <RoomMenu />
       </div>
-      <StepNav active={activeStep(pathname)} />
-      <div className="flex shrink-0 items-center justify-end sm:flex-1">
+      <StepNav active={activeStep(pathname)} className="order-last -mx-2 h-11 w-[calc(100%+1rem)] lg:order-none lg:mx-0 lg:h-auto lg:w-auto" />
+      <div className="flex h-13 shrink-0 items-center justify-end lg:h-auto lg:flex-1">
         <Tooltip>
           <TooltipTrigger
             render={

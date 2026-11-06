@@ -63,7 +63,10 @@ export function SelectionBar({ room, piece, warnings, onRotate, onUnplace, onClo
       {issue ? (
         <p className={cn('text-xs', issue.severity === 'conflict' ? 'text-destructive-strong' : 'text-warning-strong')}>{issue.title}</p>
       ) : (
-        <p className="text-xs text-muted-foreground">Drag or use arrow keys (Shift moves 6″). R rotates.</p>
+        <p className="text-xs text-muted-foreground">
+          <span className="pointer-coarse:hidden">Drag or use arrow keys (Shift moves 6″). R rotates.</span>
+          <span className="pointer-fine:hidden">Drag with a finger to move. Tap Rotate to turn it.</span>
+        </p>
       )}
     </div>
   );
