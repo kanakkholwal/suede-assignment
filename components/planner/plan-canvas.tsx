@@ -80,6 +80,8 @@ const INWARD: Record<Wall, { x: number; y: number }> = {
 
 // Inter at weight 600 averages about 0.56 em per character.
 const CHAR_EM = 0.56;
+// Below this footprint width a name cannot be read inside the piece, so it sits underneath.
+const NAME_OUTSIDE_BELOW_IN = 24;
 
 /** Largest font up to `max` that fits `text` in `width`, truncating below `min`. */
 function fitLabel(text: string, width: number, max: number, min = 2.2): { text: string; fontSize: number } {
@@ -390,6 +392,7 @@ export function PlanCanvas({
         const label = fitLabel(piece.name, width, Math.min(3.6, Math.max(2.4, height / 4)));
         const fontSize = label.fontSize;
         const rug = piece.kind === 'rug';
+        const outside = !rug && width < NAME_OUTSIDE_BELOW_IN && label.text !== piece.name;
         const nameY = rug ? local.y0 + fontSize + 1.5 : -fontSize * 0.15;
         return (
           <g
@@ -428,12 +431,20 @@ export function PlanCanvas({
             ) : null}
             {estimated ? <rect x={local.x0} y={local.y0} width={width} height={height} rx={1.5} fill={`url(#${hatchId})`} pointerEvents="none" /> : null}
             {!rug ? <FrontEdge rect={local} rotation={piece.rotation} /> : null}
-            <text x={0} y={nameY} textAnchor="middle" fontSize={fontSize} fill="var(--foreground)" fontWeight={600} pointerEvents="none">
-              {label.text}
-            </text>
-            <text x={0} y={nameY + fontSize * 1.15} textAnchor="middle" fontSize={fontSize * 0.85} fill="var(--plan-label)" pointerEvents="none">
-              {formatInches(piece.widthIn)} × {formatInches(piece.depthIn)}
-            </text>
+            {outside ? (
+              <text x={0} y={local.y1 + 4.2} textAnchor="middle" fontSize={2.8} fill="var(--foreground)" fontWeight={600} stroke="var(--plan-floor)" strokeWidth={1.2} paintOrder="stroke" pointerEvents="none">
+                {piece.name}
+              </text>
+            ) : (
+              <>
+                <text x={0} y={nameY} textAnchor="middle" fontSize={fontSize} fill="var(--foreground)" fontWeight={600} pointerEvents="none">
+                  {label.text}
+                </text>
+                <text x={0} y={nameY + fontSize * 1.15} textAnchor="middle" fontSize={fontSize * 0.85} fill="var(--plan-ink)" pointerEvents="none">
+                  {formatInches(piece.widthIn)} × {formatInches(piece.depthIn)}
+                </text>
+              </>
+            )}
           </g>
         );
       })}
