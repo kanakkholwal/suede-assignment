@@ -18,6 +18,7 @@ import { TileGridSkeleton } from '@/components/shared/skeletons';
 import { Island } from '@/components/shell/island';
 import { Button, button } from '@/components/ui/button';
 import type { CatalogProduct } from '@/data/product-types';
+import type { DimensionSummary } from '@/lib/dimensions';
 import { type BriefVocabulary, type FilterChipKey, type ParsedBrief, removeFilterChip } from '@/lib/brief';
 import { emptyCatalogFilters, type CatalogVariantItem } from '@/lib/catalog-contract';
 import { useCatalogUrlState, useRoomHref } from '@/lib/url-state';
@@ -26,6 +27,12 @@ import { useLibrary } from '@/lib/use-library';
 
 function plural(count: number, one: string, many = `${one}s`): string {
   return `${count.toLocaleString()} ${count === 1 ? one : many}`;
+}
+
+/** Full size first, then width only, then unknown. Stable, so search relevance holds within each group. */
+function sizedFirst(products: readonly CatalogProduct[], dimensions: Readonly<Record<string, DimensionSummary>>): CatalogProduct[] {
+  const rank = (id: string) => (dimensions[id]?.width && dimensions[id]?.depth ? 0 : dimensions[id]?.width ? 1 : 2);
+  return [...products].sort((left, right) => rank(left.id) - rank(right.id));
 }
 
 export function CatalogApp() {
@@ -57,7 +64,7 @@ export function CatalogApp() {
   }, [catalog.data]);
   const resultCount = view === 'products' ? products.length : variants.length;
   const widthFiltered = filters.minWidthIn !== null || filters.maxWidthIn !== null;
-  const sizedProducts = widthFiltered ? products.filter((product) => dimensions[product.id]?.width) : products;
+  const sizedProducts = widthFiltered ? products.filter((product) => dimensions[product.id]?.width) : sizedFirst(products, dimensions);
   const unsizedProducts = widthFiltered ? products.filter((product) => !dimensions[product.id]?.width) : [];
   const roomItems = useMemo(() => room.snapshot?.items ?? [], [room.snapshot]);
   const roomCount = roomItems.length;
@@ -116,7 +123,7 @@ export function CatalogApp() {
   const filterRail = <CatalogFilterRail filters={filters} brands={brands} categoryTree={categoryTree} onChange={setFilters} />;
   const meta = catalog.loading
     ? 'Loading'
-    : `${plural(resultCount, view === 'products' ? 'item' : 'variant')}${unsizedProducts.length ? ` · ${sizedProducts.length} with a size on file` : ''}`;
+    : `${plural(resultCount, view === 'products' ? 'item' : 'variant')}${view === 'products' ? ` · ${products.filter((product) => dimensions[product.id]?.width).length} with a size on file` : ''}`;
 
   return (
     <main className="grid flex-1 gap-1.5 lg:min-h-0 xl:grid-cols-[minmax(0,1fr)_22rem]">

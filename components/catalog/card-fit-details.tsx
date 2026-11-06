@@ -10,15 +10,14 @@ interface FitProps {
   shortlist?: ShortlistContext;
 }
 
-/** Size with its source, and whether it fits the brief. Renders nothing when neither is known. */
+/** Size with its source, or "Size unknown", and whether it fits the brief. */
 export function CardFitLines({ product, shortlist }: FitProps) {
   const summary = shortlist?.dimensions[product.id];
   const reasons = shortlist ? matchReasons(summary, shortlist.filters) : [];
-  if (!summary?.width && !reasons.length) return null;
 
   return (
     <>
-      {summary ? <SummaryDimensionLine summary={summary} className="pointer-events-auto" /> : null}
+      {summary ? <SummaryDimensionLine summary={summary} showUnknown className="pointer-events-auto" /> : <p className="text-xs text-muted-foreground">Size unknown</p>}
       {reasons.map((reason) => (
         <p key={reason.label} className="inline-flex items-center gap-1 text-xs text-success-strong">
           <Check className="size-3.5" aria-hidden="true" />

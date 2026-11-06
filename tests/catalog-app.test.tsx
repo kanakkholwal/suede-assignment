@@ -521,3 +521,14 @@ it('supports keyboard dismissal and focus return for a product detail dialog', a
   expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
   expect(viewButton).toHaveFocus();
 });
+
+it('lists pieces with a known size first and says when a size is unknown', async () => {
+  const result = { ...catalogFixture(), dimensions: { [armchair.id]: { width: { min: 37, max: 37, source: 'verified' as const }, depth: { min: 30, max: 30, source: 'verified' as const }, height: null, unmeasuredVariants: 0, variantCount: 1 } } };
+  mockApi({ catalog: () => Response.json(result) });
+  render(<CatalogPage />, { wrapper: AppProviders });
+
+  const titles = await screen.findAllByRole('heading', { level: 2 });
+  expect(titles[0]).toHaveTextContent(armchair.name);
+  expect(screen.getAllByText('Size unknown').length).toBeGreaterThan(0);
+  expect(screen.getByText(/1 with a size on file/)).toBeVisible();
+});

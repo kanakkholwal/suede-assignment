@@ -23,7 +23,7 @@ export function SummaryDimensionLine({ summary, showUnknown = false, className }
   const partial = summary.unmeasuredVariants > 0 && summary.unmeasuredVariants < summary.variantCount;
 
   if (known.length === 0) {
-    return showUnknown ? <p className={cn('text-xs text-muted-foreground', className)}>Size not on file</p> : null;
+    return showUnknown ? <p className={cn('text-xs text-muted-foreground', className)} title="No size from the brand yet. The plan can draw a typical size until you add one.">Size unknown</p> : null;
   }
   if (known.length === 1 && summary.width) {
     return (
