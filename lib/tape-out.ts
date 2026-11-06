@@ -1,7 +1,7 @@
-import { frontSide, type Rect, rectHeight, rectWidth, type Side, wallDistances } from '@/lib/geometry';
+import { frontSide, type Rect, rectHeight, rectWidth, type Side, wallDistances, wallLength } from '@/lib/geometry';
 import type { PlanPiece } from '@/lib/plan-model';
 import type { Room, RoomFeature, Wall } from '@/lib/room-state';
-import { formatFeetInches } from '@/lib/units';
+import { formatFeetInches, formatInches } from '@/lib/units';
 
 export interface TapeOutStep {
   pieceId: string;
@@ -37,15 +37,44 @@ export function tapeOutSteps(room: Room, pieces: readonly PlanPiece[]): TapeOutS
   }));
 }
 
-const QUESTION_BY_KIND: Record<RoomFeature['kind'], string> = {
-  window:
-    'Which long wall are the windows on? How wide is each window, how far is it from the nearest corner, and how high is the sill off the floor?',
-  radiator:
-    'Is the radiator under the window on your left as you face the windows? How wide is it, and how far does it stick out from the wall?',
-  door: 'Which corner is the door in, and how wide is it? Does it swing into the room, and which side are the hinges on?',
+// Each wall's corners in the direction `offsetIn` runs: west to east, or north to south.
+const CORNERS: Record<Wall, [string, string]> = {
+  north: ['north-west', 'north-east'],
+  south: ['south-west', 'south-east'],
+  west: ['north-west', 'south-west'],
+  east: ['north-east', 'south-east'],
 };
 
-/** Plain-language follow-ups for every measurement that is still an assumption. */
+/** `2′ from the north-west corner`, measured to whichever corner is nearer. */
+export function nearestCorner(room: Pick<Room, 'lengthIn' | 'widthIn'>, feature: Pick<RoomFeature, 'wall' | 'offsetIn' | 'widthIn'>): string {
+  const fromEnd = wallLength(room, feature.wall) - feature.offsetIn - feature.widthIn;
+  const [start, end] = CORNERS[feature.wall];
+  const [corner, distance] = feature.offsetIn <= fromEnd ? [start, feature.offsetIn] : [end, fromEnd];
+  return distance < 0.5 ? `in the ${corner} corner` : `${formatFeetInches(distance)} from the ${corner} corner`;
+}
+
+const quoted = (said: string) => (said ? `You said “${said}”. ` : '');
+
+function drawn(room: Room, kind: RoomFeature['kind'], group: readonly RoomFeature[]): string {
+  const [first] = group;
+  const where = `on the ${first.wall} wall`;
+  if (kind === 'window') {
+    const walls = [...new Set(group.map((window) => window.wall))];
+    const sizes = [...new Set(group.map((window) => `${formatInches(window.widthIn)} wide, sill ${formatInches(window.sillIn ?? 30)} off the floor`))].join('; ');
+    const one = group.length === 1;
+    const placed = one ? `one window ${where}` : walls.length === 1 ? `${group.length} windows ${where}` : `${group.length} windows, on the ${walls.join(' and ')} walls`;
+    const sameSize = !sizes.includes(';');
+    return `${quoted(first.clientSaid)}We drew ${placed}, ${!one && sameSize ? 'each ' : ''}${sizes}. If that is off: which wall, how wide ${one ? 'is it' : 'is each'}, how far from the nearest corner, and how high is the sill?`;
+  }
+  if (kind === 'radiator') {
+    const depth = first.depthIn ? `, sticking out ${formatInches(first.depthIn)}` : '';
+    return `${quoted(first.clientSaid)}We drew the radiator ${where}, ${formatInches(first.widthIn)} wide, ${nearestCorner(room, first)}${depth}. If that is off: where is it, how wide, and how far does it stick out?`;
+  }
+  const swing = first.swing === 'out' ? 'swinging out of the room' : 'swinging into the room';
+  return `${quoted(first.clientSaid)}We drew the door ${where}, ${formatInches(first.widthIn)} wide, ${nearestCorner(room, first)}, ${swing}. If that is off: which wall and corner, how wide, which way does it swing, and which side are the hinges on?`;
+}
+
+/** One question per unconfirmed fact, quoting the client and saying what was drawn so they can correct it. */
 export function clientQuestions(room: Room, features: readonly RoomFeature[]): string[] {
   const questions: string[] = [];
   if (room.dimensionsStatus !== 'confirmed') {
@@ -53,9 +82,12 @@ export function clientQuestions(room: Room, features: readonly RoomFeature[]): s
       `Is ${formatFeetInches(room.widthIn)} × ${formatFeetInches(room.lengthIn)} measured wall to wall, or rounded? A tape across the room at floor level settles it.`,
     );
   }
-  const openKinds = new Set(features.filter((feature) => feature.status !== 'confirmed').map((feature) => feature.kind));
+  const open = features.filter((feature) => feature.status !== 'confirmed');
   for (const kind of ['window', 'radiator', 'door'] as const) {
-    if (openKinds.has(kind)) questions.push(QUESTION_BY_KIND[kind]);
+    // Windows the client described in one breath share a question; doors and radiators go one by one.
+    const ofKind = open.filter((feature) => feature.kind === kind);
+    const groups = kind === 'window' ? [...new Set(ofKind.map((feature) => feature.clientSaid))].map((said) => ofKind.filter((feature) => feature.clientSaid === said)) : ofKind.map((feature) => [feature]);
+    for (const group of groups) questions.push(drawn(room, kind, group));
   }
   return questions;
 }

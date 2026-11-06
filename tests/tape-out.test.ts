@@ -1,3 +1,4 @@
+import { ROOM_PRESETS } from '@/data/room-presets';
 import { describe, expect, it } from 'vitest';
 
 import { CLIENT_ROOM_TEMPLATE } from '@/data/client-room';
@@ -50,7 +51,26 @@ describe('clientQuestions', () => {
     expect(clientQuestions(room, features)).toHaveLength(4);
     const confirmed = features.map((feature) => (feature.kind === 'door' ? feature : { ...feature, status: 'confirmed' as const }));
     const questions = clientQuestions({ ...room, dimensionsStatus: 'confirmed' }, confirmed);
-    expect(questions).toEqual([expect.stringMatching(/^Which corner is the door in/)]);
+    expect(questions).toEqual([expect.stringMatching(/^You said “Door’s in the corner by the kitchen”. We drew the door on the south wall, 32″ wide, 4″ from the south-east corner/)]);
+  });
+});
+
+describe('clientQuestions per room', () => {
+  it.each(ROOM_PRESETS.map((preset) => [preset.id, preset.template] as const))('describes what was drawn in %s, in the client’s words', (preset, template) => {
+    const features = template.features.map((feature, index) => ({ ...feature, id: String(index) }));
+    const questions = clientQuestions({ id: 'room', preset, ...template }, features).join(' ');
+    for (const feature of features) {
+      expect(questions).toContain(`You said “${feature.clientSaid}”`);
+      expect(questions).toContain(feature.wall);
+    }
+    expect(questions).not.toMatch(/window on your left|Which long wall/);
+  });
+
+  it('asks once about windows the client described together', () => {
+    const studio = ROOM_PRESETS.find((preset) => preset.id === 'open-studio')!.template;
+    const features = studio.features.map((feature, index) => ({ ...feature, id: String(index) }));
+    const questions = clientQuestions({ id: 'room', preset: 'open-studio', ...studio }, features);
+    expect(questions.filter((question) => question.includes('window'))).toEqual([expect.stringContaining('2 windows, on the north and south walls, each 48″ wide')]);
   });
 });
 

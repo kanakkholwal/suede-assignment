@@ -33,7 +33,7 @@ it('shows a door conflict as possible while the door is assumed, with questions 
 
   await userEvent.click(screen.getByRole('tab', { name: /Room/ }));
   const facts = screen.getByRole('region', { name: 'What we know about the room' });
-  expect(within(facts).getByText(/Which corner is the door in/)).toBeVisible();
+  expect(within(facts).getByText(/We drew the door on the south wall/)).toBeVisible();
   expect(screen.getByRole('button', { name: /Antwerp Armchair, 37 × 30¼ × 30½ in, facing south, has a conflict/ })).toBeVisible();
 });
 
@@ -57,7 +57,7 @@ it('gives the client numbered outlines, the questions to answer first, and flags
   expect(within(steps).getAllByText(/^From the (north|south|east|west) wall$/)).toHaveLength(2);
   expect(screen.getByRole('link', { name: '1 fit problem' })).toHaveAttribute('href', '/room?view=plan&tab=fit');
   const check = screen.getByRole('region', { name: 'Before you tape, please check' });
-  expect(within(check).getByText(/Which corner is the door in/)).toBeVisible();
+  expect(within(check).getByText(/We drew the door on the south wall/)).toBeVisible();
   expect(screen.getByRole('button', { name: 'Copy text' })).toBeVisible();
 });
 
