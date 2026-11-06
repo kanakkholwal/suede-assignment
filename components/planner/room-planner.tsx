@@ -12,11 +12,12 @@ import { PlanLegend } from '@/components/planner/plan-legend';
 import { RoomFactsPanel } from '@/components/planner/room-facts-panel';
 import { SelectionBar } from '@/components/planner/selection-bar';
 import { useRoomStore } from '@/components/room/room-provider';
+import { RoomThumb } from '@/components/room/room-thumb';
 import { CountBadge } from '@/components/shared/count-badge';
 import { type SegmentOption, SegmentedControl } from '@/components/shared/segmented-control';
 import { PlannerSkeleton } from '@/components/shared/skeletons';
 import { Island } from '@/components/shell/island';
-import { button } from '@/components/ui/button';
+import { Button, button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import type { CatalogProduct } from '@/data/product-types';
 import { roomPreset } from '@/data/room-presets';
@@ -26,6 +27,7 @@ import { pieceKind } from '@/lib/piece-kind';
 import { defaultPlacement, type Placement, type PlanPiece, rotateClockwise, snapPlacement } from '@/lib/plan-model';
 import type { RoomItem, Wall } from '@/lib/room-state';
 import { WALLS } from '@/lib/room-state';
+import { plural } from '@/lib/format';
 import { formatFeetInches } from '@/lib/units';
 import { type InspectorTab, type PlannerView, usePlannerUrlState, useRoomHref, useRoomPreset } from '@/lib/url-state';
 import { countOpenFacts, STATUS_WORD } from '@/lib/room-certainty';
@@ -96,7 +98,8 @@ export function RoomPlanner() {
   const unconfirmed = countOpenFacts(details, features);
   const sizeStatus = details.dimensionsStatus === 'confirmed' ? 'measured' : STATUS_WORD[details.dimensionsStatus];
   const activeTab: InspectorTab = tab ?? (pieces.length ? 'fit' : 'pieces');
-  const ready = pieces.length > 0 && pieces.length === snapshot.items.length && problems === 0;
+  const unplaced = snapshot.items.length - pieces.length;
+  const ready = pieces.length > 0 && unplaced === 0 && problems === 0;
   const hint =
     view === 'plan'
       ? `${formatFeetInches(details.lengthIn)} × ${formatFeetInches(details.widthIn)} ${sizeStatus} · dashed means position assumed`
@@ -177,7 +180,12 @@ export function RoomPlanner() {
               <ElevationView room={details} features={features} pieces={pieces} wall={elevationWall} selectedId={selectedId} fill />
             </div>
             <div className="flex shrink-0 flex-wrap items-center justify-between gap-x-4 gap-y-2 px-3 pb-3 sm:px-4">
-              <SegmentedControl label="Wall" value={elevationWall} options={WALL_OPTIONS} onChange={setChosenWall} />
+              <div className="flex items-center gap-2.5">
+                <span className="grid h-10 w-12 shrink-0 place-items-center rounded-md bg-muted/70 p-1" title={`Facing the ${elevationWall} wall`}>
+                  <RoomThumb room={{ ...details, features }} highlight={elevationWall} className="max-h-full max-w-full" />
+                </span>
+                <SegmentedControl label="Wall" value={elevationWall} options={WALL_OPTIONS} onChange={setChosenWall} />
+              </div>
               <p className="text-xs text-muted-foreground">Farther pieces are lighter. Dashed means height unknown or position assumed.</p>
             </div>
           </div>
@@ -195,8 +203,21 @@ export function RoomPlanner() {
           </div>
           <div className="min-h-0 flex-1 overflow-y-auto p-3">
             <TabsContent value="fit" className="flex flex-col gap-2">
-              {pieces.length ? <p className="px-1 text-xs text-muted-foreground">{fitSummary(warnings) || 'Everything placed clears the rules.'}</p> : null}
+              {warnings.length ? <p className="px-1 text-xs text-muted-foreground">{fitSummary(warnings)}</p> : null}
               <FitWarnings warnings={warnings} placedCount={pieces.length} selectedId={selectedId} onFocusPiece={setSelectedId} />
+              {unplaced ? (
+                <div className="flex items-center justify-between gap-3 rounded-lg bg-muted/60 py-2 pr-2 pl-3">
+                  <p className="text-xs text-foreground">{plural(unplaced, 'piece')} not on the plan yet.</p>
+                  <Button size="xs" variant="outline" onClick={() => setTab('pieces')}>Go to pieces</Button>
+                </div>
+              ) : ready ? (
+                <div className="flex items-center justify-between gap-3 rounded-lg bg-muted/60 py-2 pr-2 pl-3">
+                  <p className="text-xs text-foreground">Everything is placed. Next, the client sheet.</p>
+                  <Link href={roomHref('/present')} className={button({ size: 'xs' })}>
+                    Show the client <ArrowRight aria-hidden="true" />
+                  </Link>
+                </div>
+              ) : null}
             </TabsContent>
             <TabsContent value="pieces">
               <PiecesPanel
