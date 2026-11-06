@@ -7,7 +7,7 @@
 > **Two-minute path:** click the first "Try" brief and add the Elevate 86″ Sofa in Recycled Velvet. Type "Kyoto coffee
 > table", "Bacana armchair" and "Copper rug" into the brief bar and add each; in the shortlist pick the 60″ table and the
 > 8′×10′ rug. **Open floor plan** → *Place* each piece from the Pieces tab, drag the armchair into the door swing and read
-> the Fit check tab → **Show the client** for the wall view and tape-out sheet.
+> the Fit check tab, flip to **Elevation** for heights → **Show the client** for the tape-out sheet.
 >
 > Checks: `pnpm test`, `pnpm lint`, `pnpm build`. No keys or network needed at runtime.
 
