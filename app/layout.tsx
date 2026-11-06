@@ -1,6 +1,7 @@
 import type { Metadata } from 'next';
 import '@fontsource-variable/inter';
-import '@fontsource-variable/eb-garamond';
+import '@fontsource-variable/newsreader/opsz.css';
+import '@fontsource-variable/newsreader/opsz-italic.css';
 import '@fontsource/dm-serif-display';
 import './globals.css';
 import { Suspense } from 'react';
