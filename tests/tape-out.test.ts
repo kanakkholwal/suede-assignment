@@ -5,7 +5,7 @@ import { armchair } from '@/tests/api-fixtures';
 import { resolveDimensions } from '@/lib/dimensions';
 import { planPieces, shortName } from '@/lib/plan-model';
 import type { Room, RoomFeature, RoomSnapshot } from '@/lib/room-state';
-import { clientQuestions, tapeOutSteps } from '@/lib/tape-out';
+import { clientQuestions, tapeOutSteps, tapeOutText } from '@/lib/tape-out';
 
 const { features: templateFeatures, ...roomFields } = CLIENT_ROOM_TEMPLATE;
 const room: Room = { id: 'room', preset: 'client-living-room', ...roomFields };
@@ -51,5 +51,15 @@ describe('clientQuestions', () => {
     const confirmed = features.map((feature) => (feature.kind === 'door' ? feature : { ...feature, status: 'confirmed' as const }));
     const questions = clientQuestions({ ...room, dimensionsStatus: 'confirmed' }, confirmed);
     expect(questions).toEqual([expect.stringMatching(/^Which corner is the door in/)]);
+  });
+});
+
+describe('tapeOutText', () => {
+  it('reads as a message: questions first, then each outline with its walls', () => {
+    const steps = tapeOutSteps(room, planPieces(snapshotWith('verified')));
+    const text = tapeOutText(room, steps, ['Which corner is the door in?']);
+    expect(text).toContain('Before you tape, please check:\n1. Which corner is the door in?');
+    expect(text).toContain(`1. ${shortName(armchair)}: 2′ 6¼″ × 3′ 1″ (east-west by north-south), front faces east.`);
+    expect(text).toContain('4′ 5½″ from the north wall; 1′ 3″ from the west wall.');
   });
 });

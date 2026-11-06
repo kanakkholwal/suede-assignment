@@ -26,7 +26,7 @@ export function tapeOutSteps(room: Room, pieces: readonly PlanPiece[]): TapeOutS
     pieceId: piece.id,
     name: piece.name,
     size: `${formatFeetInches(rectWidth(piece.rect))} × ${formatFeetInches(rectHeight(piece.rect))}`,
-    anchors: nearestWalls(room, piece.rect).map(({ wall, distance }) => ({ wall, distance: formatFeetInches(Math.max(0, distance)) })),
+    anchors: nearestWalls(room, piece.rect).map(({ wall, distance }) => ({ wall, distance: distance < 0.5 ? 'against the wall' : formatFeetInches(distance) })),
     facing: frontSide(piece.rotation),
     caution:
       piece.footprintSource === 'synthetic'
@@ -58,4 +58,15 @@ export function clientQuestions(room: Room, features: readonly RoomFeature[]): s
     if (openKinds.has(kind)) questions.push(QUESTION_BY_KIND[kind]);
   }
   return questions;
+}
+
+/** The sheet as plain text, for pasting into a message to the client. */
+export function tapeOutText(room: Room, steps: readonly TapeOutStep[], questions: readonly string[]): string {
+  const lines = [`Tape it on your floor: ${room.name}`, 'North is the top of the plan. Measure from the wall itself, not the baseboard.', ''];
+  if (questions.length) lines.push('Before you tape, please check:', ...questions.map((question, index) => `${index + 1}. ${question}`), '');
+  steps.forEach((step, index) => {
+    lines.push(`${index + 1}. ${step.name}: ${step.size} (east-west by north-south), front faces ${step.facing}.`);
+    lines.push(`   ${step.anchors.map((anchor) => `${anchor.distance} from the ${anchor.wall} wall`).join('; ')}.`);
+  });
+  return lines.join('\n');
 }
