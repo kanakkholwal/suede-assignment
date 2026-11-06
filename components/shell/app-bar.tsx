@@ -123,7 +123,7 @@ function RoomMenu() {
         className="hidden h-8 min-w-0 items-center gap-2 rounded-lg px-2 transition-colors duration-(--duration-fast) hover:bg-foreground/[0.06] data-[popup-open]:bg-foreground/[0.06] lg:inline-flex"
       >
         <span key={preset} className="pop truncate font-serif text-base font-medium tracking-tight text-foreground">{current.name}</span>
-        <span className="text-xs tabular-nums text-muted-foreground">
+        <span className="hidden shrink-0 text-xs whitespace-nowrap tabular-nums text-muted-foreground 2xl:inline">
           {formatFeetInches(lengthIn)} × {formatFeetInches(widthIn)}
         </span>
         {loading ? (
