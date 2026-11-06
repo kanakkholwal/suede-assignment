@@ -136,3 +136,15 @@ const plannerParams = {
 export function usePlannerUrlState() {
   return useQueryStates(plannerParams, { history: 'replace' });
 }
+
+// --- Library: collection, search and open product ---
+
+const libraryParams = {
+  collection: parseAsString,
+  q: parseAsString.withDefault(''),
+  product: parseAsString,
+};
+
+export function useLibraryUrlState() {
+  return useQueryStates(libraryParams, { history: 'replace' });
+}
