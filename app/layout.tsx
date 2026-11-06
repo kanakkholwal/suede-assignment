@@ -21,7 +21,7 @@ export const metadata: Metadata = {
 export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
   return (
     <html lang="en">
-      <body className="bg-canvas">
+      <body className="bg-canvas print:bg-white">
         <NuqsAdapter>
           <TooltipProvider delay={400}>
             {/* URL state is read on the client, so the shell waits for search params instead of failing the static render. */}

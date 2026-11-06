@@ -461,6 +461,10 @@
     @apply bg-background font-sans text-foreground antialiased;
   }
 
+  @media print {
+    @page { margin: 0.5in; }
+  }
+
   button,
   input {
     font: inherit;
