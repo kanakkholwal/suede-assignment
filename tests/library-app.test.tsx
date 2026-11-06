@@ -6,13 +6,14 @@ import LibraryPage from '@/app/library/page';
 import { useLibrary } from '@/lib/use-library';
 import type { LibraryMutation } from '@/lib/library-state';
 import { armchair, deferred, libraryFixture, mockApi, quilt } from './api-fixtures';
+import { AppProviders } from './providers';
 
 const collection = { id: 'collection-family-room', name: 'Family room', productIds: [quilt.id] };
 
 it('shows fetched products inside their collection, including products absent from static catalog data', async () => {
   const product = { ...quilt, id: 'api-only-product', name: 'API-only quilt' };
   mockApi({ library: libraryFixture([product], [{ ...collection, productIds: [product.id] }]) });
-  render(<LibraryPage />);
+  render(<LibraryPage />, { wrapper: AppProviders });
   expect(await screen.findByText('API-only quilt')).toBeVisible();
   await userEvent.click(screen.getByRole('button', { name: 'Family room' }));
   expect(screen.getByText('1 saved item')).toBeVisible();
@@ -23,7 +24,7 @@ it('shows fetched products inside their collection, including products absent fr
 it('creates a collection through the Library endpoint', async () => {
   const created = { id: 'server-created-collection', name: 'Guest room options', productIds: [] };
   const fetchMock = mockApi({ mutation: () => Response.json(libraryFixture([], [created])) });
-  render(<LibraryPage />);
+  render(<LibraryPage />, { wrapper: AppProviders });
   await screen.findByText('Your library is empty');
   await userEvent.click(screen.getByRole('button', { name: 'New collection' }));
   await userEvent.type(screen.getByLabelText('New collection name'), 'Guest room options');
@@ -40,7 +41,7 @@ it('renames and deletes collections using authoritative mutation snapshots', asy
     mutations.push(mutation);
     return Response.json(libraryFixture([quilt], mutation.operation === 'renameCollection' ? [renamed] : []));
   } });
-  render(<LibraryPage />);
+  render(<LibraryPage />, { wrapper: AppProviders });
   await userEvent.click(await screen.findByRole('button', { name: 'Manage Family room' }));
   await userEvent.clear(screen.getByLabelText('Rename Family room'));
   await userEvent.type(screen.getByLabelText('Rename Family room'), 'Primary bedroom');
@@ -58,9 +59,10 @@ it('renames and deletes collections using authoritative mutation snapshots', asy
 it('keeps the last valid snapshot after a failed save removal and permits retry', async () => {
   const response = deferred<Response>();
   const fetchMock = mockApi({ library: libraryFixture([quilt]), mutation: () => response.promise });
-  render(<LibraryPage />);
+  render(<LibraryPage />, { wrapper: AppProviders });
   await screen.findByText(quilt.name);
-  const remove = screen.getByRole('button', { name: 'Remove' });
+  await userEvent.click(screen.getByRole('button', { name: `Product actions for ${quilt.name}` }));
+  const remove = screen.getByRole('menuitem', { name: 'Remove from library' });
   await userEvent.dblClick(remove);
   expect(remove).toBeDisabled();
   expect(screen.getByRole('button', { name: 'New collection' })).toBeEnabled();
@@ -77,7 +79,7 @@ it('keeps the last valid snapshot after a failed save removal and permits retry'
 
 it('shows an accessible Library load error without presenting an empty snapshot as loaded', async () => {
   mockApi({ library: Promise.resolve(Response.json({ error: 'The local catalog database is unavailable. Run pnpm db:reset to restore it.' }, { status: 503 })) });
-  render(<LibraryPage />);
+  render(<LibraryPage />, { wrapper: AppProviders });
   expect(screen.getByRole('status', { name: 'Loading library' })).toBeVisible();
   expect(await screen.findByRole('alert')).toHaveTextContent('pnpm db:reset');
   expect(screen.queryByText('Your library is empty')).not.toBeInTheDocument();
@@ -128,14 +130,14 @@ it('rejects product mutations before initialization and serializes later distinc
 it('retains the collection form on failure and disables only its pending request', async () => {
   const response = deferred<Response>();
   mockApi({ library: libraryFixture([quilt], [collection]), mutation: () => response.promise });
-  render(<LibraryPage />);
+  render(<LibraryPage />, { wrapper: AppProviders });
   await userEvent.click(await screen.findByRole('button', { name: 'Manage Family room' }));
   await userEvent.clear(screen.getByLabelText('Rename Family room'));
   await userEvent.type(screen.getByLabelText('Rename Family room'), 'Primary bedroom');
   await userEvent.click(screen.getByRole('button', { name: 'Save Family room' }));
   expect(screen.getByRole('button', { name: 'Save Family room' })).toBeDisabled();
   expect(screen.getByRole('button', { name: 'Delete Family room' })).toBeEnabled();
-  expect(screen.getByRole('button', { name: 'Remove' })).toBeEnabled();
+  expect(screen.getByRole('button', { name: `Product actions for ${quilt.name}` })).toBeEnabled();
   await act(async () => response.resolve(Response.json({ error: 'A collection with that name already exists.' }, { status: 409 })));
   expect(await screen.findByRole('alert')).toHaveTextContent('already exists');
   expect(screen.getByLabelText('Rename Family room')).toHaveValue('Primary bedroom');
@@ -161,7 +163,7 @@ it.each(['another collection', 'new input'])('keeps editing %s after an earlier 
   const other = { id: 'collection-bedroom', name: 'Bedroom', productIds: [] };
   const response = deferred<Response>();
   mockApi({ library: libraryFixture([quilt], [collection, other]), mutation: () => response.promise });
-  render(<LibraryPage />);
+  render(<LibraryPage />, { wrapper: AppProviders });
   await userEvent.click(await screen.findByRole('button', { name: 'Manage Family room' }));
   await userEvent.clear(screen.getByLabelText('Rename Family room'));
   await userEvent.type(screen.getByLabelText('Rename Family room'), 'Renamed family room');
@@ -178,7 +180,7 @@ it('keeps a newer collection selection and editor after an earlier delete comple
   const other = { id: 'collection-bedroom', name: 'Bedroom', productIds: [armchair.id] };
   const response = deferred<Response>();
   mockApi({ library: libraryFixture([quilt, armchair], [collection, other]), mutation: () => response.promise });
-  render(<LibraryPage />);
+  render(<LibraryPage />, { wrapper: AppProviders });
   await userEvent.click(await screen.findByRole('button', { name: 'Family room' }));
   await userEvent.click(screen.getByRole('button', { name: 'Manage Family room' }));
   await userEvent.click(screen.getByRole('button', { name: 'Delete Family room' }));
@@ -195,7 +197,7 @@ it('keeps a newer collection selection and editor after an earlier delete comple
 it.each(['new input', 'reopened editor'])('keeps %s after an earlier Library collection creation completes', async (scenario) => {
   const response = deferred<Response>();
   mockApi({ mutation: () => response.promise });
-  render(<LibraryPage />);
+  render(<LibraryPage />, { wrapper: AppProviders });
   await screen.findByText('Your library is empty');
   await userEvent.click(screen.getByRole('button', { name: 'New collection' }));
   await userEvent.type(screen.getByLabelText('New collection name'), 'Family room');
@@ -209,4 +211,17 @@ it.each(['new input', 'reopened editor'])('keeps %s after an earlier Library col
   }
   await act(async () => response.resolve(Response.json(libraryFixture([], [{ ...collection, productIds: [] }]))));
   expect(screen.getByLabelText('New collection name')).toHaveValue(scenario === 'new input' ? 'Newer draft' : 'Family room');
+});
+
+it('opens the collection named in the URL and removes a piece from just that collection', async () => {
+  const mutations: LibraryMutation[] = [];
+  mockApi({ library: libraryFixture([quilt], [collection]), mutation: (init) => {
+    mutations.push(JSON.parse(init.body as string) as LibraryMutation);
+    return Response.json(libraryFixture([quilt], [{ ...collection, productIds: [] }]));
+  } });
+  render(<LibraryPage />, { wrapper: ({ children }) => <AppProviders searchParams="?collection=collection-family-room">{children}</AppProviders> });
+  expect(await screen.findByRole('heading', { name: 'Family room' })).toBeVisible();
+  await userEvent.click(screen.getByRole('button', { name: 'Remove from Family room' }));
+  expect(await screen.findByText('Nothing in Family room yet')).toBeVisible();
+  expect(mutations).toEqual([{ operation: 'removeFromCollection', collectionId: collection.id, productId: quilt.id }]);
 });

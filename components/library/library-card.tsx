@@ -1,27 +1,37 @@
 'use client';
 
-import { BookmarkMinus, FolderPlus } from '@/components/icons';
+import { FolderMinus } from '@/components/icons';
 
 import { ProductTile } from '@/components/catalog/product-tile';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import type { LibraryActions } from '@/components/catalog/catalog-card';
+import { AddToRoomButton } from '@/components/room/add-to-room-button';
+import { ProductActionsMenu } from '@/components/shared/product-actions-menu';
 import type { CatalogProduct } from '@/data/product-types';
 import { formatPrice, startingPriceCents } from '@/lib/format';
 import type { LibraryCollection } from '@/lib/library-state';
-import type { IsLibraryMutationBlocked } from '@/lib/use-library';
+
+export interface LibraryRoomActions {
+  inRoom: (productId: string) => boolean;
+  disabled: boolean;
+  onToggle: (productId: string) => void;
+}
 
 interface LibraryCardProps {
   product: CatalogProduct;
-  collections: LibraryCollection[];
-  isBlocked: IsLibraryMutationBlocked;
+  library: LibraryActions;
+  room: LibraryRoomActions;
+  /** The collection being viewed, which gets its own remove action. */
+  collection: LibraryCollection | null;
+  onRemoveFromCollection: (collectionId: string, productId: string) => void;
   onView: (product: CatalogProduct) => void;
-  onRemove: (productId: string) => void;
-  onAddToCollection: (collectionId: string, productId: string) => void;
 }
 
-export function LibraryCard({ product, collections, isBlocked, onView, onRemove, onAddToCollection }: LibraryCardProps) {
-  const productCollections = collections.filter((collection) => collection.productIds.includes(product.id));
-  const availableCollections = collections.filter((collection) => !collection.productIds.includes(product.id));
+export function LibraryCard({ product, library, room, collection, onRemoveFromCollection, onView }: LibraryCardProps) {
+  const memberOf = library.collections.filter((item) => item.id !== collection?.id && item.productIds.includes(product.id));
   const price = startingPriceCents(product.variants);
+  const removeBlocked = collection
+    ? library.isBlocked({ operation: 'removeFromCollection', collectionId: collection.id, productId: product.id })
+    : false;
 
   return (
     <ProductTile
@@ -31,49 +41,24 @@ export function LibraryCard({ product, collections, isBlocked, onView, onRemove,
       saved={false}
       viewLabel={`View ${product.name}`}
       onView={() => onView(product)}
-      actions={null}
+      actions={<ProductActionsMenu product={product} saved {...library} />}
+      imageAction={<AddToRoomButton productName={product.name} inRoom={room.inRoom(product.id)} disabled={room.disabled} onToggle={() => room.onToggle(product.id)} />}
       price={price === undefined ? 'Price not provided' : `From ${formatPrice(price)}`}
       footer={
-      <div className="-mx-1.5 flex items-center gap-2">
-        <button
-          type="button"
-          disabled={isBlocked({ operation: 'toggleSaved', productId: product.id })}
-          onClick={() => onRemove(product.id)}
-          className="inline-flex items-center gap-1.5 rounded-md px-1.5 py-1 text-xs font-medium text-muted-foreground outline-none transition-[background-color,color,scale] duration-(--duration-fast) hover:bg-foreground/[0.06] hover:text-foreground focus-visible:ring-2 focus-visible:ring-ring active:scale-(--press-scale-sm) disabled:opacity-50"
-        >
-          <BookmarkMinus className="size-3.5" aria-hidden="true" /> Remove
-        </button>
-        {availableCollections.length ? (
-          <Select
-            size="xs"
-            value=""
-            items={availableCollections.map((collection) => ({ value: collection.id, label: collection.name }))}
-            onValueChange={(collectionId) => {
-              if (collectionId) onAddToCollection(collectionId, product.id);
-            }}
+        collection ? (
+          <button
+            type="button"
+            disabled={removeBlocked}
+            onClick={() => onRemoveFromCollection(collection.id, product.id)}
+            className="-mx-1.5 inline-flex w-fit items-center gap-1.5 rounded-md px-1.5 py-1 text-xs font-medium text-muted-foreground outline-none transition-[background-color,color,scale] duration-(--duration-fast) hover:bg-foreground/6 hover:text-foreground focus-visible:ring-2 focus-visible:ring-ring active:scale-(--press-scale-sm) disabled:opacity-50"
           >
-            <SelectTrigger variant="ghost" aria-label={`Add ${product.name} to collection`} className="ml-auto w-auto gap-1 text-muted-foreground">
-              <FolderPlus className="size-3.5" aria-hidden="true" />
-              <SelectValue placeholder="Add to…" />
-            </SelectTrigger>
-            <SelectContent>
-              {availableCollections.map((collection) => (
-                <SelectItem key={collection.id} value={collection.id} disabled={isBlocked({ operation: 'addToCollection', collectionId: collection.id, productId: product.id })}>
-                  {collection.name}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        ) : null}
-      </div>
+            <FolderMinus className="size-3.5" aria-hidden="true" /> Remove from {collection.name}
+          </button>
+        ) : null
       }
     >
-      {productCollections.length ? (
-        <div className="flex flex-wrap gap-1">
-          {productCollections.map((collection) => (
-            <span key={collection.id} className="pop rounded-md bg-muted px-1.5 py-0.5 text-xs text-muted-foreground">{collection.name}</span>
-          ))}
-        </div>
+      {memberOf.length ? (
+        <p className="truncate text-xs text-muted-foreground">In {memberOf.map((item) => item.name).join(', ')}</p>
       ) : null}
     </ProductTile>
   );
