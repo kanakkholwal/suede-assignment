@@ -84,21 +84,21 @@ export function BriefBar({ filters, softTerms, brief, vocabulary, onApply, onRem
   };
 
   return (
-    <section aria-label="Client brief">
+    <section aria-label="Brief">
       <form
         onSubmit={submit}
         className="flex flex-col gap-3 rounded-2xl bg-muted/60 p-3 transition-[background-color,box-shadow] duration-(--duration-fast) focus-within:bg-card focus-within:ring-3 focus-within:ring-ring/15 focus-within:shadow-(--surface-shadow)"
       >
         <div className="flex items-start gap-2.5 px-1">
           <Sparkles className="mt-1 size-4 shrink-0 text-primary" aria-hidden="true" />
-          <label htmlFor={inputId} className="sr-only">Describe what the client needs</label>
+          <label htmlFor={inputId} className="sr-only">Describe what you are looking for</label>
           <textarea
             id={inputId}
             rows={1}
             value={text}
             onChange={(event) => setText(event.target.value)}
             onKeyDown={onKeyDown}
-            placeholder="What does the client need?"
+            placeholder="What are you looking for?"
             aria-describedby={hintId}
             autoComplete="off"
             className="field-sizing-content max-h-32 min-h-6 min-w-0 flex-1 resize-none bg-transparent text-base leading-6 text-foreground outline-none placeholder:text-muted-foreground/80"

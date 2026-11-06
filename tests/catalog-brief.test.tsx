@@ -19,13 +19,13 @@ it('turns a sentence brief into filters, chips and openly unfiltered terms', asy
   const fetchMock = mockApi();
   await renderCatalog();
 
-  await userEvent.type(screen.getByLabelText('Describe what the client needs'), 'cozy armchair under $2k, in stock');
+  await userEvent.type(screen.getByLabelText('Describe what you are looking for'), 'cozy armchair under $2k, in stock');
   await userEvent.click(screen.getByRole('button', { name: /Find/ }));
 
   await waitFor(() =>
     expect(catalogCalls(fetchMock)).toContain('/api/catalog?category=30&maxPriceCents=200000&inStockOnly=true'),
   );
-  const brief = screen.getByRole('region', { name: 'Client brief' });
+  const brief = screen.getByRole('region', { name: 'Brief' });
   expect(within(brief).getByText('Armchair')).toBeVisible();
   expect(within(brief).getByText('Up to $2,000')).toBeVisible();
   expect(within(brief).getByText('Available to order')).toBeVisible();
@@ -64,8 +64,8 @@ it('restores the brief, its chips and the filters from the URL', async () => {
   });
 
   await waitFor(() => expect(catalogCalls(fetchMock)).toContain('/api/catalog?category=30&maxPriceCents=200000&inStockOnly=true'));
-  const brief = screen.getByRole('region', { name: 'Client brief' });
-  expect(within(brief).getByLabelText('Describe what the client needs')).toHaveValue('cozy armchair');
+  const brief = screen.getByRole('region', { name: 'Brief' });
+  expect(within(brief).getByLabelText('Describe what you are looking for')).toHaveValue('cozy armchair');
   expect(within(brief).getByText('Up to $2,000')).toBeVisible();
   expect(within(brief).getByText('cozy')).toBeVisible();
 });
