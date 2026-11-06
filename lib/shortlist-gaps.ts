@@ -21,7 +21,7 @@ function listMissing(item: RoomItem): string[] {
   return DIMENSION_FIELDS.filter((field) => item.dimensions[field].value === null).map((field) => FIELD_NAMES[field]);
 }
 
-function sizeGap(item: RoomItem): Gap | null {
+function sizeGap(item: RoomItem, product: CatalogProduct): Gap | null {
   const confidence = footprintConfidence(item.dimensions);
   if (confidence === 'unknown') {
     const missing = listMissing(item).filter((field) => field !== 'Height');
@@ -29,7 +29,8 @@ function sizeGap(item: RoomItem): Gap | null {
       kind: 'size-missing',
       severity: 'blocker',
       message: `${missing.join(' and ')} not on file. The plan can draw a typical size until you add it.`,
-      label: missing.length === 1 ? `${missing[0]} unknown` : 'Size unknown',
+      // One side known and no option chosen: the other side varies by option, so it is undecided, not unknown.
+      label: missing.length === 1 ? (item.variantId === null && product.variants.length > 1 ? `${missing[0]} depends on option` : `${missing[0]} unknown`) : 'Size unknown',
     };
   }
   if (confidence === 'synthetic') {
@@ -77,7 +78,7 @@ function availabilityGap(item: RoomItem, product: CatalogProduct, capturedAt: st
 
 /** What still needs a human before this piece can be shown to a client, worst first. */
 export function itemGaps(item: RoomItem, product: CatalogProduct, capturedAt: string): Gap[] {
-  return [sizeGap(item), optionGap(item, product), availabilityGap(item, product, capturedAt)].filter(
+  return [sizeGap(item, product), optionGap(item, product), availabilityGap(item, product, capturedAt)].filter(
     (gap): gap is Gap => gap !== null,
   );
 }

@@ -86,3 +86,11 @@ describe('matchReasons', () => {
     expect(matchReasons(sized, emptyCatalogFilters)).toEqual([]);
   });
 });
+
+describe('size labels', () => {
+  it('says a side depends on the option when the other side is known and none is chosen', () => {
+    const sofa = { ...armchair, variants: [armchair.variants[0], { ...armchair.variants[0], id: 'long' }] };
+    const gap = itemGaps(item([claim({ width: null, depth: 40, source: 'verified' })]), sofa, 'x')[0];
+    expect(gap.label).toBe('Width depends on option');
+  });
+});
