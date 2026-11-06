@@ -8,6 +8,7 @@ import type { PieceKind } from '@/lib/piece-kind';
 import { type Placement, type PlanPiece, rotateClockwise, snapPlacement } from '@/lib/plan-model';
 import type { Room, RoomFeature, Wall } from '@/lib/room-state';
 import { formatDimensionTriple, formatFeetInches, formatInches } from '@/lib/units';
+import { useLegibleText } from '@/components/planner/use-legible-text';
 
 const WALL_IN = 4.5;
 const PAD_IN = 22;
@@ -149,7 +150,7 @@ function Window({ room, feature }: { room: Room; feature: RoomFeature }) {
   );
 }
 
-function Radiator({ room, feature, hatchId }: { room: Room; feature: RoomFeature; hatchId: string }) {
+function Radiator({ room, feature, hatchId, fontSize }: { room: Room; feature: RoomFeature; hatchId: string; fontSize: number }) {
   const depth = feature.depthIn ?? 6;
   const rect = {
     north: { x: feature.offsetIn, y: 0, w: feature.widthIn, h: depth },
@@ -159,21 +160,21 @@ function Radiator({ room, feature, hatchId }: { room: Room; feature: RoomFeature
   }[feature.wall];
   // The label runs along the wall on the room side, so it never crosses into the wall.
   const label = {
-    north: { x: rect.x + rect.w / 2, y: rect.y + rect.h + 4, turn: 0 },
+    north: { x: rect.x + rect.w / 2, y: rect.y + rect.h + 1 + fontSize, turn: 0 },
     south: { x: rect.x + rect.w / 2, y: rect.y - 1.5, turn: 0 },
-    west: { x: rect.x + rect.w + 3.5, y: rect.y + rect.h / 2, turn: -90 },
-    east: { x: rect.x - 3.5, y: rect.y + rect.h / 2, turn: 90 },
+    west: { x: rect.x + rect.w + 0.5 + fontSize, y: rect.y + rect.h / 2, turn: -90 },
+    east: { x: rect.x - 0.5 - fontSize, y: rect.y + rect.h / 2, turn: 90 },
   }[feature.wall];
   return (
     <g aria-hidden="true">
       <rect x={rect.x} y={rect.y} width={rect.w} height={rect.h} fill={`url(#${hatchId})`} stroke="var(--plan-label)" strokeWidth={0.5} strokeDasharray={feature.status !== 'confirmed' ? '2 1.5' : undefined} />
-      <text x={label.x} y={label.y} transform={label.turn ? `rotate(${label.turn} ${label.x} ${label.y})` : undefined} textAnchor="middle" fontSize={3} fill="var(--plan-label)">Radiator</text>
+      <text x={label.x} y={label.y} transform={label.turn ? `rotate(${label.turn} ${label.x} ${label.y})` : undefined} textAnchor="middle" fontSize={fontSize} fill="var(--plan-label)">Radiator</text>
     </g>
   );
 }
 
 /** Lines from the selected piece to the nearest wall on each axis, with the clear distance. */
-function Clearances({ room, rect }: { room: Room; rect: Rect }) {
+function Clearances({ room, rect, fontSize }: { room: Room; rect: Rect; fontSize: number }) {
   const distances = wallDistances(room, rect);
   const midX = (rect.x0 + rect.x1) / 2;
   const midY = (rect.y0 + rect.y1) / 2;
@@ -191,7 +192,7 @@ function Clearances({ room, rect }: { room: Room; rect: Rect }) {
           <text
             x={(line.x1 + line.x2) / 2 + (index === 0 ? 1.5 : 0)}
             y={(line.y1 + line.y2) / 2 - (index === 1 ? 1.5 : 0)}
-            fontSize={3.4}
+            fontSize={fontSize}
             fill="var(--primary)"
             fontWeight={600}
             textAnchor={index === 0 ? 'start' : 'middle'}
@@ -241,6 +242,8 @@ export function PlanCanvas({
   const hatchId = `${useId().replace(/:/g, '')}-hatch`;
   const ordered = [...pieces].sort((left, right) => Number(right.kind === 'rug') - Number(left.kind === 'rug'));
   const selected = pieces.find((piece) => piece.id === selectedId);
+  const { legible, pxPerUnit } = useLegibleText(svgRef, room.lengthIn + PAD_IN * 2, room.widthIn + PAD_IN * 2);
+  const minName = legible(2.2, 9);
 
   const toPlan = (event: PointerEvent) => {
     const svg = svgRef.current;
@@ -370,18 +373,18 @@ export function PlanCanvas({
         ) : feature.kind === 'window' ? (
           <Window key={feature.id} room={room} feature={feature} />
         ) : (
-          <Radiator key={feature.id} room={room} feature={feature} hatchId={hatchId} />
+          <Radiator key={feature.id} room={room} feature={feature} hatchId={hatchId} fontSize={legible(3, 10)} />
         ),
       )}
 
-      <g aria-hidden="true" fontSize={4} fill="var(--plan-label)" textAnchor="middle">
+      <g aria-hidden="true" fontSize={legible(4, 11)} fill="var(--plan-label)" textAnchor="middle">
         <text x={room.lengthIn / 2} y={-WALL_IN - 5}>
           {formatFeetInches(room.lengthIn)}{sizeUnmeasured ? ' · client-stated' : ''}
         </text>
         <text x={-WALL_IN - 5} y={room.widthIn / 2} transform={`rotate(-90 ${-WALL_IN - 5} ${room.widthIn / 2})`}>
           {formatFeetInches(room.widthIn)}{sizeUnmeasured ? ' · client-stated' : ''}
         </text>
-        <text x={room.lengthIn / 2} y={room.widthIn + WALL_IN + 9} fontSize={3} fill="var(--plan-label)" opacity={0.75}>
+        <text x={room.lengthIn / 2} y={room.widthIn + WALL_IN + 5 + legible(3, 10)} fontSize={legible(3, 10)} fill="var(--plan-label)">
           Grid squares are 1 ft · north is up
         </text>
       </g>
@@ -394,10 +397,12 @@ export function PlanCanvas({
         const severity = worstSeverity(warnings, piece.id);
         const isSelected = piece.id === selectedId;
         const estimated = piece.footprintSource === 'synthetic' || piece.footprintSource === 'listing' || piece.footprintSource === 'typical';
-        const label = fitLabel(piece.name, width, Math.min(3.6, Math.max(2.4, height / 4)));
+        const label = fitLabel(piece.name, width, Math.max(minName, Math.min(3.6, Math.max(2.4, height / 4))), minName);
         const fontSize = label.fontSize;
         const rug = piece.kind === 'rug';
-        const outside = !rug && width < NAME_OUTSIDE_BELOW_IN && label.text !== piece.name;
+        // On a small screen any name that won't fit moves outside, rather than shrinking past legible.
+        const outside = !rug && label.text !== piece.name && (width < NAME_OUTSIDE_BELOW_IN || pxPerUnit < 2.2);
+        const showSize = fontSize * 0.85 * pxPerUnit >= 8;
         const nameY = rug ? local.y0 + fontSize + 1.5 : -fontSize * 0.15;
         return (
           <g
@@ -442,7 +447,7 @@ export function PlanCanvas({
                 <text y={markerRadius * 0.36} textAnchor="middle" fontSize={markerRadius} fontWeight={600} fill="var(--primary-foreground)">{markers.get(piece.id)}</text>
               </g>
             ) : outside ? (
-              <text x={0} y={local.y1 + 4.2} textAnchor="middle" fontSize={2.8} fill="var(--foreground)" fontWeight={600} stroke="var(--plan-floor)" strokeWidth={1.2} paintOrder="stroke" pointerEvents="none">
+              <text x={0} y={local.y1 + 1.5 + minName} textAnchor="middle" fontSize={minName} fill="var(--foreground)" fontWeight={600} stroke="var(--plan-floor)" strokeWidth={minName * 0.4} paintOrder="stroke" pointerEvents="none">
                 {piece.name}
               </text>
             ) : (
@@ -450,16 +455,18 @@ export function PlanCanvas({
                 <text x={0} y={nameY} textAnchor="middle" fontSize={fontSize} fill="var(--foreground)" fontWeight={600} pointerEvents="none">
                   {label.text}
                 </text>
-                <text x={0} y={nameY + fontSize * 1.15} textAnchor="middle" fontSize={fontSize * 0.85} fill="var(--plan-ink)" pointerEvents="none">
-                  {formatInches(piece.widthIn)} × {formatInches(piece.depthIn)}
-                </text>
+                {showSize ? (
+                  <text x={0} y={nameY + fontSize * 1.15} textAnchor="middle" fontSize={fontSize * 0.85} fill="var(--plan-ink)" pointerEvents="none">
+                    {formatInches(piece.widthIn)} × {formatInches(piece.depthIn)}
+                  </text>
+                ) : null}
               </>
             )}
           </g>
         );
       })}
 
-      {selected && interactive ? <Clearances room={room} rect={selected.rect} /> : null}
+      {selected && interactive ? <Clearances room={room} rect={selected.rect} fontSize={legible(3.4, 11)} /> : null}
     </svg>
   );
 }

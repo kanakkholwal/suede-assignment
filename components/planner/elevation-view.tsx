@@ -1,6 +1,8 @@
 'use client';
 
-import type { CSSProperties } from 'react';
+import { type CSSProperties, useRef } from 'react';
+
+import { useLegibleText } from '@/components/planner/use-legible-text';
 
 import type { Rect } from '@/lib/geometry';
 import { wallLength } from '@/lib/geometry';
@@ -40,12 +42,26 @@ function featureSpan(room: Room, wall: Wall, feature: RoomFeature): [number, num
   return [start, start + feature.widthIn];
 }
 
-function FixtureLabel({ x, y, children }: { x: number; y: number; children: string }) {
-  return <text x={x} y={y} textAnchor="middle" fontSize={2.8} fill="var(--plan-label)">{children}</text>;
+function FixtureLabel({ x, y, size, children }: { x: number; y: number; size: number; children: string }) {
+  return <text x={x} y={y + size - 2.8} textAnchor="middle" fontSize={size} fill="var(--plan-label)">{children}</text>;
+}
+
+interface LabelBox {
+  x0: number;
+  x1: number;
+  y: number;
+}
+
+/** Lifts a label a line at a time until it clears the labels already drawn, then records it. */
+function clearOf(placed: LabelBox[], x: number, width: number, y: number, size: number): number {
+  let next = y;
+  while (placed.some((box) => box.x0 < x + width / 2 && x - width / 2 < box.x1 && Math.abs(box.y - next) < size * 1.1)) next -= size * 1.25;
+  placed.push({ x0: x - width / 2, x1: x + width / 2, y: next });
+  return next;
 }
 
 /** A simple standing figure, feet at the floor, `PERSON_IN` tall. */
-function Person({ x, floor }: { x: number; floor: number }) {
+function Person({ x, floor, size }: { x: number; floor: number; size: number }) {
   const top = floor - PERSON_IN;
   return (
     <g aria-hidden="true">
@@ -55,7 +71,7 @@ function Person({ x, floor }: { x: number; floor: number }) {
         <rect x={x - 5.5} y={top + 33} width={4.6} height={33} rx={2.2} />
         <rect x={x + 0.9} y={top + 33} width={4.6} height={33} rx={2.2} />
       </g>
-      <text x={x} y={floor + 7} textAnchor="middle" fontSize={3.6} fill="var(--plan-label)">5′ 6″ person</text>
+      <text x={x} y={floor + 3.4 + size} textAnchor="middle" fontSize={size} fill="var(--plan-label)">5′ 6″ person</text>
     </g>
   );
 }
@@ -72,6 +88,7 @@ interface ElevationViewProps {
 
 /** Looking at one wall from inside the room, at true scale against the ceiling and a person. */
 export function ElevationView({ room, features, pieces, wall, selectedId, fill = false }: ElevationViewProps) {
+  const svgRef = useRef<SVGSVGElement>(null);
   const length = wallLength(room, wall);
   const ceiling = room.ceilingIn ?? DEFAULT_CEILING_IN;
   const floor = ceiling;
@@ -79,9 +96,13 @@ export function ElevationView({ room, features, pieces, wall, selectedId, fill =
   const onWall = features.filter((feature) => feature.wall === wall);
   const ordered = [...pieces].sort((left, right) => distanceFromWall(room, wall, right.rect) - distanceFromWall(room, wall, left.rect));
   const personX = -PAD_IN + 9;
+  const { legible } = useLegibleText(svgRef, length + PAD_IN * 2 + 16, ceiling + PAD_IN * 2);
+  const labelSize = legible(LABEL_SIZE, 11);
+  const placedLabels: LabelBox[] = [];
 
   return (
     <svg
+      ref={svgRef}
       viewBox={`${-PAD_IN - 8} ${-PAD_IN} ${length + PAD_IN * 2 + 16} ${ceiling + PAD_IN * 2}`}
       role="img"
       aria-label={`${wall} wall seen from inside: ${formatFeetInches(length)} wide, ${formatFeetInches(ceiling)} ceiling, ${pieces.length} pieces shown against a 5 foot 6 person`}
@@ -91,17 +112,17 @@ export function ElevationView({ room, features, pieces, wall, selectedId, fill =
       <rect x={0} y={0} width={length} height={ceiling} fill="var(--plan-floor)" stroke="var(--plan-wall)" strokeWidth={0.8} />
       <line x1={-PAD_IN} y1={floor} x2={length + PAD_IN} y2={floor} stroke="var(--plan-wall)" strokeWidth={1.2} />
 
-      <g aria-hidden="true" fontSize={3.2} fill="var(--plan-label)">
+      <g aria-hidden="true" fontSize={legible(3.2, 10)} fill="var(--plan-label)">
         {Array.from({ length: Math.floor(ceiling / 12) }, (_, index) => (index + 1) * 12).map((height) => (
           <g key={height}>
             <line x1={length} y1={floor - height} x2={length + 3} y2={floor - height} stroke="var(--plan-label)" strokeWidth={0.4} />
             <text x={length + 4.5} y={floor - height + 1.1}>{height / 12}′</text>
           </g>
         ))}
-        <text x={length / 2} y={-5} textAnchor="middle" fontSize={3.8} fill="var(--plan-label)">
+        <text x={length / 2} y={-5} textAnchor="middle" fontSize={legible(3.8, 11)} fill="var(--plan-label)">
           {formatFeetInches(ceiling)} ceiling{room.ceilingIn === null ? ' (not given; 8′ shown)' : room.dimensionsStatus === 'confirmed' ? '' : ' · client-stated'}
         </text>
-        <text x={length / 2} y={floor + 8} textAnchor="middle" fontSize={3.8} fill="var(--plan-label)">
+        <text x={length / 2} y={floor + 4.2 + legible(3.8, 11)} textAnchor="middle" fontSize={legible(3.8, 11)} fill="var(--plan-label)">
           {wall[0].toUpperCase() + wall.slice(1)} wall · {formatFeetInches(length)}
         </text>
       </g>
@@ -115,7 +136,7 @@ export function ElevationView({ room, features, pieces, wall, selectedId, fill =
           return (
             <g key={feature.id} aria-hidden="true">
               <rect x={start} y={floor - sill - height} width={end - start} height={height} fill="var(--plan-glass)" stroke="var(--plan-glass-line)" strokeWidth={0.6} strokeDasharray={dashed} />
-              <text x={(start + end) / 2} y={floor - sill + 4} textAnchor="middle" fontSize={2.8} fill="var(--plan-label)">sill {formatInches(sill)}</text>
+              <text x={(start + end) / 2} y={floor - sill + 4} textAnchor="middle" fontSize={legible(2.8, 10)} fill="var(--plan-label)">sill {formatInches(sill)}</text>
             </g>
           );
         }
@@ -124,7 +145,7 @@ export function ElevationView({ room, features, pieces, wall, selectedId, fill =
           return (
             <g key={feature.id} aria-hidden="true">
               <rect x={start} y={floor - height} width={end - start} height={height} fill="var(--plan-fixture)" stroke="var(--plan-label)" strokeWidth={0.5} strokeDasharray={dashed} />
-              <FixtureLabel x={(start + end) / 2} y={floor - height + 4.5}>Radiator</FixtureLabel>
+              <FixtureLabel x={(start + end) / 2} y={floor - height + 4.5} size={legible(2.8, 10)}>Radiator</FixtureLabel>
             </g>
           );
         }
@@ -132,7 +153,7 @@ export function ElevationView({ room, features, pieces, wall, selectedId, fill =
         return (
           <g key={feature.id} aria-hidden="true">
             <rect x={start} y={floor - height} width={end - start} height={height} fill="var(--plan-fixture)" stroke="var(--plan-label)" strokeWidth={0.6} strokeDasharray={dashed} />
-            <FixtureLabel x={(start + end) / 2} y={floor - height + 5}>Door</FixtureLabel>
+            <FixtureLabel x={(start + end) / 2} y={floor - height + 5} size={legible(2.8, 10)}>Door</FixtureLabel>
           </g>
         );
       })}
@@ -148,7 +169,10 @@ export function ElevationView({ room, features, pieces, wall, selectedId, fill =
         if (piece.kind === 'rug') {
           return <rect key={piece.id} x={start} y={floor - 0.8} width={end - start} height={0.8} fill="var(--piece-firm)" aria-hidden="true" />;
         }
-        const inside = height >= 14 && label.length * LABEL_SIZE * CHAR_EM <= end - start - 3;
+        const inside = height >= labelSize + 10 && label.length * labelSize * CHAR_EM <= end - start - 3;
+        const labelWidth = label.length * labelSize * CHAR_EM;
+        const labelX = Math.min(Math.max((start + end) / 2, labelWidth / 2), length - labelWidth / 2);
+        const labelY = inside ? floor - height + 5 : clearOf(placedLabels, labelX, labelWidth, floor - height - 2.2, labelSize);
         return (
           <g key={piece.id} aria-hidden="true">
             <rect
@@ -164,10 +188,10 @@ export function ElevationView({ room, features, pieces, wall, selectedId, fill =
               strokeDasharray={known ? undefined : '2.5 1.5'}
             />
             <text
-              x={Math.min(Math.max((start + end) / 2, label.length * LABEL_SIZE * CHAR_EM * 0.5), length - label.length * LABEL_SIZE * CHAR_EM * 0.5)}
-              y={inside ? floor - height + 5 : floor - height - 2.2}
+              x={labelX}
+              y={labelY}
               textAnchor="middle"
-              fontSize={LABEL_SIZE}
+              fontSize={labelSize}
               fill="var(--foreground)"
               fontWeight={600}
               stroke={inside ? undefined : 'var(--plan-floor)'}
@@ -180,7 +204,7 @@ export function ElevationView({ room, features, pieces, wall, selectedId, fill =
         );
       })}
 
-      <Person x={personX} floor={floor} />
+      <Person x={personX} floor={floor} size={legible(3.6, 10)} />
     </svg>
   );
 }
