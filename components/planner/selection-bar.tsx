@@ -22,6 +22,8 @@ interface SelectionBarProps {
   onClose: () => void;
 }
 
+const clearance = (inches: number): string => (inches < 0 ? 'through the wall' : inches < 0.5 ? 'against' : formatInches(inches));
+
 /** Floating controls for the selected piece: its size, clearance to each wall, and actions. */
 export function SelectionBar({ room, piece, warnings, onRotate, onUnplace, onClose }: SelectionBarProps) {
   const distances = wallDistances(room, piece.rect);
@@ -36,25 +38,28 @@ export function SelectionBar({ room, piece, warnings, onRotate, onUnplace, onClo
           <SourceBadge source={footprintConfidence(piece.item.dimensions)} />
           <span>faces {frontSide(piece.rotation)}</span>
         </p>
-        <Button size="icon-xs" variant="ghost" aria-label="Deselect" onClick={onClose}>
-          <X aria-hidden="true" />
-        </Button>
+        <div className="flex shrink-0 items-center gap-1">
+          <Button size="xs" variant="outline" onClick={onRotate} title="Rotate 90° (R)">
+            <RotateCw aria-hidden="true" /> Rotate
+          </Button>
+          <Button size="xs" variant="ghost" onClick={onUnplace}>
+            <Undo2 aria-hidden="true" /> Take off
+          </Button>
+          <Button size="icon-xs" variant="ghost" aria-label="Deselect" onClick={onClose}>
+            <X aria-hidden="true" />
+          </Button>
+        </div>
       </div>
-      <div className="flex flex-wrap items-center gap-1.5">
-        <dl className="flex flex-1 gap-1 text-xs" aria-label="Clear floor to each wall">
+      <div className="flex flex-wrap items-baseline gap-x-3 gap-y-1 text-xs">
+        <span className="text-muted-foreground">Clear floor</span>
+        <dl className="contents" aria-label="Clear floor to each wall">
           {WALLS.map((wall) => (
-            <div key={wall} className="flex min-w-0 flex-1 items-baseline justify-center gap-1 rounded-md bg-card px-1.5 py-1">
-              <dt className="text-muted-foreground">{wall[0].toUpperCase()}</dt>
-              <dd className="font-medium tabular-nums text-foreground">{distances[wall] < 0 ? 'through' : formatInches(distances[wall])}</dd>
+            <div key={wall} className="flex items-baseline gap-1">
+              <dt className="text-muted-foreground capitalize">{wall}</dt>
+              <dd className="font-medium tabular-nums text-foreground">{clearance(distances[wall])}</dd>
             </div>
           ))}
         </dl>
-        <Button size="xs" variant="outline" onClick={onRotate} title="Rotate 90° (R)">
-          <RotateCw aria-hidden="true" /> Rotate
-        </Button>
-        <Button size="xs" variant="ghost" onClick={onUnplace}>
-          <Undo2 aria-hidden="true" /> Take off
-        </Button>
       </div>
       {issue ? (
         <p className={cn('text-xs', issue.severity === 'conflict' ? 'text-destructive-strong' : 'text-warning-strong')}>{issue.title}</p>
