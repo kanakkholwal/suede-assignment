@@ -48,15 +48,17 @@ it('keeps the fit check beside the plan when switching to the elevation', async 
   expect(screen.getByRole('link', { name: /Show the client/ })).toHaveAttribute('href', '/present');
 });
 
-it('gives the client a tape-out sheet and says what is still open on the plan', async () => {
+it('gives the client numbered outlines, the questions to answer first, and flags what blocks sending', async () => {
   mockApi({ room: roomWithChairInDoorway() });
   render(<PresentPage />, { wrapper: AppProviders });
 
   expect(await screen.findByRole('heading', { name: 'Tape it on your floor' })).toBeVisible();
-  expect(screen.getByText(/rectangle \(east-west by north-south\)/)).toBeVisible();
+  const steps = screen.getByRole('region', { name: 'Outlines to tape' });
+  expect(within(steps).getAllByText(/^From the (north|south|east|west) wall$/)).toHaveLength(2);
   expect(screen.getByRole('link', { name: '1 fit problem' })).toHaveAttribute('href', '/room?view=plan&tab=fit');
-  expect(screen.getByRole('link', { name: 'room size client-stated' })).toHaveAttribute('href', '/room?view=plan&tab=room');
-  expect(screen.getByRole('link', { name: /positions assumed$/ })).toBeVisible();
+  const check = screen.getByRole('region', { name: 'Before you tape, please check' });
+  expect(within(check).getByText(/Which corner is the door in/)).toBeVisible();
+  expect(screen.getByRole('button', { name: 'Copy text' })).toBeVisible();
 });
 
 it('sends an empty client sheet back to the plan', async () => {

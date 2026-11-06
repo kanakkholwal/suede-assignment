@@ -1,18 +1,18 @@
 'use client';
 
-import { ArrowRight, CircleCheck, CircleHelp, type IconComponent, Printer, TriangleAlert } from '@/components/icons';
+import { ArrowRight, CircleCheck, Printer, TriangleAlert } from '@/components/icons';
 import Link from 'next/link';
 
 import { TapeOutSheet } from '@/components/planner/tape-out-sheet';
 import { useRoomStore } from '@/components/room/room-provider';
+import { CopyButton } from '@/components/shared/copy-button';
 import { SheetSkeleton } from '@/components/shared/skeletons';
 import { Island } from '@/components/shell/island';
 import { Button, button } from '@/components/ui/button';
 import { plural } from '@/lib/format';
 import { formatFeetInches } from '@/lib/units';
 import { useRoomHref } from '@/lib/url-state';
-import { cn } from '@/lib/utils';
-import { openFactLabels } from '@/lib/room-certainty';
+import { clientQuestions, tapeOutSteps, tapeOutText } from '@/lib/tape-out';
 import { countProblems, usePlan } from '@/lib/use-plan';
 
 interface OpenItem {
@@ -20,13 +20,13 @@ interface OpenItem {
   tab: 'fit' | 'pieces' | 'room';
 }
 
-/** One line of open items, each linking to the planner tab that settles it. */
-function OpenLine({ tone, icon: Icon, label, items }: { tone: 'warning' | 'muted'; icon: IconComponent; label: string; items: readonly OpenItem[] }) {
+/** What blocks sending the sheet, each item linking to the planner tab that fixes it. */
+function BlockingLine({ items }: { items: readonly OpenItem[] }) {
   const roomHref = useRoomHref();
   return (
-    <p role="status" className={cn('flex flex-wrap items-center gap-x-1.5 gap-y-1 rounded-lg px-3 py-2 text-xs text-foreground', tone === 'warning' ? 'bg-warning/10' : 'bg-muted/60')}>
-      <Icon className={cn('size-3.5 shrink-0', tone === 'warning' ? 'text-warning-strong' : 'text-muted-foreground')} aria-hidden="true" />
-      <span className="font-medium">{label}</span>
+    <p role="status" className="flex flex-wrap items-center gap-x-1.5 gap-y-1 rounded-lg bg-warning/10 px-3 py-2 text-xs text-foreground print:hidden">
+      <TriangleAlert className="size-3.5 shrink-0 text-warning-strong" aria-hidden="true" />
+      <span className="font-medium">Fix before sending:</span>
       {items.map((item, index) => (
         <span key={item.text}>
           <Link href={roomHref(`/room?view=plan&tab=${item.tab}`)} className="underline decoration-foreground/30 underline-offset-2 hover:decoration-foreground">
@@ -62,7 +62,8 @@ export function ClientSheet() {
     ...(problems ? [{ text: plural(problems, 'fit problem'), tab: 'fit' as const }] : []),
     ...(unplaced ? [{ text: `${plural(unplaced, 'piece')} not on the plan`, tab: 'pieces' as const }] : []),
   ];
-  const caveats: OpenItem[] = openFactLabels(details, features).map((text) => ({ text, tab: 'room' as const }));
+  const steps = tapeOutSteps(details, pieces);
+  const questions = clientQuestions(details, features);
 
   return (
     <main className="flex flex-1 flex-col lg:min-h-0 print:block">
@@ -75,9 +76,12 @@ export function ClientSheet() {
             </p>
           </div>
           {pieces.length ? (
-            <Button size="sm" variant={blocking.length ? 'outline' : 'default'} onClick={() => window.print()}>
-              <Printer aria-hidden="true" /> Print
-            </Button>
+            <div className="flex shrink-0 items-center gap-1.5">
+              <CopyButton text={tapeOutText(details, steps, questions)} label="Copy text" />
+              <Button size="sm" variant={blocking.length ? 'outline' : 'default'} onClick={() => window.print()}>
+                <Printer aria-hidden="true" /> Print
+              </Button>
+            </div>
           ) : null}
         </header>
 
@@ -92,17 +96,14 @@ export function ClientSheet() {
         ) : (
           <div className="min-h-0 flex-1 overflow-y-auto px-3 pb-6 sm:px-6 print:overflow-visible print:p-0">
             <div className="mx-auto flex w-full max-w-3xl flex-col gap-8 pt-2 print:pt-0">
-              {blocking.length || caveats.length ? (
-                <div className="flex flex-col gap-1.5 print:hidden">
-                  {blocking.length ? <OpenLine tone="warning" icon={TriangleAlert} label="Still open:" items={blocking} /> : null}
-                  {caveats.length ? <OpenLine tone="muted" icon={CircleHelp} label="To confirm with the client:" items={caveats} /> : null}
-                </div>
-              ) : (
+              {blocking.length ? (
+                <BlockingLine items={blocking} />
+              ) : questions.length ? null : (
                 <p role="status" className="flex items-center gap-1.5 rounded-lg bg-success/10 px-3 py-2 text-xs text-foreground print:hidden">
                   <CircleCheck className="size-3.5 shrink-0 text-success-strong" aria-hidden="true" /> Every piece is placed, the room is confirmed and the fit check is clear.
                 </p>
               )}
-              <TapeOutSheet room={details} features={features} pieces={pieces} warnings={warnings} />
+              <TapeOutSheet room={details} features={features} pieces={pieces} steps={steps} questions={questions} />
             </div>
           </div>
         )}
