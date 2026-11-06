@@ -28,6 +28,7 @@ import type { RoomItem, Wall } from '@/lib/room-state';
 import { WALLS } from '@/lib/room-state';
 import { formatFeetInches } from '@/lib/units';
 import { type InspectorTab, type PlannerView, usePlannerUrlState, useRoomHref, useRoomPreset } from '@/lib/url-state';
+import { countOpenFacts, STATUS_WORD } from '@/lib/room-certainty';
 import { countProblems, usePlan } from '@/lib/use-plan';
 
 const VIEWS: readonly SegmentOption<PlannerView>[] = [
@@ -92,13 +93,14 @@ export function RoomPlanner() {
   const selected = pieces.find((piece) => piece.id === selectedId) ?? null;
   const elevationWall: Wall = chosenWall ?? (selected ? OPPOSITE[frontSide(selected.rotation)] : 'north');
   const problems = countProblems(warnings);
-  const assumed = features.filter((feature) => feature.status !== 'confirmed').length;
+  const unconfirmed = countOpenFacts(details, features);
+  const sizeStatus = details.dimensionsStatus === 'confirmed' ? 'measured' : STATUS_WORD[details.dimensionsStatus];
   const activeTab: InspectorTab = tab ?? (pieces.length ? 'fit' : 'pieces');
   const ready = pieces.length > 0 && pieces.length === snapshot.items.length && problems === 0;
   const hint =
     view === 'plan'
-      ? `${formatFeetInches(details.lengthIn)} × ${formatFeetInches(details.widthIn)} · dashed lines are assumptions`
-      : `${formatFeetInches(wallLength(details, elevationWall))} wide · ${details.ceilingIn ? formatFeetInches(details.ceilingIn) : 'unknown'} ceiling · seen from inside`;
+      ? `${formatFeetInches(details.lengthIn)} × ${formatFeetInches(details.widthIn)} ${sizeStatus} · dashed means position assumed`
+      : `${formatFeetInches(wallLength(details, elevationWall))} wide · ${details.ceilingIn ? formatFeetInches(details.ceilingIn) : 'unknown'} ceiling, ${sizeStatus} · seen from inside`;
 
   const place = (item: RoomItem, product: CatalogProduct) => {
     const width = item.dimensions.width.value as number;
@@ -176,7 +178,7 @@ export function RoomPlanner() {
             </div>
             <div className="flex shrink-0 flex-wrap items-center justify-between gap-x-4 gap-y-2 px-3 pb-3 sm:px-4">
               <SegmentedControl label="Wall" value={elevationWall} options={WALL_OPTIONS} onChange={setChosenWall} />
-              <p className="text-xs text-muted-foreground">Farther pieces are lighter; dashed means unknown height or assumed.</p>
+              <p className="text-xs text-muted-foreground">Farther pieces are lighter. Dashed means height unknown or position assumed.</p>
             </div>
           </div>
         )}
@@ -188,7 +190,7 @@ export function RoomPlanner() {
             <TabsList>
               <TabsTrigger value="fit">Fit check<Count value={problems} tone="alert" /></TabsTrigger>
               <TabsTrigger value="pieces">Pieces<Count value={snapshot.items.length} /></TabsTrigger>
-              <TabsTrigger value="room">Room<Count value={assumed} /></TabsTrigger>
+              <TabsTrigger value="room">Room<Count value={unconfirmed} /></TabsTrigger>
             </TabsList>
           </div>
           <div className="min-h-0 flex-1 overflow-y-auto p-3">

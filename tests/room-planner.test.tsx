@@ -55,6 +55,8 @@ it('gives the client a tape-out sheet and says what is still open on the plan', 
   expect(await screen.findByRole('heading', { name: 'Tape it on your floor' })).toBeVisible();
   expect(screen.getByText(/rectangle \(east-west by north-south\)/)).toBeVisible();
   expect(screen.getByRole('link', { name: '1 fit problem' })).toHaveAttribute('href', '/room?view=plan&tab=fit');
+  expect(screen.getByRole('link', { name: 'room size client-stated' })).toHaveAttribute('href', '/room?view=plan&tab=room');
+  expect(screen.getByRole('link', { name: /positions assumed$/ })).toBeVisible();
 });
 
 it('sends an empty client sheet back to the plan', async () => {

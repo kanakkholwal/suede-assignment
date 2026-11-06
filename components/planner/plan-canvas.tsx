@@ -317,7 +317,7 @@ export function PlanCanvas({
     }
   };
 
-  const roomAssumed = room.dimensionsStatus !== 'confirmed';
+  const sizeUnmeasured = room.dimensionsStatus !== 'confirmed';
 
   return (
     <svg
@@ -369,10 +369,10 @@ export function PlanCanvas({
 
       <g aria-hidden="true" fontSize={4} fill="var(--plan-label)" textAnchor="middle">
         <text x={room.lengthIn / 2} y={-WALL_IN - 5}>
-          {formatFeetInches(room.lengthIn)}{roomAssumed ? ' · client-stated' : ''}
+          {formatFeetInches(room.lengthIn)}{sizeUnmeasured ? ' · client-stated' : ''}
         </text>
         <text x={-WALL_IN - 5} y={room.widthIn / 2} transform={`rotate(-90 ${-WALL_IN - 5} ${room.widthIn / 2})`}>
-          {formatFeetInches(room.widthIn)}{roomAssumed ? ' · client-stated' : ''}
+          {formatFeetInches(room.widthIn)}{sizeUnmeasured ? ' · client-stated' : ''}
         </text>
         <text x={room.lengthIn / 2} y={room.widthIn + WALL_IN + 9} fontSize={3} fill="var(--plan-label)" opacity={0.75}>
           Grid squares are 1 ft · north is up

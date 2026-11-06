@@ -12,7 +12,7 @@ import { ROOM_PRESETS, type RoomPresetId, roomPreset } from '@/data/room-presets
 import { button } from '@/components/ui/button';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
-import { plural } from '@/lib/format';
+import { openFactLabels } from '@/lib/room-certainty';
 import { formatFeetInches } from '@/lib/units';
 import { useRoomHref, useRoomPreset } from '@/lib/url-state';
 import { cn } from '@/lib/utils';
@@ -107,7 +107,7 @@ function RoomMenu() {
   const room = snapshot?.room.preset === preset ? snapshot.room : null;
   const lengthIn = room?.lengthIn ?? current.lengthIn;
   const widthIn = room?.widthIn ?? current.widthIn;
-  const assumed = snapshot?.features.filter((feature) => feature.status !== 'confirmed').length ?? 0;
+  const toConfirm = snapshot ? openFactLabels(snapshot.room, snapshot.features) : [];
 
   const choose = (id: RoomPresetId) => {
     setOpen(false);
@@ -165,7 +165,7 @@ function RoomMenu() {
         </ul>
         <div className="mt-1 flex items-center justify-between gap-3 rounded-lg bg-muted/50 py-2 pr-2 pl-3">
           <p className="text-xs text-muted-foreground">
-            {snapshot ? (assumed ? `${plural(assumed, 'assumption')} to confirm in this room` : 'Everything in this room is confirmed') : 'Loading room…'}
+            {snapshot ? (toConfirm.length ? `To confirm: ${toConfirm.join(', ')}` : 'Everything in this room is confirmed') : 'Loading room…'}
           </p>
           <Link href={roomHref('/room?view=plan&tab=room')} onClick={() => setOpen(false)} className={button({ variant: 'outline', size: 'xs' })}>
             Room facts

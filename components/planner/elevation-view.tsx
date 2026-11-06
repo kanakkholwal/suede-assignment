@@ -80,7 +80,7 @@ export function ElevationView({ room, features, pieces, wall, selectedId, fill =
       style={{ '--plan-ratio': `${length + PAD_IN * 2 + 16} / ${ceiling + PAD_IN * 2}` } as CSSProperties}
       className={`block aspect-(--plan-ratio) w-full ${fill ? 'lg:aspect-auto lg:h-full' : ''}`}
     >
-      <rect x={0} y={0} width={length} height={ceiling} fill="var(--plan-floor)" stroke="var(--plan-wall)" strokeWidth={0.8} strokeDasharray={room.dimensionsStatus === 'confirmed' ? undefined : '3 2'} />
+      <rect x={0} y={0} width={length} height={ceiling} fill="var(--plan-floor)" stroke="var(--plan-wall)" strokeWidth={0.8} />
       <line x1={-PAD_IN} y1={floor} x2={length + PAD_IN} y2={floor} stroke="var(--plan-wall)" strokeWidth={1.2} />
 
       <g aria-hidden="true" fontSize={3.2} fill="var(--plan-label)">
