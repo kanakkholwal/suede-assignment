@@ -1,6 +1,6 @@
 'use client';
 
-import { Check, ChevronDown, DoorOpen, Heater, PanelsTopLeft, Pencil, type IconComponent } from '@/components/icons';
+import { Check, ChevronDown, DoorOpen, Plus, Heater, PanelsTopLeft, Pencil, type IconComponent } from '@/components/icons';
 import { type FormEvent, useId, useState } from 'react';
 
 import { FEATURE_LABEL, FeatureDialog, RoomSizePopover, type SaveRoom } from '@/components/planner/room-editors';
@@ -20,12 +20,27 @@ interface RoomFactsPanelProps {
   disabled: boolean;
   onUpdateRoom: SaveRoom;
   onUpdateFeature: (featureId: string, patch: RoomFeaturePatch, status: MeasurementStatus) => Promise<boolean>;
+  onAddFeature: (kind: RoomFeature['kind'], patch: Required<RoomFeaturePatch>, status: MeasurementStatus) => Promise<boolean>;
+  onRemoveFeature: (featureId: string) => Promise<boolean>;
+}
+
+const FEATURE_KINDS = ['door', 'window', 'radiator'] as const;
+
+// Common sizes to start from; the dialog shows each so the user corrects rather than invents.
+const NEW_FEATURE: Record<RoomFeature['kind'], Omit<RoomFeature, 'id'>> = {
+  door: { kind: 'door', wall: 'south', offsetIn: 6, widthIn: 32, depthIn: null, heightIn: 80, sillIn: null, hinge: 'start', swing: 'in', status: 'stated', clientSaid: '', assumption: '' },
+  window: { kind: 'window', wall: 'north', offsetIn: 24, widthIn: 36, depthIn: null, heightIn: 48, sillIn: 30, hinge: null, swing: null, status: 'stated', clientSaid: '', assumption: '' },
+  radiator: { kind: 'radiator', wall: 'north', offsetIn: 24, widthIn: 36, depthIn: 8, heightIn: 24, sillIn: null, hinge: null, swing: null, status: 'stated', clientSaid: '', assumption: '' },
+};
+
+function draftPatch({ wall, offsetIn, widthIn, depthIn, heightIn, sillIn, hinge, swing }: Omit<RoomFeature, 'id'>): Required<RoomFeaturePatch> {
+  return { wall, offsetIn, widthIn, depthIn, heightIn, sillIn, hinge, swing };
 }
 
 const LINK = 'inline-flex h-6 w-fit items-center gap-1.5 rounded-sm text-xs font-medium text-primary underline-offset-4 outline-none hover:underline focus-visible:ring-2 focus-visible:ring-ring disabled:opacity-50 [&_svg]:size-3.5';
 
 /** What the client said, what we assumed from it, and the questions that would settle it. */
-export function RoomFactsPanel({ room, features, disabled, onUpdateRoom, onUpdateFeature }: RoomFactsPanelProps) {
+export function RoomFactsPanel({ room, features, disabled, onUpdateRoom, onUpdateFeature, onAddFeature, onRemoveFeature }: RoomFactsPanelProps) {
   const [expanded, setExpanded] = useState<string | null>(null);
   const questions = clientQuestions(room, features);
 
@@ -84,7 +99,7 @@ export function RoomFactsPanel({ room, features, disabled, onUpdateRoom, onUpdat
                       <p className="text-xs leading-relaxed text-muted-foreground">{feature.assumption}</p>
                     ) : null}
                     <div className="flex flex-wrap gap-x-4">
-                      <FeatureDialog feature={feature} onSave={(patch, status) => onUpdateFeature(feature.id, patch, status)} disabled={disabled} triggerClassName={LINK}>
+                      <FeatureDialog feature={feature} onSave={(patch, status) => onUpdateFeature(feature.id, patch, status)} onRemove={() => onRemoveFeature(feature.id)} disabled={disabled} triggerClassName={LINK}>
                         <Pencil aria-hidden="true" /> Adjust
                       </FeatureDialog>
                       {feature.status !== 'confirmed' ? (
@@ -100,6 +115,21 @@ export function RoomFactsPanel({ room, features, disabled, onUpdateRoom, onUpdat
           );
         })}
       </ul>
+
+      <div className="flex flex-wrap items-center gap-x-4 gap-y-1">
+        {FEATURE_KINDS.map((kind) => (
+          <FeatureDialog
+            key={kind}
+            mode="add"
+            feature={NEW_FEATURE[kind]}
+            onSave={(patch, status) => onAddFeature(kind, { ...draftPatch(NEW_FEATURE[kind]), ...patch }, status)}
+            disabled={disabled}
+            triggerClassName={LINK}
+          >
+            <Plus aria-hidden="true" /> Add {FEATURE_LABEL[kind].toLowerCase()}
+          </FeatureDialog>
+        ))}
+      </div>
 
       {questions.length ? (
         <div className="flex flex-col gap-2 rounded-lg bg-muted/50 p-3">

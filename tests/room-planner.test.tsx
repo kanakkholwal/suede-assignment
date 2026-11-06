@@ -88,3 +88,23 @@ it('places a piece with no size at a typical size, drawn as an estimate the fit 
   expect(screen.getByRole('button', { name: /Place at typical size/ })).toBeEnabled();
   expect(screen.getByRole('button', { name: /Enter size/ })).toBeEnabled();
 });
+
+it('adds a radiator from the Room tab, starting from a typical size the user corrects', async () => {
+  const fetchMock = mockApi({ room: roomFixture() });
+  render(<RoomPage />, { wrapper: ({ children }) => <AppProviders searchParams="?tab=room">{children}</AppProviders> });
+
+  await userEvent.click(await screen.findByRole('button', { name: /Add radiator/ }));
+  const dialog = screen.getByRole('dialog');
+  expect(within(dialog).getByRole('heading', { name: 'Add radiator' })).toBeVisible();
+  await userEvent.clear(within(dialog).getByLabelText('Width'));
+  await userEvent.type(within(dialog).getByLabelText('Width'), '40');
+  await userEvent.click(within(dialog).getByRole('button', { name: 'Save' }));
+
+  const posted = fetchMock.mock.calls.map(([, init]) => init?.body).filter(Boolean).map((body) => JSON.parse(String(body)));
+  expect(posted).toContainEqual({
+    operation: 'addFeature',
+    kind: 'radiator',
+    patch: { wall: 'north', offsetIn: 24, widthIn: 40, depthIn: 8, heightIn: 24, sillIn: null, hinge: null, swing: null },
+    status: 'stated',
+  });
+});

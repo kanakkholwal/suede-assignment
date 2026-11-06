@@ -13,15 +13,16 @@ import {
 } from 'nuqs';
 import { useCallback, useMemo } from 'react';
 
-import { DEFAULT_ROOM_PRESET, ROOM_PRESET_IDS, type RoomPresetId } from '@/data/room-presets';
+import { DEFAULT_ROOM_PRESET } from '@/data/room-presets';
 import type { CatalogCategoryFilter, CatalogFilters } from '@/lib/catalog-contract';
 import { WALLS } from '@/lib/room-state';
 
 // --- Room: shared by every page so links and the shortlist never lose it ---
 
-export const roomParam = parseAsStringLiteral(ROOM_PRESET_IDS).withDefault(DEFAULT_ROOM_PRESET);
+/** A preset id, or the id of a room the user created. */
+export const roomParam = parseAsString.withDefault(DEFAULT_ROOM_PRESET);
 
-export function useRoomPreset() {
+export function useRoomKey() {
   return useQueryState('room', roomParam);
 }
 
@@ -29,12 +30,12 @@ const serializeRoom = createSerializer({ room: roomParam });
 
 /** Builds links that keep the active room. */
 export function useRoomHref(): (path: string) => string {
-  const [room] = useRoomPreset();
+  const [room] = useRoomKey();
   return useCallback((path: string) => withRoom(path, room), [room]);
 }
 
 /** `path` with the active room carried over; the default room adds nothing. */
-export function withRoom(path: string, room: RoomPresetId): string {
+export function withRoom(path: string, room: string): string {
   const [base, query = ''] = path.split('?');
   return serializeRoom(`${base}${query ? `?${query}` : ''}`, { room: room === DEFAULT_ROOM_PRESET ? null : room });
 }

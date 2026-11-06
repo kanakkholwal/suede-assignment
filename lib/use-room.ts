@@ -1,8 +1,8 @@
 'use client';
 
-import { DEFAULT_ROOM_PRESET, type RoomPresetId } from '@/data/room-presets';
+import { DEFAULT_ROOM_PRESET } from '@/data/room-presets';
 import type { DimensionValues } from '@/lib/dimensions';
-import type { MeasurementStatus, RoomFeaturePatch, RoomMutation, RoomSnapshot, Rotation } from '@/lib/room-state';
+import type { MeasurementStatus, RoomFeatureKind, RoomFeaturePatch, RoomMutation, RoomSnapshot, Rotation } from '@/lib/room-state';
 import { type PendingMutations, useSnapshotStore } from '@/lib/use-snapshot-store';
 
 function mutationBlocked(initialized: boolean, pending: PendingMutations<RoomMutation>, mutation: RoomMutation): boolean {
@@ -11,9 +11,10 @@ function mutationBlocked(initialized: boolean, pending: PendingMutations<RoomMut
 
 export type RoomStore = ReturnType<typeof useRoom>;
 
-export function useRoom(preset: RoomPresetId = DEFAULT_ROOM_PRESET) {
+/** `key` is a preset id or a created room's id. */
+export function useRoom(key: string = DEFAULT_ROOM_PRESET) {
   const store = useSnapshotStore<RoomSnapshot, RoomMutation>({
-    endpoint: preset === DEFAULT_ROOM_PRESET ? '/api/room' : `/api/room?room=${preset}`,
+    endpoint: key === DEFAULT_ROOM_PRESET ? '/api/room' : `/api/room?room=${encodeURIComponent(key)}`,
     loadError: 'Unable to load the room. Please try again.',
     mutateError: 'Unable to update the room. Please try again.',
     isBlocked: mutationBlocked,
@@ -40,5 +41,8 @@ export function useRoom(preset: RoomPresetId = DEFAULT_ROOM_PRESET) {
       mutate({ operation: 'updateRoom', lengthIn, widthIn, ceilingIn, status }),
     updateFeature: (featureId: string, patch: RoomFeaturePatch, status: MeasurementStatus) =>
       mutate({ operation: 'updateFeature', featureId, patch, status }),
+    addFeature: (kind: RoomFeatureKind, patch: Required<RoomFeaturePatch>, status: MeasurementStatus) =>
+      mutate({ operation: 'addFeature', kind, patch, status }),
+    removeFeature: (featureId: string) => mutate({ operation: 'removeFeature', featureId }),
   };
 }

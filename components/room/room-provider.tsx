@@ -2,7 +2,7 @@
 
 import { createContext, type ReactNode, useContext, useMemo } from 'react';
 
-import { useRoomPreset } from '@/lib/url-state';
+import { useRoomKey } from '@/lib/url-state';
 import { countProblems, usePlan } from '@/lib/use-plan';
 import { type RoomStore, useRoom } from '@/lib/use-room';
 
@@ -22,8 +22,8 @@ const RoomContext = createContext<RoomContextValue | null>(null);
 
 /** One room store for the whole app, so the step bar, catalog and planner never disagree. */
 export function RoomProvider({ children }: { children: ReactNode }) {
-  const [preset] = useRoomPreset();
-  const room = useRoom(preset);
+  const [key] = useRoomKey();
+  const room = useRoom(key);
   const { pieces, warnings } = usePlan(room.snapshot);
   const progress = useMemo<RoomProgress>(
     () => ({ shortlisted: room.snapshot?.items.length ?? 0, placed: pieces.length, problems: countProblems(warnings) }),

@@ -20,7 +20,7 @@ import { Island } from '@/components/shell/island';
 import { Button, button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import type { CatalogProduct } from '@/data/product-types';
-import { roomPreset } from '@/data/room-presets';
+import { isRoomPresetId, roomPreset } from '@/data/room-presets';
 import type { DimensionValues } from '@/lib/dimensions';
 import { frontSide, wallLength } from '@/lib/geometry';
 import { pieceKind } from '@/lib/piece-kind';
@@ -29,7 +29,7 @@ import type { RoomItem, Wall } from '@/lib/room-state';
 import { WALLS } from '@/lib/room-state';
 import { plural } from '@/lib/format';
 import { formatFeetInches } from '@/lib/units';
-import { type InspectorTab, type PlannerView, usePlannerUrlState, useRoomHref, useRoomPreset } from '@/lib/url-state';
+import { type InspectorTab, type PlannerView, usePlannerUrlState, useRoomHref, useRoomKey } from '@/lib/url-state';
 import { countOpenFacts, STATUS_WORD } from '@/lib/room-certainty';
 import { countProblems, countTypical, usePlan } from '@/lib/use-plan';
 
@@ -54,8 +54,8 @@ export function RoomPlanner() {
   const room = useRoomStore();
   const roomHref = useRoomHref();
   const [url, setUrl] = usePlannerUrlState();
-  const [preset] = useRoomPreset();
-  const pending = roomPreset(preset).template;
+  const [roomKey] = useRoomKey();
+  const pending = isRoomPresetId(roomKey) ? roomPreset(roomKey).template : null;
   const { view, tab, wall: chosenWall, piece: selectedId } = url;
   const setView = useCallback((next: PlannerView) => void setUrl({ view: next }), [setUrl]);
   const setSelectedId = useCallback((piece: string | null) => void setUrl({ piece }), [setUrl]);
@@ -83,7 +83,7 @@ export function RoomPlanner() {
   );
 
   if (!snapshot) {
-    if (room.loading) return <PlannerSkeleton ratio={pending.lengthIn / pending.widthIn} />;
+    if (room.loading) return <PlannerSkeleton ratio={pending ? pending.lengthIn / pending.widthIn : undefined} />;
     return (
       <main className="flex flex-1 items-center justify-center">
         <p role="alert" className="text-sm text-destructive-strong">{room.error}</p>
@@ -103,7 +103,7 @@ export function RoomPlanner() {
   const ready = pieces.length > 0 && unplaced === 0 && problems === 0 && typical === 0;
   const hint =
     view === 'plan'
-      ? `${formatFeetInches(details.lengthIn)} × ${formatFeetInches(details.widthIn)} ${sizeStatus} · dashed means position assumed`
+      ? `${formatFeetInches(details.lengthIn)} × ${formatFeetInches(details.widthIn)} ${sizeStatus} · dashed means position not measured`
       : `${formatFeetInches(wallLength(details, elevationWall))} wide · ${details.ceilingIn ? formatFeetInches(details.ceilingIn) : 'unknown'} ceiling, ${sizeStatus} · seen from inside`;
 
   const place = (item: RoomItem, product: CatalogProduct) => {
@@ -186,7 +186,7 @@ export function RoomPlanner() {
                 </span>
                 <SegmentedControl label="Wall" value={elevationWall} options={WALL_OPTIONS} onChange={setChosenWall} />
               </div>
-              <p className="text-xs text-muted-foreground">Farther pieces are lighter. Dashed means height unknown or position assumed.</p>
+              <p className="text-xs text-muted-foreground">Farther pieces are lighter. Dashed means height unknown or position not measured.</p>
             </div>
           </div>
         )}
@@ -238,7 +238,7 @@ export function RoomPlanner() {
               />
             </TabsContent>
             <TabsContent value="room">
-              <RoomFactsPanel room={details} features={features} disabled={false} onUpdateRoom={room.updateRoom} onUpdateFeature={room.updateFeature} />
+              <RoomFactsPanel room={details} features={features} disabled={false} onUpdateRoom={room.updateRoom} onUpdateFeature={room.updateFeature} onAddFeature={room.addFeature} onRemoveFeature={room.removeFeature} />
             </TabsContent>
           </div>
         </Tabs>

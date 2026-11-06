@@ -114,7 +114,18 @@ export function RoomSizePopover({ room, onSave, disabled, triggerClassName, chil
 }
 
 /** A window, door or radiator: position, size and swing, in a dialog. */
-export function FeatureDialog({ feature, onSave, disabled, triggerClassName, children }: { feature: RoomFeature; onSave: SaveFeature; disabled: boolean; triggerClassName: string; children: ReactNode }) {
+interface FeatureDialogProps {
+  /** The feature to adjust, or a draft with sensible defaults when `mode` is `add`. */
+  feature: Omit<RoomFeature, 'id'>;
+  mode?: 'adjust' | 'add';
+  onSave: SaveFeature;
+  onRemove?: () => Promise<boolean>;
+  disabled: boolean;
+  triggerClassName: string;
+  children: ReactNode;
+}
+
+export function FeatureDialog({ feature, mode = 'adjust', onSave, onRemove, disabled, triggerClassName, children }: FeatureDialogProps) {
   const id = useId();
   const [open, setOpen] = useState(false);
   const [wall, setWall] = useState<Wall>(feature.wall);
@@ -125,6 +136,7 @@ export function FeatureDialog({ feature, onSave, disabled, triggerClassName, chi
   const [confirmed, setConfirmed] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const label = FEATURE_LABEL[feature.kind];
+  const verb = mode === 'add' ? 'Add' : 'Adjust';
 
   const reset = (next: boolean) => {
     if (next) {
@@ -148,16 +160,16 @@ export function FeatureDialog({ feature, onSave, disabled, triggerClassName, chi
       return;
     }
     const patch: RoomFeaturePatch = { wall, offsetIn, widthIn, ...(feature.kind === 'door' ? { swing, hinge } : {}) };
-    if (await onSave(patch, confirmed ? 'confirmed' : 'assumed')) setOpen(false);
+    if (await onSave(patch, confirmed ? 'confirmed' : mode === 'add' ? 'stated' : 'assumed')) setOpen(false);
   };
 
   return (
     <Dialog open={open} onOpenChange={reset}>
       <DialogTrigger disabled={disabled} className={triggerClassName}>{children}</DialogTrigger>
       <DialogContent>
-        <form id={`${id}-form`} onSubmit={submit} className="flex flex-col gap-5" aria-label={`Adjust ${label.toLowerCase()}`}>
+        <form id={`${id}-form`} onSubmit={submit} className="flex flex-col gap-5" aria-label={`${verb} ${label.toLowerCase()}`}>
           <DialogHeader>
-            <DialogTitle>Adjust {label.toLowerCase()}</DialogTitle>
+            <DialogTitle>{verb} {label.toLowerCase()}</DialogTitle>
             <DialogDescription>{feature.clientSaid ? `Client said: “${feature.clientSaid}”` : 'Where it sits and how big it is.'}</DialogDescription>
           </DialogHeader>
           <div className="grid grid-cols-2 gap-3">
@@ -194,9 +206,22 @@ export function FeatureDialog({ feature, onSave, disabled, triggerClassName, chi
               </>
             ) : null}
           </div>
-          <Checkbox checked={confirmed} onCheckedChange={setConfirmed} label="Confirmed by the client or measured" />
+          <Checkbox checked={confirmed} onCheckedChange={setConfirmed} label={mode === 'add' ? 'Measured with a tape' : 'Confirmed by the client or measured'} />
           {error ? <p role="alert" className="text-xs text-destructive-strong">{error}</p> : null}
-          <DialogFooter>
+          <DialogFooter className={onRemove ? 'sm:justify-between' : undefined}>
+            {onRemove ? (
+              <Button
+                type="button"
+                size="sm"
+                variant="ghost"
+                className="text-destructive-strong hover:bg-destructive/10 hover:text-destructive-strong"
+                onClick={async () => {
+                  if (await onRemove()) setOpen(false);
+                }}
+              >
+                Remove {label.toLowerCase()}
+              </Button>
+            ) : null}
             <FormActions onCancel={() => setOpen(false)} form={`${id}-form`} />
           </DialogFooter>
         </form>
