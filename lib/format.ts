@@ -25,3 +25,6 @@ export function formatCalendarDate(isoDate: string): string {
   if (Number.isNaN(date.getTime())) return isoDate;
   return new Intl.DateTimeFormat('en-US', { month: 'short', day: 'numeric', year: 'numeric', timeZone: 'UTC' }).format(date);
 }
+
+/** `2 pieces`, `1 piece`: regular English plurals only. */
+export const plural = (count: number, noun: string): string => `${count} ${noun}${count === 1 ? '' : 's'}`;

@@ -6,6 +6,8 @@ const nextConfig: NextConfig = {
   // The local review URL is opened at 127.0.0.1, which Next 16 otherwise
   // treats as cross-origin from its dev client and leaves the app unhydrated.
   allowedDevOrigins: ['127.0.0.1'],
+  // The tape-out sheet moved from a planner view to its own step.
+  redirects: async () => [{ source: '/room', has: [{ type: 'query', key: 'view', value: 'tape' }], destination: '/present', permanent: false }],
   images: {
     unoptimized: true,
     localPatterns: [{ pathname: '/products/**', search: '' }],

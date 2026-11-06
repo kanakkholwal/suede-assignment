@@ -3,7 +3,7 @@
 import { Bookmark, Check, ChevronDown, ChevronRight } from '@/components/icons';
 import Link from 'next/link';
 import { useQueryState } from 'nuqs';
-import { usePathname, useSearchParams } from 'next/navigation';
+import { usePathname } from 'next/navigation';
 import { useState } from 'react';
 
 import { type RoomProgress, useRoomProgress, useRoomStore } from '@/components/room/room-provider';
@@ -12,6 +12,7 @@ import { ROOM_PRESETS, type RoomPresetId, roomPreset } from '@/data/room-presets
 import { button } from '@/components/ui/button';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
+import { plural } from '@/lib/format';
 import { formatFeetInches } from '@/lib/units';
 import { useRoomHref, useRoomPreset } from '@/lib/url-state';
 import { cn } from '@/lib/utils';
@@ -32,17 +33,18 @@ const STEPS: readonly Step[] = [
   {
     id: 'fit',
     label: 'Fit the room',
-    href: '/room?view=plan',
+    href: '/room',
     status: ({ shortlisted, placed, problems }) =>
       !shortlisted ? null : problems ? { text: `${problems} to fix`, tone: 'alert' } : { text: `${placed} of ${shortlisted} placed`, tone: 'muted' },
     done: ({ shortlisted, placed, problems }) => shortlisted > 0 && placed === shortlisted && problems === 0,
   },
-  { id: 'present', label: 'Show the client', href: '/room?view=wall', status: () => null, done: () => false },
+  { id: 'present', label: 'Show the client', href: '/present', status: () => null, done: () => false },
 ];
 
-function activeStep(pathname: string, view: string | null): WorkflowStep | null {
+function activeStep(pathname: string): WorkflowStep | null {
   if (pathname.startsWith('/catalog')) return 'find';
-  if (pathname.startsWith('/room')) return view === 'wall' || view === 'tape' ? 'present' : 'fit';
+  if (pathname.startsWith('/room')) return 'fit';
+  if (pathname.startsWith('/present')) return 'present';
   return null;
 }
 
@@ -118,16 +120,17 @@ function RoomMenu() {
     <Popover open={open} onOpenChange={setOpen}>
       <PopoverTrigger
         aria-label={`Room: ${current.name}. Switch room`}
-        className="hidden h-8 min-w-0 items-center gap-2 rounded-lg pr-2 pl-1 transition-colors duration-(--duration-fast) hover:bg-foreground/[0.06] data-[popup-open]:bg-foreground/[0.06] lg:inline-flex"
+        className="hidden h-8 min-w-0 items-center gap-2 rounded-lg px-2 transition-colors duration-(--duration-fast) hover:bg-foreground/[0.06] data-[popup-open]:bg-foreground/[0.06] lg:inline-flex"
       >
-        <span className="grid size-6 shrink-0 place-items-center rounded-md bg-card">
-          {loading ? <span className="spinner size-3.5 rounded-full border-2 border-muted-foreground/30 border-t-muted-foreground" aria-hidden="true" /> : <RoomThumb room={current} className="size-5" />}
-        </span>
-        <span key={preset} className="pop truncate font-serif text-base text-foreground">{current.name}</span>
+        <span key={preset} className="pop truncate font-serif text-base font-medium tracking-tight text-foreground">{current.name}</span>
         <span className="text-xs tabular-nums text-muted-foreground">
           {formatFeetInches(lengthIn)} × {formatFeetInches(widthIn)}
         </span>
-        <ChevronDown className="size-3.5 text-muted-foreground" aria-hidden="true" />
+        {loading ? (
+          <span className="spinner size-3.5 rounded-full border-2 border-muted-foreground/30 border-t-muted-foreground" aria-hidden="true" />
+        ) : (
+          <ChevronDown className="size-3.5 text-muted-foreground" aria-hidden="true" />
+        )}
       </PopoverTrigger>
       <PopoverContent align="start" className="flex w-96 flex-col gap-1 p-2">
         <p className="px-2 pt-1 pb-1.5 text-xs font-medium text-muted-foreground">Rooms</p>
@@ -162,7 +165,7 @@ function RoomMenu() {
         </ul>
         <div className="mt-1 flex items-center justify-between gap-3 rounded-lg bg-muted/50 py-2 pr-2 pl-3">
           <p className="text-xs text-muted-foreground">
-            {snapshot ? (assumed ? `${assumed} assumption${assumed === 1 ? '' : 's'} to confirm in this room` : 'Everything in this room is confirmed') : 'Loading room…'}
+            {snapshot ? (assumed ? `${plural(assumed, 'assumption')} to confirm in this room` : 'Everything in this room is confirmed') : 'Loading room…'}
           </p>
           <Link href={roomHref('/room?view=plan&tab=room')} onClick={() => setOpen(false)} className={button({ variant: 'outline', size: 'xs' })}>
             Room facts
@@ -176,7 +179,6 @@ function RoomMenu() {
 /** Persistent top bar: brand, the room being worked on, and the three-step job. */
 export function AppBar() {
   const pathname = usePathname();
-  const view = useSearchParams().get('view');
   const libraryActive = pathname.startsWith('/library');
   const roomHref = useRoomHref();
 
@@ -192,7 +194,7 @@ export function AppBar() {
         </Link>
         <RoomMenu />
       </div>
-      <StepNav active={activeStep(pathname, view)} />
+      <StepNav active={activeStep(pathname)} />
       <div className="flex shrink-0 items-center justify-end sm:flex-1">
         <Tooltip>
           <TooltipTrigger

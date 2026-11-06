@@ -121,7 +121,7 @@ export function useCatalogUrlState() {
 
 // --- Planner: view, inspector tab, wall and selected piece ---
 
-export const PLANNER_VIEWS = ['plan', 'wall', 'tape'] as const;
+export const PLANNER_VIEWS = ['plan', 'wall'] as const;
 export type PlannerView = (typeof PLANNER_VIEWS)[number];
 export const INSPECTOR_TABS = ['fit', 'pieces', 'room'] as const;
 export type InspectorTab = (typeof INSPECTOR_TABS)[number];

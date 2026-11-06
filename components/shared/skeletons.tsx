@@ -88,3 +88,25 @@ export function PlannerSkeleton({ ratio = 1.25 }: { ratio?: number }) {
     </main>
   );
 }
+
+export function SheetSkeleton() {
+  return (
+    <main className="flex flex-1 flex-col lg:min-h-0">
+      <Island className="flex-1">
+        <Status label="Loading client sheet" className="flex flex-col">
+          <div className="flex items-center justify-between gap-3 px-4 py-2.5" aria-hidden="true">
+            <Skeleton className={cn(BONE, 'h-4 w-48')} />
+            <Skeleton className={cn(BONE, 'h-8 w-20 rounded-md')} />
+          </div>
+          <div className="mx-auto flex w-full max-w-3xl flex-col gap-3 px-6 pt-4" aria-hidden="true">
+            <Skeleton className={cn(BONE, 'h-8 w-full rounded-lg')} />
+            <Skeleton className={cn(BONE, 'mt-6 h-3 w-20')} />
+            <Skeleton className={cn(BONE, 'h-9 w-72')} />
+            <Skeleton className={cn(BONE, 'h-4 w-full max-w-xl')} />
+            <Skeleton shape="block" className={cn(BONE, 'mt-3 aspect-[4/3] h-auto rounded-xl')} />
+          </div>
+        </Status>
+      </Island>
+    </main>
+  );
+}

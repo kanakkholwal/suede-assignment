@@ -1,6 +1,7 @@
 'use client';
 
-import { Columns3, MapIcon, Printer, Ruler } from '@/components/icons';
+import { ArrowRight, Columns3, MapIcon } from '@/components/icons';
+import Link from 'next/link';
 import { useCallback, useMemo, useState } from 'react';
 
 import { ElevationView } from '@/components/planner/elevation-view';
@@ -10,30 +11,28 @@ import { PlanCanvas } from '@/components/planner/plan-canvas';
 import { PlanLegend } from '@/components/planner/plan-legend';
 import { RoomFactsPanel } from '@/components/planner/room-facts-panel';
 import { SelectionBar } from '@/components/planner/selection-bar';
-import { TapeOutSheet } from '@/components/planner/tape-out-sheet';
 import { useRoomStore } from '@/components/room/room-provider';
-import { type SegmentOption, SegmentedControl } from '@/components/shared/segmented-control';
 import { CountBadge } from '@/components/shared/count-badge';
+import { type SegmentOption, SegmentedControl } from '@/components/shared/segmented-control';
 import { PlannerSkeleton } from '@/components/shared/skeletons';
 import { Island } from '@/components/shell/island';
-import { Button } from '@/components/ui/button';
+import { button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import type { CatalogProduct } from '@/data/product-types';
 import { roomPreset } from '@/data/room-presets';
 import type { DimensionValues } from '@/lib/dimensions';
-import { evaluateFit } from '@/lib/fit-rules';
-import { frontSide } from '@/lib/geometry';
+import { frontSide, wallLength } from '@/lib/geometry';
 import { pieceKind } from '@/lib/piece-kind';
-import { defaultPlacement, type Placement, type PlanPiece, planPieces, rotateClockwise, snapPlacement } from '@/lib/plan-model';
+import { defaultPlacement, type Placement, type PlanPiece, rotateClockwise, snapPlacement } from '@/lib/plan-model';
 import type { RoomItem, Wall } from '@/lib/room-state';
 import { WALLS } from '@/lib/room-state';
 import { formatFeetInches } from '@/lib/units';
-import { type InspectorTab, type PlannerView, usePlannerUrlState, useRoomPreset } from '@/lib/url-state';
+import { type InspectorTab, type PlannerView, usePlannerUrlState, useRoomHref, useRoomPreset } from '@/lib/url-state';
+import { countProblems, usePlan } from '@/lib/use-plan';
 
 const VIEWS: readonly SegmentOption<PlannerView>[] = [
   { value: 'plan', label: 'Plan', icon: MapIcon },
-  { value: 'wall', label: 'Wall view', icon: Columns3 },
-  { value: 'tape', label: 'Tape-out', icon: Ruler },
+  { value: 'wall', label: 'Elevation', icon: Columns3 },
 ];
 
 const WALL_OPTIONS: readonly SegmentOption<Wall>[] = WALLS.map((wall) => ({
@@ -41,12 +40,6 @@ const WALL_OPTIONS: readonly SegmentOption<Wall>[] = WALLS.map((wall) => ({
   label: wall[0].toUpperCase() + wall.slice(1),
   ariaLabel: `${wall} wall`,
 }));
-
-const VIEW_COPY: Record<PlannerView, { title: string; lede: string }> = {
-  plan: { title: 'Fit the room', lede: 'Dashed lines are assumptions until confirmed.' },
-  wall: { title: 'Show the client', lede: 'True scale, against the ceiling and a 5′ 6″ person.' },
-  tape: { title: 'Show the client', lede: 'Print it and tape each outline on the floor.' },
-};
 
 const OPPOSITE: Record<Wall, Wall> = { north: 'south', south: 'north', east: 'west', west: 'east' };
 
@@ -56,6 +49,7 @@ function Count({ value, tone = 'muted' }: { value: number; tone?: 'muted' | 'ale
 
 export function RoomPlanner() {
   const room = useRoomStore();
+  const roomHref = useRoomHref();
   const [url, setUrl] = usePlannerUrlState();
   const [preset] = useRoomPreset();
   const pending = roomPreset(preset).template;
@@ -66,12 +60,7 @@ export function RoomPlanner() {
   const setTab = useCallback((next: InspectorTab) => void setUrl({ tab: next }), [setUrl]);
   const [overrides, setOverrides] = useState<Record<string, Placement>>({});
   const snapshot = room.snapshot;
-
-  const pieces = useMemo(() => (snapshot ? planPieces(snapshot, overrides) : []), [snapshot, overrides]);
-  const warnings = useMemo(
-    () => (snapshot ? evaluateFit({ room: snapshot.room, features: snapshot.features, pieces }) : []),
-    [snapshot, pieces],
-  );
+  const { pieces, warnings } = usePlan(snapshot, overrides);
   const products = useMemo(() => new Map<string, CatalogProduct>((snapshot?.products ?? []).map((product) => [product.id, product])), [snapshot]);
 
   const preview = useCallback((id: string, placement: Placement) => setOverrides((current) => ({ ...current, [id]: placement })), []);
@@ -102,9 +91,14 @@ export function RoomPlanner() {
   const { room: details, features } = snapshot;
   const selected = pieces.find((piece) => piece.id === selectedId) ?? null;
   const elevationWall: Wall = chosenWall ?? (selected ? OPPOSITE[frontSide(selected.rotation)] : 'north');
-  const problems = warnings.filter((warning) => warning.severity !== 'tip').length;
+  const problems = countProblems(warnings);
   const assumed = features.filter((feature) => feature.status !== 'confirmed').length;
   const activeTab: InspectorTab = tab ?? (pieces.length ? 'fit' : 'pieces');
+  const ready = pieces.length > 0 && pieces.length === snapshot.items.length && problems === 0;
+  const hint =
+    view === 'plan'
+      ? `${formatFeetInches(details.lengthIn)} × ${formatFeetInches(details.widthIn)} · dashed lines are assumptions`
+      : `${formatFeetInches(wallLength(details, elevationWall))} wide · ${details.ceilingIn ? formatFeetInches(details.ceilingIn) : 'unknown'} ceiling · seen from inside`;
 
   const place = (item: RoomItem, product: CatalogProduct) => {
     const width = item.dimensions.width.value as number;
@@ -126,29 +120,21 @@ export function RoomPlanner() {
   const saveDimensions = (item: RoomItem, values: DimensionValues, note: string) =>
     room.setDimensions(item.productId, item.variantId, values, note);
 
-  const toolbar = (
-    <header className="flex shrink-0 flex-wrap items-center gap-x-4 gap-y-2 px-3 py-2 sm:px-4 print:hidden">
-      <div className="flex min-w-0 flex-1 items-baseline gap-2">
-        <h1 className="truncate text-sm font-semibold text-foreground">{VIEW_COPY[view].title}</h1>
-        <p className="hidden truncate text-xs text-muted-foreground sm:block">
-          <span className="tabular-nums">{formatFeetInches(details.lengthIn)} × {formatFeetInches(details.widthIn)}</span> · {VIEW_COPY[view].lede}
-        </p>
-      </div>
-      {view === 'wall' ? <SegmentedControl label="Wall" value={elevationWall} options={WALL_OPTIONS} onChange={setChosenWall} /> : null}
-      {view === 'tape' ? (
-        <Button size="sm" variant="outline" onClick={() => window.print()} disabled={pieces.length === 0}>
-          <Printer aria-hidden="true" /> Print
-        </Button>
-      ) : null}
-      <SegmentedControl label="Planner view" value={view} options={VIEWS} onChange={setView} compact />
-    </header>
-  );
-
   return (
-    <main className={`grid flex-1 gap-1.5 lg:min-h-0 ${view === 'plan' ? 'lg:grid-cols-[minmax(0,1fr)_23rem]' : ''} print:block`}>
-      <Island aria-label={VIEWS.find((option) => option.value === view)?.label} className="print:bg-transparent">
-        {toolbar}
-        {room.error ? <p role="alert" className="px-4 pt-3 text-sm text-destructive-strong print:hidden">{room.error}</p> : null}
+    <main className="grid flex-1 gap-1.5 lg:min-h-0 lg:grid-cols-[minmax(0,1fr)_23rem]">
+      <Island aria-label={view === 'plan' ? 'Floor plan' : 'Wall elevation'}>
+        <header className="flex min-h-12 shrink-0 items-center gap-3 px-3 py-2 sm:px-4">
+          <h1 className="sr-only">Fit the room</h1>
+          <SegmentedControl label="Planner view" value={view} options={VIEWS} onChange={setView} />
+          <p className="hidden min-w-0 flex-1 truncate text-xs text-muted-foreground tabular-nums sm:block">{hint}</p>
+          <Link
+            href={roomHref('/present')}
+            className={button({ variant: ready ? 'default' : 'default_soft', size: 'sm', className: 'ml-auto shrink-0' })}
+          >
+            Show the client <ArrowRight aria-hidden="true" />
+          </Link>
+        </header>
+        {room.error ? <p role="alert" className="px-4 pt-1 text-sm text-destructive-strong">{room.error}</p> : null}
 
         {view === 'plan' ? (
           <div key="plan" className="flex min-h-0 flex-1 flex-col">
@@ -183,56 +169,51 @@ export function RoomPlanner() {
               ) : null}
             </div>
           </div>
-        ) : view === 'wall' ? (
-          <div key="wall" className="flex min-h-0 flex-1 flex-col gap-3 p-3 sm:p-6">
-            <div className="flex min-h-0 flex-1 items-center justify-center">
+        ) : (
+          <div key="wall" className="flex min-h-0 flex-1 flex-col">
+            <div className="flex min-h-0 flex-1 items-center justify-center p-3 sm:p-6">
               <ElevationView room={details} features={features} pieces={pieces} wall={elevationWall} selectedId={selectedId} fill />
             </div>
-            <p className="mx-auto max-w-2xl text-center text-xs text-muted-foreground">
-              Seen from inside the room. Pieces farther from this wall are lighter; dashed outlines are unknown heights or assumed openings.
-            </p>
-          </div>
-        ) : (
-          <div key="tape" className="min-h-0 flex-1 overflow-y-auto p-3 sm:p-6 print:overflow-visible print:p-0">
-            <TapeOutSheet room={details} features={features} pieces={pieces} warnings={warnings} />
+            <div className="flex shrink-0 flex-wrap items-center justify-between gap-x-4 gap-y-2 px-3 pb-3 sm:px-4">
+              <SegmentedControl label="Wall" value={elevationWall} options={WALL_OPTIONS} onChange={setChosenWall} />
+              <p className="text-xs text-muted-foreground">Farther pieces are lighter; dashed means unknown height or assumed.</p>
+            </div>
           </div>
         )}
       </Island>
 
-      {view === 'plan' ? (
-        <Island aria-label="Room details" className="print:hidden">
-          <Tabs value={activeTab} onValueChange={(next) => setTab(next as InspectorTab)} variant="underline" className="min-h-0 flex-1">
-            <div className="shrink-0 px-3 pt-2">
-              <TabsList>
-                <TabsTrigger value="fit">Fit check<Count value={problems} tone="alert" /></TabsTrigger>
-                <TabsTrigger value="pieces">Pieces<Count value={snapshot.items.length} /></TabsTrigger>
-                <TabsTrigger value="room">Room<Count value={assumed} /></TabsTrigger>
-              </TabsList>
-            </div>
-            <div className="min-h-0 flex-1 overflow-y-auto p-3">
-              <TabsContent value="fit" className="flex flex-col gap-2">
-                {pieces.length ? <p className="px-1 text-xs text-muted-foreground">{fitSummary(warnings) || 'Everything placed clears the rules.'}</p> : null}
-                <FitWarnings warnings={warnings} placedCount={pieces.length} selectedId={selectedId} onFocusPiece={setSelectedId} />
-              </TabsContent>
-              <TabsContent value="pieces">
-                <PiecesPanel
-                  items={snapshot.items}
-                  products={products}
-                  pieces={pieces}
-                  selectedId={selectedId}
-                  disabled={false}
-                  onSelect={setSelectedId}
-                  onPlace={place}
-                  onSaveDimensions={saveDimensions}
-                />
-              </TabsContent>
-              <TabsContent value="room">
-                <RoomFactsPanel room={details} features={features} disabled={false} onUpdateRoom={room.updateRoom} onUpdateFeature={room.updateFeature} />
-              </TabsContent>
-            </div>
-          </Tabs>
-        </Island>
-      ) : null}
+      <Island aria-label="Room details">
+        <Tabs value={activeTab} onValueChange={(next) => setTab(next as InspectorTab)} variant="underline" className="min-h-0 flex-1">
+          <div className="shrink-0 px-3 pt-2">
+            <TabsList>
+              <TabsTrigger value="fit">Fit check<Count value={problems} tone="alert" /></TabsTrigger>
+              <TabsTrigger value="pieces">Pieces<Count value={snapshot.items.length} /></TabsTrigger>
+              <TabsTrigger value="room">Room<Count value={assumed} /></TabsTrigger>
+            </TabsList>
+          </div>
+          <div className="min-h-0 flex-1 overflow-y-auto p-3">
+            <TabsContent value="fit" className="flex flex-col gap-2">
+              {pieces.length ? <p className="px-1 text-xs text-muted-foreground">{fitSummary(warnings) || 'Everything placed clears the rules.'}</p> : null}
+              <FitWarnings warnings={warnings} placedCount={pieces.length} selectedId={selectedId} onFocusPiece={setSelectedId} />
+            </TabsContent>
+            <TabsContent value="pieces">
+              <PiecesPanel
+                items={snapshot.items}
+                products={products}
+                pieces={pieces}
+                selectedId={selectedId}
+                disabled={false}
+                onSelect={setSelectedId}
+                onPlace={place}
+                onSaveDimensions={saveDimensions}
+              />
+            </TabsContent>
+            <TabsContent value="room">
+              <RoomFactsPanel room={details} features={features} disabled={false} onUpdateRoom={room.updateRoom} onUpdateFeature={room.updateFeature} />
+            </TabsContent>
+          </div>
+        </Tabs>
+      </Island>
     </main>
   );
 }
