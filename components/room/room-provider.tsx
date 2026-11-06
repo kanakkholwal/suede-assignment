@@ -2,9 +2,8 @@
 
 import { createContext, type ReactNode, useContext, useMemo } from 'react';
 
-import { evaluateFit } from '@/lib/fit-rules';
-import { planPieces } from '@/lib/plan-model';
 import { useRoomPreset } from '@/lib/url-state';
+import { countProblems, usePlan } from '@/lib/use-plan';
 import { type RoomStore, useRoom } from '@/lib/use-room';
 
 export interface RoomProgress {
@@ -25,17 +24,11 @@ const RoomContext = createContext<RoomContextValue | null>(null);
 export function RoomProvider({ children }: { children: ReactNode }) {
   const [preset] = useRoomPreset();
   const room = useRoom(preset);
-  const { snapshot } = room;
-  const progress = useMemo<RoomProgress>(() => {
-    if (!snapshot) return { shortlisted: 0, placed: 0, problems: 0 };
-    const pieces = planPieces(snapshot, {});
-    const warnings = evaluateFit({ room: snapshot.room, features: snapshot.features, pieces });
-    return {
-      shortlisted: snapshot.items.length,
-      placed: pieces.length,
-      problems: warnings.filter((warning) => warning.severity !== 'tip').length,
-    };
-  }, [snapshot]);
+  const { pieces, warnings } = usePlan(room.snapshot);
+  const progress = useMemo<RoomProgress>(
+    () => ({ shortlisted: room.snapshot?.items.length ?? 0, placed: pieces.length, problems: countProblems(warnings) }),
+    [room.snapshot, pieces, warnings],
+  );
 
   return <RoomContext.Provider value={{ room, progress }}>{children}</RoomContext.Provider>;
 }
