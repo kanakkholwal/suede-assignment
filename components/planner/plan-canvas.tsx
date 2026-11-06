@@ -153,10 +153,17 @@ function Radiator({ room, feature, hatchId }: { room: Room; feature: RoomFeature
     west: { x: 0, y: feature.offsetIn, w: depth, h: feature.widthIn },
     east: { x: room.lengthIn - depth, y: feature.offsetIn, w: depth, h: feature.widthIn },
   }[feature.wall];
+  // The label runs along the wall on the room side, so it never crosses into the wall.
+  const label = {
+    north: { x: rect.x + rect.w / 2, y: rect.y + rect.h + 4, turn: 0 },
+    south: { x: rect.x + rect.w / 2, y: rect.y - 1.5, turn: 0 },
+    west: { x: rect.x + rect.w + 3.5, y: rect.y + rect.h / 2, turn: -90 },
+    east: { x: rect.x - 3.5, y: rect.y + rect.h / 2, turn: 90 },
+  }[feature.wall];
   return (
     <g aria-hidden="true">
       <rect x={rect.x} y={rect.y} width={rect.w} height={rect.h} fill={`url(#${hatchId})`} stroke="var(--plan-label)" strokeWidth={0.5} strokeDasharray={feature.status !== 'confirmed' ? '2 1.5' : undefined} />
-      <text x={rect.x + rect.w / 2} y={rect.y + rect.h + 4} textAnchor="middle" fontSize={3} fill="var(--plan-label)">Radiator</text>
+      <text x={label.x} y={label.y} transform={label.turn ? `rotate(${label.turn} ${label.x} ${label.y})` : undefined} textAnchor="middle" fontSize={3} fill="var(--plan-label)">Radiator</text>
     </g>
   );
 }
