@@ -393,7 +393,7 @@ export function PlanCanvas({
         const local: Rect = { x0: -width / 2, y0: -height / 2, x1: width / 2, y1: height / 2 };
         const severity = worstSeverity(warnings, piece.id);
         const isSelected = piece.id === selectedId;
-        const estimated = piece.footprintSource === 'synthetic' || piece.footprintSource === 'listing';
+        const estimated = piece.footprintSource === 'synthetic' || piece.footprintSource === 'listing' || piece.footprintSource === 'typical';
         const label = fitLabel(piece.name, width, Math.min(3.6, Math.max(2.4, height / 4)));
         const fontSize = label.fontSize;
         const rug = piece.kind === 'rug';

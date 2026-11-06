@@ -1,4 +1,4 @@
-import type { DimensionSource } from '@/lib/dimensions';
+import type { DimensionSource, FootprintSource } from '@/lib/dimensions';
 import {
   contains,
   edgeStrip,
@@ -52,7 +52,7 @@ export interface PlannedPiece {
   rect: Rect;
   rotation: Rotation;
   heightIn: number | null;
-  footprintSource: DimensionSource | 'unknown';
+  footprintSource: FootprintSource;
 }
 
 export interface FitWarning {
@@ -84,6 +84,7 @@ function pieceAssumptions(pieces: readonly PlannedPiece[]): string[] {
   return pieces.flatMap((piece) => {
     if (piece.footprintSource === 'synthetic') return [`${piece.name}: size is a synthetic placeholder`];
     if (piece.footprintSource === 'listing') return [`${piece.name}: size read from the product title`];
+    if (piece.footprintSource === 'typical') return [`${piece.name}: drawn at a typical size, not its own`];
     return [];
   });
 }

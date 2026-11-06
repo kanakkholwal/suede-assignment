@@ -1,9 +1,10 @@
 import type { CatalogProduct } from '@/data/product-types';
-import { footprintConfidence, hasFootprint } from '@/lib/dimensions';
+import { footprintConfidence, type FootprintSource, hasFootprint } from '@/lib/dimensions';
 import type { PlannedPiece } from '@/lib/fit-rules';
 import { footprintRect, type Rect, wallDistances } from '@/lib/geometry';
 import { type PieceKind, pieceKind } from '@/lib/piece-kind';
 import type { Room, RoomItem, RoomSnapshot, Rotation, Wall } from '@/lib/room-state';
+import { TYPICAL_FOOTPRINT } from '@/lib/typical-size';
 
 export interface Placement {
   xIn: number;
@@ -26,15 +27,22 @@ export function shortName(product: Pick<CatalogProduct, 'name'>): string {
   return product.name.replace(/^The\s+/i, '').replace(/\s+in\s+.+$/i, '').replace(/\s+-\s+.+$/, '');
 }
 
-/** Placed pieces with a known footprint; `overrides` carries positions mid-drag. */
+/** The size to draw: the piece's own where known, a typical size for its kind where not. */
+export function footprintOf(item: Pick<RoomItem, 'dimensions'>, product: Pick<CatalogProduct, 'category' | 'productType' | 'name'>): { widthIn: number; depthIn: number; source: FootprintSource } {
+  const { width, depth } = item.dimensions;
+  if (hasFootprint(item.dimensions)) return { widthIn: width.value as number, depthIn: depth.value as number, source: footprintConfidence(item.dimensions) };
+  const typical = TYPICAL_FOOTPRINT[pieceKind(product)];
+  return { widthIn: width.value ?? typical.width, depthIn: depth.value ?? typical.depth, source: 'typical' };
+}
+
+/** Placed pieces; `overrides` carries positions mid-drag. */
 export function planPieces(snapshot: RoomSnapshot, overrides: Readonly<Record<string, Placement>> = {}): PlanPiece[] {
   const products = new Map(snapshot.products.map((product) => [product.id, product]));
   return snapshot.items.flatMap((item) => {
     const product = products.get(item.productId);
     const placement = overrides[item.id] ?? (item.xIn === null || item.yIn === null ? null : { xIn: item.xIn, yIn: item.yIn, rotationDeg: item.rotationDeg });
-    if (!product || !placement || !hasFootprint(item.dimensions)) return [];
-    const widthIn = item.dimensions.width.value as number;
-    const depthIn = item.dimensions.depth.value as number;
+    if (!product || !placement) return [];
+    const { widthIn, depthIn, source } = footprintOf(item, product);
     return [
       {
         id: item.id,
@@ -43,7 +51,7 @@ export function planPieces(snapshot: RoomSnapshot, overrides: Readonly<Record<st
         rect: footprintRect(placement.xIn, placement.yIn, widthIn, depthIn, placement.rotationDeg),
         rotation: placement.rotationDeg,
         heightIn: item.dimensions.height.value,
-        footprintSource: footprintConfidence(item.dimensions),
+        footprintSource: source,
         item,
         product,
         widthIn,

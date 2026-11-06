@@ -2,6 +2,8 @@ import { INCHES_PER_FOOT } from '@/lib/units';
 
 export type DimensionSource = 'designer' | 'verified' | 'listing' | 'synthetic';
 export type DimensionField = 'width' | 'depth' | 'height';
+/** What a plan footprint rests on; `typical` fills a missing side with a common size for the kind of piece. */
+export type FootprintSource = DimensionSource | 'typical' | 'unknown';
 
 export const DIMENSION_FIELDS: readonly DimensionField[] = ['width', 'depth', 'height'];
 
@@ -13,11 +15,12 @@ export const DIMENSION_SOURCE_RANK: Record<DimensionSource, number> = {
   synthetic: 1,
 };
 
-export const DIMENSION_SOURCE_LABEL: Record<DimensionSource | 'unknown', string> = {
+export const DIMENSION_SOURCE_LABEL: Record<FootprintSource, string> = {
   designer: 'Entered by designer',
   verified: 'Verified on brand site',
   listing: 'Stated in listing',
   synthetic: 'Synthetic for this exercise',
+  typical: 'Typical size for this kind of piece, not its own',
   unknown: 'Unknown',
 };
 

@@ -31,7 +31,9 @@ export function tapeOutSteps(room: Room, pieces: readonly PlanPiece[]): TapeOutS
     caution:
       piece.footprintSource === 'synthetic'
         ? 'Placeholder size: confirm with the brand before relying on this outline.'
-        : piece.footprintSource === 'listing'
+        : piece.footprintSource === 'typical'
+          ? 'Typical size, not this piece’s own: check the brand page before taping.'
+          : piece.footprintSource === 'listing'
           ? 'Size read from the product title: confirm on the brand page.'
           : null,
   }));

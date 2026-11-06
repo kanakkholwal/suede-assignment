@@ -4,7 +4,6 @@ import { RotateCw, Undo2, X } from '@/components/icons';
 
 import { SourceBadge } from '@/components/shared/source-badge';
 import { Button } from '@/components/ui/button';
-import { footprintConfidence } from '@/lib/dimensions';
 import type { FitWarning } from '@/lib/fit-rules';
 import { frontSide, wallDistances } from '@/lib/geometry';
 import { type PlanPiece, shortName } from '@/lib/plan-model';
@@ -35,7 +34,7 @@ export function SelectionBar({ room, piece, warnings, onRotate, onUnplace, onClo
         <p className="flex min-w-0 flex-1 flex-wrap items-center gap-x-2 gap-y-1 text-xs text-muted-foreground">
           <span className="truncate text-sm font-medium text-foreground">{shortName(piece.product)}</span>
           <span className="tabular-nums">{formatDimensionTriple(piece.widthIn, piece.depthIn, piece.heightIn)}</span>
-          <SourceBadge source={footprintConfidence(piece.item.dimensions)} />
+          <SourceBadge source={piece.footprintSource} />
           <span>faces {frontSide(piece.rotation)}</span>
         </p>
         <div className="flex shrink-0 items-center gap-1">

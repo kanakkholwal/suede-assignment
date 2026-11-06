@@ -132,4 +132,9 @@ describe('evaluateFit', () => {
     const synthetic = { ...sofa(160), footprintSource: 'synthetic' as const };
     expect(evaluateFit({ room, features, pieces: [synthetic] })[0].dependsOn).toContain('Sofa: size is a synthetic placeholder');
   });
+
+  it('marks warnings that rest on a typical size drawn in place of an unknown one', () => {
+    const typical = { ...sofa(160), footprintSource: 'typical' as const };
+    expect(evaluateFit({ room, features, pieces: [typical] })[0].dependsOn).toContain('Sofa: drawn at a typical size, not its own');
+  });
 });
