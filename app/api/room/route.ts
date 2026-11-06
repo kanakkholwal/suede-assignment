@@ -10,11 +10,11 @@ import {
   respondForWorkspace,
   respondToMutation,
 } from '@/lib/api/route-helpers';
-import { DEFAULT_ROOM_PRESET, isRoomPresetId, type RoomPresetId } from '@/data/room-presets';
+import { DEFAULT_ROOM_PRESET, isRoomPresetId } from '@/data/room-presets';
+import { CEILING_RANGE_IN, MAX_ROOM_IN, MIN_ROOM_IN, STATUSES } from '@/lib/api/room-input';
 import { getDatabase } from '@/lib/db/connection';
 import { applyRoomMutation, getRoomSnapshot } from '@/lib/db/room-repository';
 import {
-  type MeasurementStatus,
   ROTATIONS,
   type RoomFeaturePatch,
   type RoomMutation,
@@ -23,11 +23,10 @@ import {
 
 export const runtime = 'nodejs';
 
-// Inches. Generous bounds that still reject typos like 1440 for 144.
-const MAX_ROOM_IN = 1200;
 const MAX_PIECE_IN = 600;
 const PLAN_MARGIN_IN = 600;
-const STATUSES: readonly MeasurementStatus[] = ['stated', 'assumed', 'confirmed'];
+const FEATURE_KINDS = ['window', 'door', 'radiator'] as const;
+const ROOM_ID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
 function invalidMutation(): never {
   throw new RequestInputError('The request body is not a valid Room mutation.');
@@ -122,9 +121,9 @@ function parseRoomMutation(value: unknown): RoomMutation {
       expectKeys(value, ['lengthIn', 'widthIn', 'ceilingIn', 'status']);
       return {
         operation: value.operation,
-        lengthIn: requireNumber(value, 'lengthIn', 12, MAX_ROOM_IN),
-        widthIn: requireNumber(value, 'widthIn', 12, MAX_ROOM_IN),
-        ceilingIn: requireNullableNumber(value, 'ceilingIn', 48, 480),
+        lengthIn: requireNumber(value, 'lengthIn', MIN_ROOM_IN, MAX_ROOM_IN),
+        widthIn: requireNumber(value, 'widthIn', MIN_ROOM_IN, MAX_ROOM_IN),
+        ceilingIn: requireNullableNumber(value, 'ceilingIn', ...CEILING_RANGE_IN),
         status: requireOneOf(value, 'status', STATUSES),
       };
     case 'updateFeature':
@@ -135,16 +134,31 @@ function parseRoomMutation(value: unknown): RoomMutation {
         patch: parseFeaturePatch(value.patch),
         status: requireOneOf(value, 'status', STATUSES),
       };
+    case 'addFeature': {
+      expectKeys(value, ['kind', 'patch', 'status']);
+      const patch = parseFeaturePatch(value.patch);
+      const required = ['wall', 'offsetIn', 'widthIn', 'depthIn', 'heightIn', 'sillIn', 'hinge', 'swing'] as const;
+      if (required.some((key) => !(key in patch))) return invalidMutation();
+      return {
+        operation: value.operation,
+        kind: requireOneOf(value, 'kind', FEATURE_KINDS),
+        patch: patch as Required<RoomFeaturePatch>,
+        status: requireOneOf(value, 'status', STATUSES),
+      };
+    }
+    case 'removeFeature':
+      expectKeys(value, ['featureId']);
+      return { operation: value.operation, featureId: requireString(value, 'featureId') };
     default:
       return invalidMutation();
   }
 }
 
-/** `?room=` picks the preset; an unknown value is rejected rather than silently falling back. */
-function readPreset(request: Request): RoomPresetId {
+/** `?room=` is a preset id or a created room's id; anything else is rejected rather than silently falling back. */
+function readPreset(request: Request): string {
   const value = new URL(request.url).searchParams.get('room');
   if (value === null) return DEFAULT_ROOM_PRESET;
-  if (!isRoomPresetId(value)) throw new RequestInputError('Unknown room preset.');
+  if (!isRoomPresetId(value) && !ROOM_ID.test(value)) throw new RequestInputError('Unknown room.');
   return value;
 }
 

@@ -16,8 +16,8 @@ export const WALLS: readonly Wall[] = ['north', 'east', 'south', 'west'];
  */
 export interface Room {
   id: string;
-  /** Which preset this room was created from; a workspace keeps one room per preset. */
-  preset: RoomPresetId;
+  /** The preset this room came from (one per workspace), or `custom` for rooms the user created (many). */
+  preset: RoomPresetId | 'custom';
   name: string;
   lengthIn: number;
   widthIn: number;
@@ -90,4 +90,23 @@ export type RoomMutation =
       ceilingIn: number | null;
       status: MeasurementStatus;
     }
-  | { operation: 'updateFeature'; featureId: string; patch: RoomFeaturePatch; status: MeasurementStatus };
+  | { operation: 'updateFeature'; featureId: string; patch: RoomFeaturePatch; status: MeasurementStatus }
+  | { operation: 'addFeature'; kind: RoomFeatureKind; patch: Required<RoomFeaturePatch>; status: MeasurementStatus }
+  | { operation: 'removeFeature'; featureId: string };
+
+/** A room the user made, as listed in the room switcher. */
+export interface RoomSummary {
+  id: string;
+  name: string;
+  lengthIn: number;
+  widthIn: number;
+  features: RoomFeature[];
+}
+
+export interface NewRoom {
+  name: string;
+  lengthIn: number;
+  widthIn: number;
+  ceilingIn: number | null;
+  status: MeasurementStatus;
+}

@@ -3,7 +3,7 @@ import type Database from 'better-sqlite3';
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 
 import { CLIENT_ROOM_MESSAGE } from '@/data/client-room';
-import { applyRoomMutation, getRoomSnapshot, RoomRepositoryError } from '@/lib/db/room-repository';
+import { applyRoomMutation, createRoom, getRoomSnapshot, listRooms, RoomRepositoryError } from '@/lib/db/room-repository';
 import { createSeededDatabase, PRODUCTS, type SeededDatabase, UNKNOWN_ID, VARIANTS } from '@/tests/seeded-database';
 
 let seeded: SeededDatabase;
@@ -184,5 +184,34 @@ describe('same frame sizes', () => {
 
   it('offers nothing for a piece that has its own size', () => {
     expect(addItem('workspace-a', PRODUCTS.elevate86).sameFrame).toBeNull();
+  });
+});
+
+describe('rooms the user creates', () => {
+  const mine = { name: 'Priya’s bedroom', lengthIn: 150, widthIn: 132, ceilingIn: null, status: 'stated' as const };
+
+  it('starts blank, lists alongside other created rooms, and keeps its own shortlist', () => {
+    const first = createRoom(db, 'workspace-a', mine);
+    const second = createRoom(db, 'workspace-a', { ...mine, name: 'Studio' });
+    expect(first.room).toMatchObject({ preset: 'custom', name: 'Priya’s bedroom', lengthIn: 150, widthIn: 132, clientMessage: '' });
+    expect(first.features).toEqual([]);
+    expect(listRooms(db, 'workspace-a').map((room) => room.name)).toEqual(['Priya’s bedroom', 'Studio']);
+    applyRoomMutation(db, 'workspace-a', { operation: 'addItem', productId: PRODUCTS.elevate86, variantId: null }, first.room.id);
+    expect(getRoomSnapshot(db, 'workspace-a', first.room.id).items).toHaveLength(1);
+    expect(getRoomSnapshot(db, 'workspace-a', second.room.id).items).toHaveLength(0);
+  });
+
+  it('adds and removes doors, windows and radiators', () => {
+    const { room } = createRoom(db, 'workspace-a', mine);
+    const patch = { wall: 'south' as const, offsetIn: 12, widthIn: 32, depthIn: null, heightIn: 80, sillIn: null, hinge: 'start' as const, swing: 'in' as const };
+    const added = applyRoomMutation(db, 'workspace-a', { operation: 'addFeature', kind: 'door', patch, status: 'confirmed' }, room.id);
+    expect(added.features).toEqual([expect.objectContaining({ kind: 'door', wall: 'south', widthIn: 32, status: 'confirmed', clientSaid: '' })]);
+    const removed = applyRoomMutation(db, 'workspace-a', { operation: 'removeFeature', featureId: added.features[0].id }, room.id);
+    expect(removed.features).toEqual([]);
+  });
+
+  it('never opens a room from another workspace', () => {
+    const { room } = createRoom(db, 'workspace-a', mine);
+    expect(() => getRoomSnapshot(db, 'workspace-b', room.id)).toThrow(RoomRepositoryError);
   });
 });

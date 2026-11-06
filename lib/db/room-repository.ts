@@ -1,7 +1,7 @@
 import { randomUUID } from 'node:crypto';
 import type Database from 'better-sqlite3';
 
-import { DEFAULT_ROOM_PRESET, type RoomPresetId, roomPreset } from '@/data/room-presets';
+import { DEFAULT_ROOM_PRESET, isRoomPresetId, type RoomPresetId, roomPreset } from '@/data/room-presets';
 import { getCatalogProductsByIds } from '@/lib/db/catalog-repository';
 import { ensureWorkspace } from '@/lib/db/library-repository';
 import { RepositoryError } from '@/lib/db/repository-error';
@@ -17,6 +17,8 @@ import type {
   RoomItem,
   RoomMutation,
   RoomSnapshot,
+  RoomSummary,
+  NewRoom,
   SameFrameSize,
   Rotation,
   Wall,
@@ -26,7 +28,8 @@ export type RoomRepositoryErrorCode =
   | 'PRODUCT_NOT_FOUND'
   | 'VARIANT_NOT_FOUND'
   | 'ITEM_NOT_FOUND'
-  | 'FEATURE_NOT_FOUND';
+  | 'FEATURE_NOT_FOUND'
+  | 'ROOM_NOT_FOUND';
 
 export class RoomRepositoryError extends RepositoryError<RoomRepositoryErrorCode> {
   readonly name = 'RoomRepositoryError';
@@ -34,7 +37,7 @@ export class RoomRepositoryError extends RepositoryError<RoomRepositoryErrorCode
 
 interface RoomRow {
   id: string;
-  preset: RoomPresetId;
+  preset: RoomPresetId | 'custom';
   name: string;
   length_in: number;
   width_in: number;
@@ -92,7 +95,30 @@ function createRoomFromPreset(db: Database.Database, workspaceId: string, preset
     VALUES (@id, @workspaceId, @preset, @name, @lengthIn, @widthIn, @ceilingIn, @dimensionsStatus, @clientMessage, @note)
   `).run({ id: roomId, workspaceId, preset, ...room });
 
-  const insertFeature = db.prepare(`
+  features.forEach((feature, position) => insertFeature(db, roomId, position, feature));
+  return roomId;
+}
+
+function featureFromRow(row: FeatureRow): RoomFeature {
+  return {
+    id: row.id,
+    kind: row.kind,
+    wall: row.wall,
+    offsetIn: row.offset_in,
+    widthIn: row.width_in,
+    depthIn: row.depth_in,
+    heightIn: row.height_in,
+    sillIn: row.sill_in,
+    hinge: row.hinge,
+    swing: row.swing,
+    status: row.status,
+    clientSaid: row.client_said,
+    assumption: row.assumption,
+  };
+}
+
+function insertFeature(db: Database.Database, roomId: string, position: number, feature: Omit<RoomFeature, 'id'>): void {
+  db.prepare(`
     INSERT INTO room_features (
       id, room_id, kind, wall, offset_in, width_in, depth_in, height_in, sill_in, hinge, swing,
       status, client_said, assumption, position
@@ -100,9 +126,7 @@ function createRoomFromPreset(db: Database.Database, workspaceId: string, preset
       @id, @roomId, @kind, @wall, @offsetIn, @widthIn, @depthIn, @heightIn, @sillIn, @hinge, @swing,
       @status, @clientSaid, @assumption, @position
     )
-  `);
-  features.forEach((feature, position) => insertFeature.run({ id: randomUUID(), roomId, position, ...feature }));
-  return roomId;
+  `).run({ id: randomUUID(), roomId, position, ...feature });
 }
 
 /** One room per workspace and preset, created from the preset's template on first visit. */
@@ -162,21 +186,7 @@ function readRoomSnapshot(db: Database.Database, workspaceId: string, roomId: st
     clientMessage: roomRow.client_message,
     note: roomRow.note,
   };
-  const features: RoomFeature[] = featureRows.map((row) => ({
-    id: row.id,
-    kind: row.kind,
-    wall: row.wall,
-    offsetIn: row.offset_in,
-    widthIn: row.width_in,
-    depthIn: row.depth_in,
-    heightIn: row.height_in,
-    sillIn: row.sill_in,
-    hinge: row.hinge,
-    swing: row.swing,
-    status: row.status,
-    clientSaid: row.client_said,
-    assumption: row.assumption,
-  }));
+  const features = featureRows.map(featureFromRow);
   const products = getCatalogProductsByIds(db, productIds);
   const byId = new Map(products.map((product) => [product.id, product]));
   const items: RoomItem[] = itemRows.map((row) => {
@@ -297,6 +307,15 @@ function applyMutation(db: Database.Database, workspaceId: string, roomId: strin
       );
       return;
     }
+    case 'addFeature': {
+      const { position } = db.prepare('SELECT COALESCE(MAX(position), -1) + 1 AS position FROM room_features WHERE room_id = ?').get(roomId) as { position: number };
+      insertFeature(db, roomId, position, { kind: mutation.kind, ...mutation.patch, status: mutation.status, clientSaid: '', assumption: '' });
+      return;
+    }
+    case 'removeFeature':
+      assertOwnedFeature(db, roomId, mutation.featureId);
+      db.prepare('DELETE FROM room_features WHERE id = ?').run(mutation.featureId);
+      return;
   }
 }
 
@@ -312,18 +331,52 @@ function clearDesignerDimensions(
   `).run(workspaceId, productId, variantId);
 }
 
-export function getRoomSnapshot(db: Database.Database, workspaceId: string, preset: RoomPresetId = DEFAULT_ROOM_PRESET): RoomSnapshot {
-  return db.transaction(() => readRoomSnapshot(db, workspaceId, ensureRoom(db, workspaceId, preset)))();
+/** A preset id finds or makes that preset's room; any other key must be a room this workspace created. */
+function resolveRoom(db: Database.Database, workspaceId: string, key: string): string {
+  if (isRoomPresetId(key)) return ensureRoom(db, workspaceId, key);
+  const owned = db.prepare("SELECT id FROM rooms WHERE id = ? AND workspace_id = ? AND preset = 'custom'").get(key, workspaceId) as { id: string } | undefined;
+  if (!owned) throw new RoomRepositoryError('That room was not found.', 404, 'ROOM_NOT_FOUND');
+  return owned.id;
+}
+
+/** `key` is a preset id or the id of a room the user created. */
+export function getRoomSnapshot(db: Database.Database, workspaceId: string, key: string = DEFAULT_ROOM_PRESET): RoomSnapshot {
+  return db.transaction(() => readRoomSnapshot(db, workspaceId, resolveRoom(db, workspaceId, key)))();
+}
+
+/** A blank room from the user's own numbers: no doors or windows until they add them. */
+export function createRoom(db: Database.Database, workspaceId: string, room: NewRoom): RoomSnapshot {
+  return db.transaction(() => {
+    ensureWorkspace(db, workspaceId);
+    const id = randomUUID();
+    db.prepare(`
+      INSERT INTO rooms (id, workspace_id, preset, name, length_in, width_in, ceiling_in, dimensions_status, client_message, note)
+      VALUES (?, ?, 'custom', ?, ?, ?, ?, ?, '', '')
+    `).run(id, workspaceId, room.name, room.lengthIn, room.widthIn, room.ceilingIn, room.status);
+    return readRoomSnapshot(db, workspaceId, id);
+  })();
+}
+
+/** Rooms this workspace created, oldest first, with features for their thumbnails. */
+export function listRooms(db: Database.Database, workspaceId: string): RoomSummary[] {
+  const rows = db.prepare("SELECT * FROM rooms WHERE workspace_id = ? AND preset = 'custom' ORDER BY rowid").all(workspaceId) as RoomRow[];
+  return rows.map((row) => ({
+    id: row.id,
+    name: row.name,
+    lengthIn: row.length_in,
+    widthIn: row.width_in,
+    features: (db.prepare('SELECT * FROM room_features WHERE room_id = ? ORDER BY position').all(row.id) as FeatureRow[]).map(featureFromRow),
+  }));
 }
 
 export function applyRoomMutation(
   db: Database.Database,
   workspaceId: string,
   mutation: RoomMutation,
-  preset: RoomPresetId = DEFAULT_ROOM_PRESET,
+  key: string = DEFAULT_ROOM_PRESET,
 ): RoomSnapshot {
   return db.transaction(() => {
-    const roomId = ensureRoom(db, workspaceId, preset);
+    const roomId = resolveRoom(db, workspaceId, key);
     applyMutation(db, workspaceId, roomId, mutation);
     return readRoomSnapshot(db, workspaceId, roomId);
   })();
