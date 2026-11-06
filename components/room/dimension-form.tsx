@@ -59,8 +59,8 @@ export function DimensionForm({ current, onSave, onCancel, onClear }: DimensionF
   return (
     <form onSubmit={submit} className="flex flex-col gap-4" aria-label="Enter size">
       <div className="flex flex-col gap-0.5">
-        <p className="text-sm font-semibold text-foreground">Your measurement</p>
-        <p className="text-xs text-muted-foreground">Saved as a designer entry, never mixed into brand or listing data.</p>
+        <p className="text-sm font-semibold text-foreground">Enter the real size</p>
+        <p className="text-xs text-muted-foreground">On the brand’s product page, look for “Dimensions”. Width is side to side, depth is front to back. Saved as your own entry.</p>
       </div>
       <div className="grid grid-cols-3 gap-2">
         {DIMENSION_FIELDS.map((field) => {
@@ -83,14 +83,14 @@ export function DimensionForm({ current, onSave, onCancel, onClear }: DimensionF
         })}
       </div>
       <label htmlFor={`${formId}-note`} className="flex flex-col gap-1.5">
-        <span className="text-xs text-muted-foreground">Where is it from?</span>
+        <span className="text-xs text-muted-foreground">Where did you find it? (optional)</span>
         <Input
           size="sm"
           id={`${formId}-note`}
           value={note}
           maxLength={280}
           onChange={(event) => setNote(event.target.value)}
-          placeholder="Spec sheet, showroom tape, vendor email"
+          placeholder="Brand website, measured in store"
         />
       </label>
       {error ? <p role="alert" className="text-xs text-destructive-strong">{error}</p> : null}

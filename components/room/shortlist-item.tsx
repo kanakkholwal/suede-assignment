@@ -77,7 +77,7 @@ export function ShortlistItem({ item, product, gaps, disabled, onRemove, onSelec
             {gaps.map((gap) => (
               <li key={gap.kind} title={gap.message} className="inline-flex items-center gap-1.5">
                 <span className={cn('size-1.5 rounded-full', gap.severity === 'blocker' ? 'bg-destructive' : 'bg-warning')} aria-hidden="true" />
-                {GAP_LABEL[gap.kind]}
+                {gap.label ?? GAP_LABEL[gap.kind]}
                 <span className="sr-only">: {gap.message}</span>
               </li>
             ))}

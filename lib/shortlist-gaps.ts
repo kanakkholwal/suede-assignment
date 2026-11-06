@@ -11,6 +11,8 @@ export interface Gap {
   kind: GapKind;
   severity: GapSeverity;
   message: string;
+  /** Short visible label when the kind alone would mislead, e.g. a known width. */
+  label?: string;
 }
 
 const FIELD_NAMES = { width: 'Width', depth: 'Depth', height: 'Height' } as const;
@@ -26,7 +28,8 @@ function sizeGap(item: RoomItem): Gap | null {
     return {
       kind: 'size-missing',
       severity: 'blocker',
-      message: `${missing.join(' and ')} not on file, so fit can’t be checked.`,
+      message: `${missing.join(' and ')} not on file. The plan can draw a typical size until you add it.`,
+      label: missing.length === 1 ? `${missing[0]} unknown` : 'Size unknown',
     };
   }
   if (confidence === 'synthetic') {

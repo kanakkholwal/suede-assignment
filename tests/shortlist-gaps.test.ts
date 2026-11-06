@@ -41,7 +41,8 @@ describe('itemGaps', () => {
       ['size-missing', 'blocker'],
       ['option', 'check'],
     ]);
-    expect(gaps[0].message).toBe('Width and Depth not on file, so fit can’t be checked.');
+    expect(gaps[0].message).toBe('Width and Depth not on file. The plan can draw a typical size until you add it.');
+    expect(gaps[0].label).toBe('Size unknown');
     expect(countGaps(gaps)).toEqual({ blocker: 1, check: 1 });
   });
 
