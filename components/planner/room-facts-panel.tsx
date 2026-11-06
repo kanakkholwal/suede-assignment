@@ -1,11 +1,11 @@
 'use client';
 
-import { Check, ChevronDown, Copy, DoorOpen, Heater, PanelsTopLeft, Pencil, type IconComponent } from '@/components/icons';
+import { Check, ChevronDown, DoorOpen, Heater, PanelsTopLeft, Pencil, type IconComponent } from '@/components/icons';
 import { type FormEvent, useId, useState } from 'react';
 
 import { FEATURE_LABEL, FeatureDialog, RoomSizePopover, type SaveRoom } from '@/components/planner/room-editors';
 import { MeasurementStatusBadge } from '@/components/room/measurement-status-badge';
-import { Button } from '@/components/ui/button';
+import { CopyButton } from '@/components/shared/copy-button';
 import { cn } from '@/lib/utils';
 import type { MeasurementStatus, Room, RoomFeature, RoomFeaturePatch, Wall } from '@/lib/room-state';
 import { WALLS } from '@/lib/room-state';
@@ -27,18 +27,7 @@ const LINK = 'inline-flex h-6 w-fit items-center gap-1.5 rounded-sm text-xs font
 /** What the client said, what we assumed from it, and the questions that would settle it. */
 export function RoomFactsPanel({ room, features, disabled, onUpdateRoom, onUpdateFeature }: RoomFactsPanelProps) {
   const [expanded, setExpanded] = useState<string | null>(null);
-  const [copied, setCopied] = useState(false);
   const questions = clientQuestions(room, features);
-
-  const copyQuestions = async () => {
-    try {
-      await navigator.clipboard.writeText(questions.map((question, index) => `${index + 1}. ${question}`).join('\n'));
-      setCopied(true);
-      window.setTimeout(() => setCopied(false), 1600);
-    } catch {
-      setCopied(false);
-    }
-  };
 
   return (
     <section aria-label="What we know about the room" className="flex flex-col gap-4">
@@ -116,10 +105,7 @@ export function RoomFactsPanel({ room, features, disabled, onUpdateRoom, onUpdat
         <div className="flex flex-col gap-2 rounded-lg bg-muted/50 p-3">
           <div className="flex items-center justify-between gap-2">
             <p className="text-xs font-medium text-foreground">Ask the client</p>
-            <Button size="xs" variant="ghost" onClick={copyQuestions} aria-live="polite">
-              {copied ? <Check className="pop" aria-hidden="true" /> : <Copy aria-hidden="true" />}
-              {copied ? 'Copied' : 'Copy'}
-            </Button>
+            <CopyButton size="xs" label="Copy" text={questions.map((question, index) => `${index + 1}. ${question}`).join('\n')} />
           </div>
           <ol className="flex list-decimal flex-col gap-1.5 pl-4 text-xs leading-relaxed text-muted-foreground marker:text-foreground">
             {questions.map((question) => <li key={question}>{question}</li>)}
