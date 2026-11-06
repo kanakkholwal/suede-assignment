@@ -18,3 +18,6 @@ export function usePlan(snapshot: RoomSnapshot | null, overrides: Record<string,
 
 /** Warnings that need a decision; tips are advice. */
 export const countProblems = (warnings: readonly FitWarning[]): number => warnings.filter((warning) => warning.severity !== 'tip').length;
+
+/** Pieces drawn at a typical size because their own is unknown; fine to plan with, not to send. */
+export const countTypical = (pieces: readonly PlanPiece[]): number => pieces.filter((piece) => piece.footprintSource === 'typical').length;

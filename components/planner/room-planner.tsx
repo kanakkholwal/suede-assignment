@@ -24,14 +24,14 @@ import { roomPreset } from '@/data/room-presets';
 import type { DimensionValues } from '@/lib/dimensions';
 import { frontSide, wallLength } from '@/lib/geometry';
 import { pieceKind } from '@/lib/piece-kind';
-import { defaultPlacement, type Placement, type PlanPiece, rotateClockwise, snapPlacement } from '@/lib/plan-model';
+import { defaultPlacement, footprintOf, type Placement, type PlanPiece, rotateClockwise, snapPlacement } from '@/lib/plan-model';
 import type { RoomItem, Wall } from '@/lib/room-state';
 import { WALLS } from '@/lib/room-state';
 import { plural } from '@/lib/format';
 import { formatFeetInches } from '@/lib/units';
 import { type InspectorTab, type PlannerView, usePlannerUrlState, useRoomHref, useRoomPreset } from '@/lib/url-state';
 import { countOpenFacts, STATUS_WORD } from '@/lib/room-certainty';
-import { countProblems, usePlan } from '@/lib/use-plan';
+import { countProblems, countTypical, usePlan } from '@/lib/use-plan';
 
 const VIEWS: readonly SegmentOption<PlannerView>[] = [
   { value: 'plan', label: 'Plan', icon: MapIcon },
@@ -99,16 +99,16 @@ export function RoomPlanner() {
   const sizeStatus = details.dimensionsStatus === 'confirmed' ? 'measured' : STATUS_WORD[details.dimensionsStatus];
   const activeTab: InspectorTab = tab ?? (pieces.length ? 'fit' : 'pieces');
   const unplaced = snapshot.items.length - pieces.length;
-  const ready = pieces.length > 0 && unplaced === 0 && problems === 0;
+  const typical = countTypical(pieces);
+  const ready = pieces.length > 0 && unplaced === 0 && problems === 0 && typical === 0;
   const hint =
     view === 'plan'
       ? `${formatFeetInches(details.lengthIn)} × ${formatFeetInches(details.widthIn)} ${sizeStatus} · dashed means position assumed`
       : `${formatFeetInches(wallLength(details, elevationWall))} wide · ${details.ceilingIn ? formatFeetInches(details.ceilingIn) : 'unknown'} ceiling, ${sizeStatus} · seen from inside`;
 
   const place = (item: RoomItem, product: CatalogProduct) => {
-    const width = item.dimensions.width.value as number;
-    const depth = item.dimensions.depth.value as number;
-    commit(item.id, snapPlacement(details, defaultPlacement(details, pieceKind(product), width, depth), width, depth));
+    const { widthIn, depthIn } = footprintOf(item, product);
+    commit(item.id, snapPlacement(details, defaultPlacement(details, pieceKind(product), widthIn, depthIn), widthIn, depthIn));
     void setUrl({ piece: item.id, tab: 'pieces' });
   };
 
@@ -210,6 +210,11 @@ export function RoomPlanner() {
                   <p className="text-xs text-foreground">{plural(unplaced, 'piece')} not on the plan yet.</p>
                   <Button size="xs" variant="outline" onClick={() => setTab('pieces')}>Go to pieces</Button>
                 </div>
+              ) : typical ? (
+                <div className="flex items-center justify-between gap-3 rounded-lg bg-muted/60 py-2 pr-2 pl-3">
+                  <p className="text-xs text-foreground">{plural(typical, 'piece')} drawn at a typical size. Enter real sizes before sending.</p>
+                  <Button size="xs" variant="outline" onClick={() => setTab('pieces')}>Go to pieces</Button>
+                </div>
               ) : ready ? (
                 <div className="flex items-center justify-between gap-3 rounded-lg bg-muted/60 py-2 pr-2 pl-3">
                   <p className="text-xs text-foreground">Everything is placed. Next, the client sheet.</p>
@@ -228,6 +233,7 @@ export function RoomPlanner() {
                 disabled={false}
                 onSelect={setSelectedId}
                 onPlace={place}
+                onSelectVariant={(item, variantId) => void room.selectVariant(item.id, variantId)}
                 onSaveDimensions={saveDimensions}
               />
             </TabsContent>

@@ -77,3 +77,14 @@ it('opens the view and wall named in the URL', async () => {
   expect(await screen.findByRole('img', { name: /^south wall seen from inside/ })).toBeVisible();
   expect(screen.getByRole('button', { name: 'south wall' })).toHaveAttribute('aria-pressed', 'true');
 });
+
+it('places a piece with no size at a typical size, drawn as an estimate the fit check names', async () => {
+  const base = roomFixture();
+  mockApi({ room: { ...base, products: [armchair], items: [{ id: 'chair', productId: armchair.id, variantId: null, xIn: null, yIn: null, rotationDeg: 0, dimensions: resolveDimensions([], null) }] } });
+  render(<RoomPage />, { wrapper: ({ children }) => <AppProviders searchParams="?tab=pieces">{children}</AppProviders> });
+
+  expect(await screen.findByText('Size unknown')).toBeVisible();
+  expect(screen.getByText(/Draws a typical armchair, 32″ × 34″, dashed until you enter its real size\./)).toBeVisible();
+  expect(screen.getByRole('button', { name: /Place at typical size/ })).toBeEnabled();
+  expect(screen.getByRole('button', { name: /Enter size/ })).toBeEnabled();
+});

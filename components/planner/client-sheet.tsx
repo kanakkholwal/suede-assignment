@@ -13,7 +13,7 @@ import { plural } from '@/lib/format';
 import { formatFeetInches } from '@/lib/units';
 import { useRoomHref } from '@/lib/url-state';
 import { clientQuestions, tapeOutSteps, tapeOutText } from '@/lib/tape-out';
-import { countProblems, usePlan } from '@/lib/use-plan';
+import { countProblems, countTypical, usePlan } from '@/lib/use-plan';
 
 interface OpenItem {
   text: string;
@@ -58,9 +58,11 @@ export function ClientSheet() {
   const { room: details, features } = snapshot;
   const problems = countProblems(warnings);
   const unplaced = snapshot.items.length - pieces.length;
+  const typical = countTypical(pieces);
   const blocking: OpenItem[] = [
     ...(problems ? [{ text: plural(problems, 'fit problem'), tab: 'fit' as const }] : []),
     ...(unplaced ? [{ text: `${plural(unplaced, 'piece')} not on the plan`, tab: 'pieces' as const }] : []),
+    ...(typical ? [{ text: `${plural(typical, 'piece')} at a typical size`, tab: 'pieces' as const }] : []),
   ];
   const steps = tapeOutSteps(details, pieces);
   const questions = clientQuestions(details, features);
