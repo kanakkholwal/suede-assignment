@@ -7,7 +7,8 @@ import { ensureWorkspace } from '@/lib/db/library-repository';
 import { RepositoryError } from '@/lib/db/repository-error';
 import { placeholders } from '@/lib/db/sql';
 import { getDimensionRecords } from '@/lib/db/dimension-repository';
-import { type DimensionRecord, resolveDimensions } from '@/lib/dimensions';
+import { type DimensionRecord, type DimensionSource, DIMENSION_SOURCE_RANK, footprintConfidence, hasFootprint, resolveDimensions } from '@/lib/dimensions';
+import { shortName } from '@/lib/plan-model';
 import type {
   MeasurementStatus,
   Room,
@@ -16,6 +17,7 @@ import type {
   RoomItem,
   RoomMutation,
   RoomSnapshot,
+  SameFrameSize,
   Rotation,
   Wall,
 } from '@/lib/room-state';
@@ -112,6 +114,28 @@ function ensureRoom(db: Database.Database, workspaceId: string, preset: RoomPres
   return existing?.id ?? createRoomFromPreset(db, workspaceId, preset);
 }
 
+/** The best-sourced size of the same frame from the same brand in another finish, for a piece with none. */
+function sameFrameSize(db: Database.Database, workspaceId: string, product: { id: string; name: string; brand: string }): SameFrameSize | null {
+  const frame = shortName(product);
+  const siblings = (db.prepare('SELECT id, name FROM products WHERE brand = ? AND id != ?').all(product.brand, product.id) as Array<{ id: string; name: string }>)
+    .filter((sibling) => shortName(sibling) === frame);
+  if (!siblings.length) return null;
+  const records = getDimensionRecords(db, siblings.map((sibling) => sibling.id), workspaceId);
+  const sized = siblings
+    .map((sibling) => ({ sibling, dimensions: resolveDimensions(records.filter((record) => record.productId === sibling.id), null) }))
+    .filter(({ dimensions }) => hasFootprint(dimensions) && footprintConfidence(dimensions) !== 'synthetic')
+    .sort((left, right) => DIMENSION_SOURCE_RANK[footprintConfidence(right.dimensions) as DimensionSource] - DIMENSION_SOURCE_RANK[footprintConfidence(left.dimensions) as DimensionSource]);
+  const best = sized[0];
+  if (!best) return null;
+  const { width, depth, height } = best.dimensions;
+  return {
+    productId: best.sibling.id,
+    name: best.sibling.name,
+    values: { width: width.value, depth: depth.value, height: height.value },
+    source: footprintConfidence(best.dimensions) as DimensionSource,
+  };
+}
+
 function readRoomSnapshot(db: Database.Database, workspaceId: string, roomId: string): RoomSnapshot {
   const roomRow = db.prepare('SELECT * FROM rooms WHERE id = ?').get(roomId) as RoomRow;
   const featureRows = db
@@ -153,17 +177,24 @@ function readRoomSnapshot(db: Database.Database, workspaceId: string, roomId: st
     clientSaid: row.client_said,
     assumption: row.assumption,
   }));
-  const items: RoomItem[] = itemRows.map((row) => ({
-    id: row.id,
-    productId: row.product_id,
-    variantId: row.variant_id,
-    xIn: row.x_in,
-    yIn: row.y_in,
-    rotationDeg: row.rotation_deg,
-    dimensions: resolveDimensions(recordsByProduct.get(row.product_id) ?? [], row.variant_id),
-  }));
+  const products = getCatalogProductsByIds(db, productIds);
+  const byId = new Map(products.map((product) => [product.id, product]));
+  const items: RoomItem[] = itemRows.map((row) => {
+    const dimensions = resolveDimensions(recordsByProduct.get(row.product_id) ?? [], row.variant_id);
+    const product = byId.get(row.product_id);
+    return {
+      id: row.id,
+      productId: row.product_id,
+      variantId: row.variant_id,
+      xIn: row.x_in,
+      yIn: row.y_in,
+      rotationDeg: row.rotation_deg,
+      dimensions,
+      sameFrame: !hasFootprint(dimensions) && product ? sameFrameSize(db, workspaceId, product) : null,
+    };
+  });
 
-  return { room, features, items, products: getCatalogProductsByIds(db, productIds) };
+  return { room, features, items, products };
 }
 
 function assertProductAndVariant(db: Database.Database, productId: string, variantId: string | null): void {

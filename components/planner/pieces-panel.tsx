@@ -1,6 +1,6 @@
 'use client';
 
-import { MoveDown, Ruler } from '@/components/icons';
+import { Copy, MoveDown, Ruler } from '@/components/icons';
 import Image from 'next/image';
 import Link from 'next/link';
 
@@ -8,9 +8,9 @@ import { OptionPicker } from '@/components/room/option-picker';
 import { SizeEditor } from '@/components/room/size-editor';
 import { Button, button } from '@/components/ui/button';
 import type { CatalogProduct } from '@/data/product-types';
-import { type DimensionValues, hasFootprint, type ResolvedDimensions } from '@/lib/dimensions';
+import { DIMENSION_SOURCE_LABEL, type DimensionValues, hasFootprint, type ResolvedDimensions } from '@/lib/dimensions';
 import { pieceKind } from '@/lib/piece-kind';
-import { footprintOf, type PlanPiece, shortName } from '@/lib/plan-model';
+import { finishName, footprintOf, type PlanPiece, shortName } from '@/lib/plan-model';
 import type { RoomItem } from '@/lib/room-state';
 import { typicalLabel } from '@/lib/typical-size';
 import { formatDimensionTriple, formatInches } from '@/lib/units';
@@ -70,6 +70,7 @@ export function PiecesPanel({ items, products, pieces, selectedId, disabled, onS
         const drawn = footprintOf(item, product);
         const kind = typicalLabel(pieceKind(product));
         const needsOption = !item.variantId && product.variants.length > 1;
+        const sameFrame = sized ? null : item.sameFrame;
         return (
           <li key={item.id} className={cn('enter flex flex-col gap-2 rounded-lg p-1.5 transition-colors duration-(--duration-fast)', selected ? 'bg-primary/7' : piece && 'hover:bg-foreground/4')}>
             <div className="flex items-center gap-2.5">
@@ -95,8 +96,18 @@ export function PiecesPanel({ items, products, pieces, selectedId, disabled, onS
               <div className="flex flex-col gap-1.5 pl-12.5">
                 <div className="flex flex-wrap items-center gap-1.5">
                   {needsOption ? <OptionPicker product={product} value={item.variantId} disabled={disabled} onChange={(variantId) => onSelectVariant(item, variantId)} /> : null}
+                  {sameFrame ? (
+                    <Button
+                      size="xs"
+                      variant="default"
+                      disabled={disabled}
+                      onClick={() => void onSaveDimensions(item, sameFrame.values, `Same frame as ${sameFrame.name} (${DIMENSION_SOURCE_LABEL[sameFrame.source].toLowerCase()})`)}
+                    >
+                      <Copy aria-hidden="true" /> Use the {finishName(sameFrame.name)} size
+                    </Button>
+                  ) : null}
                   {piece ? null : (
-                    <Button size="xs" variant="default" disabled={disabled} onClick={() => onPlace(item, product)}>
+                    <Button size="xs" variant={sameFrame ? 'outline' : 'default'} disabled={disabled} onClick={() => onPlace(item, product)}>
                       <MoveDown aria-hidden="true" /> Place at typical size
                     </Button>
                   )}
@@ -110,6 +121,7 @@ export function PiecesPanel({ items, products, pieces, selectedId, disabled, onS
                   </SizeEditor>
                 </div>
                 <p className="text-xs text-muted-foreground">
+                  {sameFrame ? `Same frame in ${finishName(sameFrame.name)}: ${formatDimensionTriple(sameFrame.values.width, sameFrame.values.depth, sameFrame.values.height)}, ${DIMENSION_SOURCE_LABEL[sameFrame.source].toLowerCase()}. ` : ''}
                   {piece
                     ? 'Dashed until you enter its real size.'
                     : `Draws ${kind}, ${formatInches(drawn.widthIn)} × ${formatInches(drawn.depthIn)}, dashed until you enter its real size.`}

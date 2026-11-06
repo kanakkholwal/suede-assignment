@@ -1,6 +1,6 @@
 import type { CatalogProduct } from '@/data/product-types';
 import type { RoomPresetId } from '@/data/room-presets';
-import type { DimensionValues, ResolvedDimensions } from '@/lib/dimensions';
+import type { DimensionSource, DimensionValues, ResolvedDimensions } from '@/lib/dimensions';
 
 export type MeasurementStatus = 'stated' | 'assumed' | 'confirmed';
 export type Wall = 'north' | 'east' | 'south' | 'west';
@@ -53,6 +53,15 @@ export interface RoomItem {
   yIn: number | null;
   rotationDeg: Rotation;
   dimensions: ResolvedDimensions;
+  /** Set only when this piece has no size: the same frame from the same brand in another finish that does. */
+  sameFrame?: SameFrameSize | null;
+}
+
+export interface SameFrameSize {
+  productId: string;
+  name: string;
+  values: DimensionValues;
+  source: DimensionSource;
 }
 
 export interface RoomSnapshot {

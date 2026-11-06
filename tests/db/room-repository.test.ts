@@ -168,3 +168,21 @@ describe('Room repository', () => {
     );
   });
 });
+
+describe('same frame sizes', () => {
+  it('offers the verified size of the same frame in another finish when a piece has none', () => {
+    const velvet = db.prepare("SELECT id FROM products WHERE name = 'The Bacana Armchair in Recycled Velvet'").get() as { id: string };
+    const item = addItem('workspace-a', velvet.id);
+    expect(item.dimensions.width.value).toBeNull();
+    expect(item.sameFrame).toEqual({
+      productId: expect.any(String),
+      name: 'The Bacana Armchair in Hemp',
+      values: { width: 37, depth: 30.25, height: 30.5 },
+      source: 'verified',
+    });
+  });
+
+  it('offers nothing for a piece that has its own size', () => {
+    expect(addItem('workspace-a', PRODUCTS.elevate86).sameFrame).toBeNull();
+  });
+});

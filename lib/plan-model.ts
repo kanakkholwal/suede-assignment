@@ -23,6 +23,11 @@ export interface PlanPiece extends PlannedPiece {
 export const SNAP_STEP_IN = 0.5;
 export const WALL_SNAP_IN = 3;
 
+/** The finish part of a name, the part `shortName` drops: `Hemp` from "The Bacana Armchair in Hemp". */
+export function finishName(name: string): string {
+  return name.match(/\s+in\s+(.+)$/i)?.[1] ?? name.match(/\s+-\s+(.+)$/)?.[1] ?? name;
+}
+
 export function shortName(product: Pick<CatalogProduct, 'name'>): string {
   return product.name.replace(/^The\s+/i, '').replace(/\s+in\s+.+$/i, '').replace(/\s+-\s+.+$/, '');
 }
