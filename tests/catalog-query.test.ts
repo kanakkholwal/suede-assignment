@@ -11,6 +11,7 @@ import {
   emptyCatalogFilters,
   parseCatalogFilters,
 } from '@/lib/catalog-contract';
+import { BRIEF_EXAMPLES, parseBrief } from '@/lib/brief';
 import { getCatalogPage } from '@/lib/db/catalog-repository';
 import { seedInterviewDatabase } from '@/lib/db/seed';
 
@@ -119,5 +120,15 @@ describe('SQL catalog query matching', () => {
       '66e01baf-98bf-4cba-957f-74d770d21705',
       'bfc49fab-7502-46d0-87d5-74a9aa5e1b87',
     ]);
+  });
+});
+
+describe('suggested briefs', () => {
+  it.each(BRIEF_EXAMPLES)('"%s" finds pieces with a size on file', (example) => {
+    const all = getCatalogPage(db, emptyCatalogFilters);
+    const { filters } = parseBrief(example, { categories: all.categoryTree, brands: all.brands });
+    const page = getCatalogPage(db, filters);
+    expect(page.products.length).toBeGreaterThan(0);
+    expect(page.products.some((product) => page.dimensions[product.id]?.width)).toBe(true);
   });
 });

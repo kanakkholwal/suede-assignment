@@ -3,15 +3,10 @@
 import { type FormEvent, type KeyboardEvent, type ReactNode, useId, useState } from 'react';
 
 import { ArrowUp, CircleHelp, Sparkles, X } from '@/components/icons';
-import { type BriefVocabulary, describeFilters, type FilterChipKey, parseBrief, type ParsedBrief } from '@/lib/brief';
+import { BRIEF_EXAMPLES, type BriefVocabulary, describeFilters, type FilterChipKey, parseBrief, type ParsedBrief } from '@/lib/brief';
 import type { CatalogFilters } from '@/lib/catalog-contract';
 import { cn } from '@/lib/utils';
 
-const EXAMPLES = [
-  'Warm, durable family-room sofa under $6k, 84 to 96 inches, in stock',
-  'Oak coffee table up to 50 in',
-  'Armchair $1k-2k',
-];
 
 interface BriefBarProps {
   filters: CatalogFilters;
@@ -68,7 +63,7 @@ export function BriefBar({ filters, softTerms, brief, vocabulary, onApply, onRem
   const inputId = useId();
   const hintId = useId();
   const chips = describeFilters(filters, vocabulary.categories);
-  const idle = chips.length === 0 && softTerms.length === 0;
+  const suggest = !text.trim() || (chips.length === 0 && softTerms.length === 0);
 
   const apply = (value: string) => {
     if (!value.trim()) return;
@@ -115,9 +110,9 @@ export function BriefBar({ filters, softTerms, brief, vocabulary, onApply, onRem
 
         <div className="flex items-end gap-3">
           <div className="flex min-w-0 flex-1 flex-col gap-2" aria-live="polite">
-            {idle ? (
+            {suggest ? (
               <Row label="Try">
-                {EXAMPLES.map((example) => (
+                {BRIEF_EXAMPLES.map((example) => (
                   <button
                     key={example}
                     type="button"
@@ -128,7 +123,8 @@ export function BriefBar({ filters, softTerms, brief, vocabulary, onApply, onRem
                   </button>
                 ))}
               </Row>
-            ) : (
+            ) : null}
+            {text.trim() || chips.length ? (
               <>
                 {chips.length ? (
                   <Row label="Searching for">
@@ -154,7 +150,7 @@ export function BriefBar({ filters, softTerms, brief, vocabulary, onApply, onRem
                   </Row>
                 ) : null}
               </>
-            )}
+            ) : null}
           </div>
           <button
             type="submit"

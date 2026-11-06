@@ -2,6 +2,13 @@ import { type CatalogCategoryNode, type CatalogFilters, emptyCatalogFilters } fr
 import { formatPrice } from '@/lib/format';
 import { formatInches, INCHES_PER_FOOT } from '@/lib/units';
 
+/** Suggested briefs; each must find pieces in the seeded catalog (see catalog-query tests). */
+export const BRIEF_EXAMPLES = [
+  'Warm, durable family-room sofa under $6k, 84 to 96 inches, in stock',
+  'Coffee table 50 to 60 in',
+  'Armchair $1k-2k',
+] as const;
+
 export interface BriefVocabulary {
   categories: readonly CatalogCategoryNode[];
   brands: readonly string[];
