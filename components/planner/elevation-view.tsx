@@ -12,6 +12,8 @@ const PERSON_IN = 66;
 const UNKNOWN_HEIGHT_IN = 30;
 const PAD_IN = 18;
 const DEFAULT_CEILING_IN = 96;
+const LABEL_SIZE = 3.2;
+const CHAR_EM = 0.56;
 
 /** Where a plan rect lands on the wall, read left to right while facing that wall from inside. */
 function along(room: Room, wall: Wall, rect: Rect): [number, number] {
@@ -38,16 +40,22 @@ function featureSpan(room: Room, wall: Wall, feature: RoomFeature): [number, num
   return [start, start + feature.widthIn];
 }
 
+function FixtureLabel({ x, y, children }: { x: number; y: number; children: string }) {
+  return <text x={x} y={y} textAnchor="middle" fontSize={2.8} fill="var(--plan-label)">{children}</text>;
+}
+
 /** A simple standing figure, feet at the floor, `PERSON_IN` tall. */
 function Person({ x, floor }: { x: number; floor: number }) {
   const top = floor - PERSON_IN;
   return (
-    <g aria-hidden="true" fill="var(--primary)" opacity={0.55}>
-      <circle cx={x} cy={top + 4.5} r={4.5} />
-      <rect x={x - 6.5} y={top + 10} width={13} height={26} rx={5} />
-      <rect x={x - 5.5} y={top + 33} width={4.6} height={33} rx={2.2} />
-      <rect x={x + 0.9} y={top + 33} width={4.6} height={33} rx={2.2} />
-      <text x={x} y={floor + 7} textAnchor="middle" fontSize={3.6} fill="var(--plan-label)" opacity={1 / 0.55}>5′ 6″ person</text>
+    <g aria-hidden="true">
+      <g fill="var(--primary)" opacity={0.55}>
+        <circle cx={x} cy={top + 4.5} r={4.5} />
+        <rect x={x - 6.5} y={top + 10} width={13} height={26} rx={5} />
+        <rect x={x - 5.5} y={top + 33} width={4.6} height={33} rx={2.2} />
+        <rect x={x + 0.9} y={top + 33} width={4.6} height={33} rx={2.2} />
+      </g>
+      <text x={x} y={floor + 7} textAnchor="middle" fontSize={3.6} fill="var(--plan-label)">5′ 6″ person</text>
     </g>
   );
 }
@@ -107,19 +115,25 @@ export function ElevationView({ room, features, pieces, wall, selectedId, fill =
           return (
             <g key={feature.id} aria-hidden="true">
               <rect x={start} y={floor - sill - height} width={end - start} height={height} fill="var(--plan-glass)" stroke="var(--plan-glass-line)" strokeWidth={0.6} strokeDasharray={dashed} />
-              <text x={(start + end) / 2} y={floor - sill + 4} textAnchor="middle" fontSize={2.8} fill="var(--plan-glass-line)">sill {formatInches(sill)}</text>
+              <text x={(start + end) / 2} y={floor - sill + 4} textAnchor="middle" fontSize={2.8} fill="var(--plan-label)">sill {formatInches(sill)}</text>
             </g>
           );
         }
         if (feature.kind === 'radiator') {
           const height = feature.heightIn ?? 24;
           return (
-            <rect key={feature.id} x={start} y={floor - height} width={end - start} height={height} fill="var(--plan-fixture)" stroke="var(--plan-label)" strokeWidth={0.5} strokeDasharray={dashed} aria-hidden="true" />
+            <g key={feature.id} aria-hidden="true">
+              <rect x={start} y={floor - height} width={end - start} height={height} fill="var(--plan-fixture)" stroke="var(--plan-label)" strokeWidth={0.5} strokeDasharray={dashed} />
+              <FixtureLabel x={(start + end) / 2} y={floor - height + 4.5}>Radiator</FixtureLabel>
+            </g>
           );
         }
         const height = feature.heightIn ?? 80;
         return (
-          <rect key={feature.id} x={start} y={floor - height} width={end - start} height={height} fill="var(--plan-fixture)" stroke="var(--plan-label)" strokeWidth={0.6} strokeDasharray={dashed} aria-hidden="true" />
+          <g key={feature.id} aria-hidden="true">
+            <rect x={start} y={floor - height} width={end - start} height={height} fill="var(--plan-fixture)" stroke="var(--plan-label)" strokeWidth={0.6} strokeDasharray={dashed} />
+            <FixtureLabel x={(start + end) / 2} y={floor - height + 5}>Door</FixtureLabel>
+          </g>
         );
       })}
 
@@ -134,8 +148,9 @@ export function ElevationView({ room, features, pieces, wall, selectedId, fill =
         if (piece.kind === 'rug') {
           return <rect key={piece.id} x={start} y={floor - 0.8} width={end - start} height={0.8} fill="var(--piece-firm)" aria-hidden="true" />;
         }
+        const inside = height >= 14 && label.length * LABEL_SIZE * CHAR_EM <= end - start - 3;
         return (
-          <g key={piece.id} aria-hidden="true" opacity={0.35 + nearness * 0.65}>
+          <g key={piece.id} aria-hidden="true">
             <rect
               x={start}
               y={floor - height}
@@ -143,17 +158,21 @@ export function ElevationView({ room, features, pieces, wall, selectedId, fill =
               height={height}
               rx={1.2}
               fill={selected ? 'var(--piece-selected)' : 'var(--piece)'}
+              fillOpacity={selected ? 1 : 0.35 + nearness * 0.65}
               stroke={selected ? 'var(--primary)' : 'var(--plan-ink)'}
               strokeWidth={selected ? 1 : 0.5}
               strokeDasharray={known ? undefined : '2.5 1.5'}
             />
             <text
-              x={(start + end) / 2}
-              y={height >= 14 ? floor - height + 5 : floor - height - 2.2}
+              x={Math.min(Math.max((start + end) / 2, label.length * LABEL_SIZE * CHAR_EM * 0.5), length - label.length * LABEL_SIZE * CHAR_EM * 0.5)}
+              y={inside ? floor - height + 5 : floor - height - 2.2}
               textAnchor="middle"
-              fontSize={Math.min(3.2, (end - start - 3) / (label.length * 0.56))}
+              fontSize={LABEL_SIZE}
               fill="var(--foreground)"
               fontWeight={600}
+              stroke={inside ? undefined : 'var(--plan-floor)'}
+              strokeWidth={inside ? undefined : 1.2}
+              paintOrder="stroke"
             >
               {label}
             </text>
