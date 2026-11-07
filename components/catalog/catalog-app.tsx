@@ -6,7 +6,7 @@ import { useCallback, useMemo, useRef, useState } from 'react';
 import { BriefBar } from '@/components/catalog/brief-bar';
 import type { LibraryActions } from '@/components/catalog/catalog-card';
 import { CatalogDetailDialog } from '@/components/catalog/catalog-detail-dialog';
-import { activeFilterCount, CatalogFilterRail, CatalogSearch } from '@/components/catalog/catalog-filter-rail';
+import { activeFilterCount, CatalogFilterRail } from '@/components/catalog/catalog-filter-rail';
 import { CatalogGrid } from '@/components/catalog/catalog-grid';
 import { CatalogVariantGrid } from '@/components/catalog/catalog-variant-grid';
 import { CatalogViewToggle, type CatalogView } from '@/components/catalog/catalog-view-toggle';
@@ -145,7 +145,6 @@ export function CatalogApp() {
             <p className="truncate text-xs tabular-nums text-muted-foreground" aria-live="polite">{meta}</p>
           </div>
           <div className="flex w-full items-center gap-1.5 sm:w-auto">
-            <CatalogSearch value={filters.query} onChange={(query) => setFilters((current) => ({ ...current, query }))} />
             <button ref={filterTriggerRef} type="button" onClick={() => setFiltersOpen(true)} className={button({ variant: 'outline', size: 'sm' })}>
               <SlidersHorizontal aria-hidden="true" /> Filters
               {filterCount ? <span aria-hidden="true" className="pop grid size-4 place-items-center rounded-full bg-foreground text-xs text-background tabular-nums">{filterCount}</span> : null}
@@ -225,7 +224,7 @@ export function CatalogApp() {
         returnFocusRef={filterTriggerRef}
         footer={
           <div className="flex items-center gap-2">
-            {filterCount || filters.query ? (
+            {filterCount ? (
               <Button variant="ghost" onClick={() => setFilters(emptyCatalogFilters)}>
                 <RotateCcw aria-hidden="true" /> Clear all
               </Button>

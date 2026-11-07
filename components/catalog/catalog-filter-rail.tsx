@@ -19,7 +19,7 @@ interface CatalogFilterRailProps {
 
 /** Rail filters in effect; search and the brief's width live elsewhere. */
 export function activeFilterCount(filters: CatalogFilters): number {
-  return [filters.category !== null, filters.brands.length > 0, filters.minPriceCents !== null || filters.maxPriceCents !== null, filters.inStockOnly].filter(Boolean).length;
+  return [filters.query.trim() !== '', filters.category !== null, filters.brands.length > 0, filters.minPriceCents !== null || filters.maxPriceCents !== null, filters.inStockOnly].filter(Boolean).length;
 }
 
 function parsePrice(value: string): number | null {
@@ -87,6 +87,9 @@ const ROW = 'flex h-9 items-center rounded-lg px-2 transition-colors duration-(-
 export function CatalogFilterRail({ filters, brands, categoryTree, onChange }: CatalogFilterRailProps) {
   return (
     <div className="flex w-full flex-col" role="group" aria-label="Catalog filters">
+      <Section title="Name, brand or tag" summary={filters.query.trim() ? `“${filters.query.trim()}”` : null} defaultOpen>
+        <CatalogSearch value={filters.query} onChange={(query) => onChange({ ...filters, query })} />
+      </Section>
       <Section title="Category" summary={filters.category === null ? null : findName(categoryTree, filters.category)} defaultOpen>
         <CatalogCategoryTree nodes={categoryTree} selected={filters.category} onSelect={(category) => onChange({ ...filters, category })} />
       </Section>
@@ -138,12 +141,12 @@ function PriceField({ id, label, placeholder, value, onChange }: { id: string; l
   );
 }
 
-export function CatalogSearch({ value, onChange }: { value: string; onChange: (value: string) => void }) {
+function CatalogSearch({ value, onChange }: { value: string; onChange: (value: string) => void }) {
   return (
-    <div className="relative w-full sm:w-56">
+    <div className="relative w-full">
       <label htmlFor="catalog-search" className="sr-only">Search</label>
       <Search className="pointer-events-none absolute top-1/2 left-2.5 size-3.5 -translate-y-1/2 text-muted-foreground" aria-hidden="true" />
-      <Input id="catalog-search" type="search" size="sm" value={value} placeholder="Search titles, brands, tags" onChange={(event) => onChange(event.target.value)} className="w-full pl-8" />
+      <Input id="catalog-search" type="search" size="sm" value={value} placeholder="Exact words, e.g. Kyoto or linen" onChange={(event) => onChange(event.target.value)} className="w-full pl-8" />
     </div>
   );
 }

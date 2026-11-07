@@ -16,6 +16,14 @@ async function renderCatalog() {
   await screen.findByRole('button', { name: `View ${LINEN_BOX_QUILT}` });
 }
 
+/** Exact-text search lives in the Filters sheet: open it, type, close it. */
+async function searchCatalog(text: string) {
+  fireEvent.click(screen.getByRole('button', { name: 'Filters' }));
+  fireEvent.change(await screen.findByRole('searchbox', { name: 'Search' }), { target: { value: text } });
+  fireEvent.click(screen.getByRole('button', { name: 'Close filters' }));
+  await waitFor(() => expect(screen.queryByRole('searchbox', { name: 'Search' })).not.toBeInTheDocument());
+}
+
 it('requests compact product results and requests variant references only in variant view', async () => {
   const fetchMock = mockApi();
   await renderCatalog();
@@ -52,7 +60,7 @@ it('loads variant references before rendering and skips references with inconsis
 it('loads Catalog through the API and sends literal search text immediately', async () => {
   const fetchMock = mockApi();
   await renderCatalog();
-  fireEvent.change(screen.getByRole('searchbox', { name: 'Search' }), { target: { value: 'Linen Box Quilt' } });
+  await searchCatalog('Linen Box Quilt');
   await waitFor(() => expect(fetchMock).toHaveBeenCalledWith('/api/catalog?query=Linen+Box+Quilt', expect.objectContaining({ signal: expect.any(AbortSignal) })));
   expect(await screen.findByText(LINEN_BOX_QUILT)).toBeVisible();
 });
@@ -83,7 +91,7 @@ it('cancels stale Catalog requests so a late response cannot replace current res
     return Response.json(catalogFixture([armchair]));
   } });
   render(<CatalogPage />, { wrapper: AppProviders });
-  fireEvent.change(screen.getByRole('searchbox', { name: 'Search' }), { target: { value: ANTWERP_ARMCHAIR } });
+  await searchCatalog(ANTWERP_ARMCHAIR);
   expect(await screen.findByText(ANTWERP_ARMCHAIR)).toBeVisible();
   expect(oldSignal?.aborted).toBe(true);
   await act(async () => oldResponse.resolve(Response.json(catalogFixture([quilt]))));
@@ -178,7 +186,7 @@ it('keeps literal search intentionally narrow while narrowing the visible catalo
   const user = userEvent.setup();
   await renderCatalog();
 
-  await user.type(screen.getByRole('searchbox', { name: 'Search' }), 'Linen Box Quilt');
+  await searchCatalog('Linen Box Quilt');
 
   expect(screen.getByText(LINEN_BOX_QUILT)).toBeVisible();
   expect(screen.queryByText('Down Alternative Pillow')).not.toBeInTheDocument();
@@ -288,7 +296,7 @@ it('preselects the exact SKU that opened product details', async () => {
   const user = userEvent.setup();
   await renderCatalog();
 
-  await user.type(screen.getByRole('searchbox', { name: 'Search' }), 'Linen Box Quilt');
+  await searchCatalog('Linen Box Quilt');
   await user.click(screen.getByRole('button', { name: 'Variants view' }));
   await user.click(
     screen.getByRole('button', { name: 'View Linen Box Quilt (Bone), Twin/Twin XL / Bone' }),
@@ -315,7 +323,7 @@ it('updates variant-specific details when a visitor chooses another option', asy
   const user = userEvent.setup();
   await renderCatalog();
 
-  await user.type(screen.getByRole('searchbox', { name: 'Search' }), 'Linen Box Quilt');
+  await searchCatalog('Linen Box Quilt');
   await user.click(screen.getByRole('button', { name: 'Variants view' }));
   await user.click(
     screen.getByRole('button', { name: 'View Linen Box Quilt (Bone), Twin/Twin XL / Bone' }),
@@ -337,7 +345,7 @@ it('switches the detail image when a selected SKU has a distinct staging image',
   const user = userEvent.setup();
   await renderCatalog();
 
-  await user.type(screen.getByRole('searchbox', { name: 'Search' }), ANTWERP_ARMCHAIR);
+  await searchCatalog(ANTWERP_ARMCHAIR);
   await user.click(screen.getByRole('button', { name: `View ${ANTWERP_ARMCHAIR}` }));
 
   const dialog = screen.getByRole('dialog', { name: ANTWERP_ARMCHAIR });
@@ -356,7 +364,7 @@ it('retains the primary image when a selected SKU has no staging image assignmen
   const user = userEvent.setup();
   await renderCatalog();
 
-  await user.type(screen.getByRole('searchbox', { name: 'Search' }), LINEN_BOX_QUILT);
+  await searchCatalog(LINEN_BOX_QUILT);
   await user.click(screen.getByRole('button', { name: `View ${LINEN_BOX_QUILT}` }));
 
   const dialog = screen.getByRole('dialog', { name: LINEN_BOX_QUILT });
@@ -380,7 +388,7 @@ it('updates variant-specific details with keyboard option selection', async () =
   const user = userEvent.setup();
   await renderCatalog();
 
-  await user.type(screen.getByRole('searchbox', { name: 'Search' }), 'Linen Box Quilt');
+  await searchCatalog('Linen Box Quilt');
   await user.click(screen.getByRole('button', { name: 'Variants view' }));
   await user.click(
     screen.getByRole('button', { name: 'View Linen Box Quilt (Bone), Twin/Twin XL / Bone' }),
@@ -406,7 +414,7 @@ it('keeps Tab focus inside product details after the active variant option', asy
   const user = userEvent.setup();
   await renderCatalog();
 
-  await user.type(screen.getByRole('searchbox', { name: 'Search' }), 'Linen Box Quilt');
+  await searchCatalog('Linen Box Quilt');
   await user.click(screen.getByRole('button', { name: 'Variants view' }));
   await user.click(
     screen.getByRole('button', { name: 'View Linen Box Quilt (Bone), Twin/Twin XL / Bone' }),
@@ -531,4 +539,15 @@ it('lists pieces with a known size first and says when a size is unknown', async
   expect(titles[0]).toHaveTextContent(armchair.name);
   expect(screen.getAllByText('Size unknown').length).toBeGreaterThan(0);
   expect(screen.getByText(/1 with a size on file/)).toBeVisible();
+});
+
+it('keeps one search entry point: exact words set by the brief show in Filters and count on its badge', async () => {
+  mockApi();
+  await renderCatalog();
+  fireEvent.change(screen.getByLabelText('Describe what you are looking for'), { target: { value: 'linen quilt' } });
+  fireEvent.click(screen.getByRole('button', { name: 'Find' }));
+
+  expect(screen.queryByRole('searchbox', { name: 'Search' })).not.toBeInTheDocument();
+  fireEvent.click(await screen.findByRole('button', { name: 'Filters' }));
+  expect(await screen.findByRole('searchbox', { name: 'Search' })).toHaveValue('linen');
 });
