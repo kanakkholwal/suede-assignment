@@ -1,60 +1,51 @@
 # Decisions
 
-## What I picked, and why
+## What I picked
 
-- **Problem:** D-01 (describe the brief as a sentence) plus D-05 (show what is missing, not just what is there).
-- **Why together:** for this room the hardest constraint is size, and the catalog has no sizes. So the fix is a search that understands size, and a shortlist that names every gap before a client sees it.
-- **Not built:** D-02 price tiers, D-03 margins, D-04 distinctive discovery. The data has no similarity, commercial or taste signals. Faking them would break the accuracy rule.
+I went with D-01 and D-05 together. D-01 types a whole sentence as a brief, and D-05 wants to see what's missing before sending anything to a client. For this room they're the same problem. The catalog has no sizes, and size is the one thing that decides if a sofa fits. So the search had to understand size, and the shortlist had to say plainly when a size is missing or guessed.
 
-## The experience
+I left out D-02 (price tiers), D-03 (margins) and D-04 (discovery). The data has nothing to build them on, and making it up would go against the accuracy rule.
 
-Three steps, always visible at the top.
+## How it works
 
-1. **Find pieces.** Type the brief as a sentence: "warm family sofa under $6k, 84 to 96 inches, in stock". It turns into chips you can edit. Words we can't filter on (warm, durable) stay visible as "not used", never silently dropped. Pieces with a known size come first, and every card says where its size came from.
-2. **Fit the room.** A true-scale plan from the client's message. Drag pieces and the fit check explains each problem in plain designer terms. Elevation shows one wall against the ceiling and a 5′6″ person: the "Oh, it's THAT big" moment.
-3. **Show the client.** A printable sheet to tape each piece's outline on the floor, with questions to send the client. It opens with what is still open and blocks sending until the real problems are fixed.
+You write the brief as a sentence. It turns into chips you can change. The words it can't filter on, like "warm" or "durable", stay on screen as "not used" so you know they did nothing. Pieces with a known size show first, and each card says where its size came from.
 
-## Being honest about accuracy
+Add pieces and they go straight into the room. The plan is drawn to scale from the client's message. Drag things around and the fit check tells you what's wrong in normal words, with the rule and a fix. Elevation shows one wall next to the ceiling and a 5'6" person. That's the "oh, it's that big" bit.
 
-- **Every size has a source:** verified on the brand site, from the listing, synthetic, or entered by the designer. The weakest source wins. Example: the "86″" sofa is really 86½″ on the brand site.
-- **Unknown stays unknown.** A piece with no size can still be placed at a typical size. It is hatched, named in every warning it affects, and blocks the client sheet.
-- **The client's message:** only 12 × 15 and the 8½′ ceiling are "stated". Window and door positions are assumptions, drawn dashed, each with a reason and a question for the client.
-- **Verdicts carry their doubt.** "Possible conflict, depends on: door position is assumed." Confirm the door and it becomes "Won't work".
-- **Stated vs assumed** is labelled on every screen.
+The last step is a sheet for taping each piece's outline on the floor, plus the questions to ask the client. It lists what's still open and won't let you send while real problems remain.
 
-## Teaching the designer
+## Measurements and guesses
 
-Each warning gives the rule of thumb and a fix: door swing, walkways, rug size, coffee-table gap, radiator, windows. Untrained designers learn from their own layout.
+- Every size has a source: checked on the brand's site, read from the listing, made up as a placeholder, or typed in by the designer. When a piece mixes sources, the weakest one is shown.
+- The Elevate sofa is listed as 86" and is really 86½" on the brand's site. That's why I checked six by hand.
+- From the client's message only 12 by 15 and the 8½' ceiling are stated. Where the windows sit, which corner the door is in, how wide it is, all of that is my guess. It's drawn dashed and comes with a question for the client.
+- A warning built on a guess says so, like "possible conflict, door position is assumed". Confirm the door and the same warning becomes a firm "won't work".
+- A piece with no size can still be placed at a typical size. It's hatched, named in every warning it touches, and blocks the client sheet.
 
-## Built, cut, traded off
+## What I cut
 
-- **Built:** brief to chips, sized-first results, one-click shortlist into the room, fit check, wall view, client sheet, rooms you create, shareable URL for every view.
-- **Cut:** 3D, photo-to-plan, price tiers, smart parsing. Plain rules work offline and are easy to check.
-- **Trade-offs:** 90° rotation only. Walkways checked between pieces, not along a path from the door. Example rooms are labelled fictional.
-- **First-time test:** two imagined newcomers (homeowner, self-taught stylist; desktop and phone) could not place a piece without already knowing its size. That led to typical-size placement, reusing a verified size from the same piece in another finish, and sized-first results.
+3D, photo to plan, price tiers, and any smart parsing of the brief. Plain rules run offline and are easy to check. Rotation is 90 degrees only. Walkways are checked between pieces, not along a path from the door. The two extra example rooms are marked as made up.
 
-## Photo, sketch or listing plan to a room
+## Testing it as a newcomer
 
-- Treat the image as evidence, not truth.
-- Designer marks one known length (a door, or "15 feet") to set scale.
-- A model proposes walls and openings as assumptions, drawn dashed.
-- A person accepts or fixes each one. Nothing is confirmed automatically.
-- If scale and the client's numbers disagree, ask.
+I played two first-timers (a homeowner and a self-taught stylist, on desktop and phone). Neither could place a piece without already knowing its size. So now you can place at a typical size, copy a verified size from the same piece in another finish, and see sized pieces first.
+
+## From a photo or sketch to a room
+
+The designer marks one length they know, like a door or "15 feet", to set the scale. A model suggests walls and openings, shown as guesses. A person accepts or fixes each one, and nothing counts as confirmed on its own. If the scale and the client's numbers disagree, ask.
 
 ## With more time
 
-- Watch three designers run a real brief. Measure time to a shortlist and which warnings they ignore.
-- Share the client sheet as a phone-friendly link with comments.
-- Walkway check from each door. Studio-tunable rules.
-- Capture brand-site sizes when products are added.
+- Watch three real designers use it and see which warnings they ignore.
+- A client link that opens nicely on a phone.
+- Walkway check from each door, and rules a studio can tune.
+- Get brand sizes in when products are added.
 
-## Growing into a Suede feature
+## Where it could go at Suede
 
-- **Training:** every warning is a small lesson; repeated ones show what a designer needs to learn.
-- **Client presentations:** "84 inches" becomes something felt before buying, aimed at the top reason for returns.
-- **Catalog data:** every size a designer enters is a candidate verified size for everyone.
+Every warning is a small lesson, so it doubles as designer training. The elevation and tape-out help a client feel "84 inches" before buying, which targets returns. Any size a designer enters could become a verified size for everyone.
 
 ## Time and AI
 
-- Time: **[Kanak to fill in]**.
-- AI: **[Kanak to fill in]**. Claude Code as pair programmer: I set direction and trade-offs and reviewed each step in the browser. It wrote code and tests. Brand-page sizes were fetched, then checked by hand.
+- Time: [Kanak to fill in]
+- AI: [Kanak to fill in]. I used Claude Code as a pair programmer. I set the direction and the trade-offs, checked each step in the browser, and it wrote the code and tests. I checked the brand-site sizes by hand.
