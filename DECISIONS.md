@@ -1,75 +1,60 @@
 # Decisions
 
-## The flow
+## What I picked, and why
 
-One room, three steps, always visible at the top of the app:
+- **Problem:** D-01 (describe the brief as a sentence) plus D-05 (show what is missing, not just what is there).
+- **Why together:** for this room the hardest constraint is size, and the catalog has no sizes. So the fix is a search that understands size, and a shortlist that names every gap before a client sees it.
+- **Not built:** D-02 price tiers, D-03 margins, D-04 distinctive discovery. The data has no similarity, commercial or taste signals. Faking them would break the accuracy rule.
 
-1. **Find pieces** (`/catalog`). Type the brief as a sentence: *"warm, durable family-room sofa under $6k, 84 to 96 inches, in stock"*. It becomes editable chips (Sofa, 84″ to 96″ wide, up to $6,000, available to order) that drive the same filters as the rail. Words the catalog has no data for (*warm, durable, family room*) stay on screen as "not used as filters" chips instead of silently failing the search. Results lead with pieces whose width is on file and fits; the rest fold under one line. Each card shows its size and where that size came from. Shortlisting adds the piece to the room.
-2. **Fit the room** (`/room`). A true-scale plan built from the client's message. Drag pieces (or use the keyboard); a live fit check explains every problem in designer terms and says which assumptions it rests on. The Elevation lens shows one wall at true scale against the ceiling and a 5′ 6″ person, with the fit check still beside it: heights are a fit question, not a presentation.
-3. **Show the client** (`/present`). A printable sheet for taping each outline on the real floor. It opens with what is still open on the plan (fit problems, unplaced pieces, assumed room facts), each linking back to fix it. It used to be a planner view, which made switching views jump the step bar; `/room?view=tape` now redirects here.
+## The experience
 
-## Design
+Three steps, always visible at the top.
 
-- **Workspace, not pages.** Each step is a set of rounded islands on a neutral canvas. The planner never scrolls on desktop, so the plan, the selected piece and the fit check are visible together.
-- **Less on screen.** Filters sit behind one button because the brief bar sets them; tiles show a size only when one is on file; separation comes from tone, not borders or shadows.
-- **Motion with a job.** Chips, rows and the selected piece animate; whole panels never do. Durations come from baby-ui's tokens and drop to fades under reduced motion.
-- **Brand.** Suede's brown and Inter are unchanged; neutrals are baby-ui's. EB Garamond became Newsreader: Garamond's small x-height looked spindly beside Inter at UI sizes, Newsreader has optical sizes and sits on Inter's rhythm. The original warm palette is one commit back if Suede wants it kept.
-- **Icons.** [Solar](https://github.com/480-Design/Solar-Icon-Set) (CC BY 4.0), generated at build time from `components/icons/icons.json` (`pnpm icons`), so no icon package ships at runtime.
+1. **Find pieces.** Type the brief as a sentence: "warm family sofa under $6k, 84 to 96 inches, in stock". It turns into chips you can edit. Words we can't filter on (warm, durable) stay visible as "not used", never silently dropped. Pieces with a known size come first, and every card says where its size came from.
+2. **Fit the room.** A true-scale plan from the client's message. Drag pieces and the fit check explains each problem in plain designer terms. Elevation shows one wall against the ceiling and a 5′6″ person: the "Oh, it's THAT big" moment.
+3. **Show the client.** A printable sheet to tape each piece's outline on the floor, with questions to send the client. It opens with what is still open and blocks sending until the real problems are fixed.
 
-## What I prioritised from the research, and why
+## Being honest about accuracy
 
-I combined **D-01** (sentence brief → a short, explained starting set) and **D-05** (show what is missing, not just what is there). They are one problem for this room: the brief's hardest constraint is size, and size is exactly what the catalog does not have. So the sourcing change is a brief that understands sizes, plus a shortlist that names every gap before a client sees it: no size on file, size only from the title, synthetic placeholder, option not chosen, unavailable on the snapshot date.
+- **Every size has a source:** verified on the brand site, from the listing, synthetic, or entered by the designer. The weakest source wins. Example: the "86″" sofa is really 86½″ on the brand site.
+- **Unknown stays unknown.** A piece with no size can still be placed at a typical size. It is hatched, named in every warning it affects, and blocks the client sheet.
+- **The client's message:** only 12 × 15 and the 8½′ ceiling are "stated". Window and door positions are assumptions, drawn dashed, each with a reason and a question for the client.
+- **Verdicts carry their doubt.** "Possible conflict, depends on: door position is assumed." Confirm the door and it becomes "Won't work".
+- **Stated vs assumed** is labelled on every screen.
 
-I did not build D-02's price tiers or D-03's margin logic: the data has no similarity signal and no commercial fields, and inventing either would contradict the brief's honesty rule. D-04 (distinctive discovery) needs taste signals the snapshot does not carry.
+## Teaching the designer
 
-## Measurements, assumptions and missing data
+Each warning gives the rule of thumb and a fix: door swing, walkways, rug size, coffee-table gap, radiator, windows. Untrained designers learn from their own layout.
 
-**Product sizes.** Every measurement is a separate claim with a source, stored in `product_dimensions`, and resolved per field by rank: *designer entry > verified on the brand site > stated in the listing > synthetic*. A product can therefore have a verified width and a synthetic depth, and the UI shows the weakest source for the footprint.
+## Built, cut, traded off
 
-- *Verified:* 6 products checked by hand against their brand pages on 2026-11-04, with URL and date. One proves the point: the "Elevate **86″** Sofa" measures **86½″** on the brand site.
-- *Listing:* 113 claims parsed deterministically from titles and variant labels (`72"`, `50" x 21" x 13"`, `8'x10'`). Sizes often live in the variant, so claims are per variant. A lone number is labelled "read as width" because it could be a height.
-- *Synthetic:* 2 placeholders, each with the reason in its note. Never shown as verified.
-- *Unknown:* left unknown. A piece without width and depth cannot be placed; the designer enters a size with its source, saved as their own claim, never mixed into brand data.
+- **Built:** brief to chips, sized-first results, one-click shortlist into the room, fit check, wall view, client sheet, rooms you create, shareable URL for every view.
+- **Cut:** 3D, photo-to-plan, price tiers, smart parsing. Plain rules work offline and are easy to check.
+- **Trade-offs:** 90° rotation only. Walkways checked between pieces, not along a path from the door. Example rooms are labelled fictional.
+- **First-time test:** two imagined newcomers (homeowner, self-taught stylist; desktop and phone) could not place a piece without already knowing its size. That led to typical-size placement, reusing a verified size from the same piece in another finish, and sized-first results.
 
-**The room.** The client's message becomes data in `data/client-room.ts`. Only 12 × 15 and the 8½′ ceiling are *client-stated*. Everything else is an explicit *assumption* with a plain-language reason: which long wall has the windows, window widths and sill, what "left window" means, which corner the door is in, its width and swing. Assumed features are drawn dashed. Each one can be adjusted or marked confirmed, and the app generates the follow-up questions to send the client.
+## Photo, sketch or listing plan to a room
 
-**Verdicts.** A fit warning that rests on anything unconfirmed says so ("Possible conflict… depends on: door position and size are assumed"). Confirming the door turns the same warning into a firm "Won't work". Nothing uncertain is shown as certain.
+- Treat the image as evidence, not truth.
+- Designer marks one known length (a door, or "15 feet") to set scale.
+- A model proposes walls and openings as assumptions, drawn dashed.
+- A person accepts or fixes each one. Nothing is confirmed automatically.
+- If scale and the client's numbers disagree, ask.
 
-**Units.** Inches internally, quarter-inch display, feet-and-inches input (`7' 2½"`), one formatting module.
+## With more time
 
-## Fit rules (and why they teach)
+- Watch three designers run a real brief. Measure time to a shortlist and which warnings they ignore.
+- Share the client sheet as a phone-friendly link with comments.
+- Walkway check from each door. Studio-tunable rules.
+- Capture brand-site sizes when products are added.
 
-Through a wall; overlap; blocking the door swing; sitting on or crowding the radiator; rising above the window sill; walkways under 30″ (36″ main path); an awkward 1 to 30″ gap behind a piece; coffee table 14 to 18″ from seating and about two-thirds of the sofa's length; seating front legs on the rug; a rug almost touching the wall. Each message states the rule of thumb and a fix, which is the training layer for designers without formal training. Rules are pure functions, unit-tested, and run on every drag frame.
+## Growing into a Suede feature
 
-## What I built, cut and traded off
+- **Training:** every warning is a small lesson; repeated ones show what a designer needs to learn.
+- **Client presentations:** "84 inches" becomes something felt before buying, aimed at the top reason for returns.
+- **Catalog data:** every size a designer enters is a candidate verified size for everyone.
 
-- **Built:** brief parser using the ontology's own aliases (*couch*, *end table*); width filter that drops only known-too-wide options and keeps unknowns visible; sourced dimension model; room model; SVG planner with snapping, rotation and keyboard control; fit check; wall view; tape-out sheet; client questions; room presets (the client's room plus two rooms labelled *Example*, each with its own shortlist and layout); rooms the user creates, with doors, windows and radiators they add.
-- **Cut:** 3D, photo-to-plan, price tiers, LLM parsing. A deterministic parser runs without keys and is testable; an LLM would help with messy briefs but would need the same chip output to stay inspectable.
-- **Trade-offs:** rotations are 90° only (real rooms rarely need more, and it keeps the geometry exact). Walkways are checked pairwise, not as a path from the door. Example rooms are fictional and say so in their name and note.
-- **Unknown sizes never stop the plan.** A piece without a size can be placed at a typical size for its kind (sofa 84 × 38, armchair 32 × 34). It is computed, never saved as a measurement, drawn hatched, named in every fit warning it affects, and it blocks sending the client sheet. Where the same frame in another finish has a verified size (Bacana in Velvet vs Hemp), one click copies it as the designer's own entry with a note saying where it came from.
-- **First-time QA.** A two-persona walkthrough (a homeowner and a self-taught stylist, desktop and phone) found that neither could place a piece without already knowing its size. That finding drove the two points above, sized-first results, a phone header with the room switcher, and user-created rooms.
-- **URL state:** the room, brief, filters, search, open product, planner view, tab, wall and selected piece live in the URL ([nuqs](https://nuqs.dev)). A link reproduces exactly what the designer sees, reload keeps it, and back walks through it.
-- **Infrastructure:** a stale local database is now rebuilt from the seed automatically. On Windows, `db:reset` could not replace a file the dev server held open.
+## Time and AI
 
-## Turning a sketch, listing plan or photo into an accurate room
-
-Treat the image as evidence, not truth. (1) Upload, then have the designer mark **one known dimension** (a door is about 30 to 36″, or the client's "15 feet") to set the scale. (2) A vision model proposes walls and openings as *assumed* features, exactly like the text message today. (3) Every proposal is accepted, adjusted or confirmed; nothing becomes "confirmed" without a human. (4) Where scale and the client's numbers disagree by more than an inch or two, ask. Listing floor plans often round to the foot, so they are "stated", not "verified".
-
-## What I would validate or build next
-
-- Watch three designers run a real brief; measure time to a presentable shortlist and which warnings they ignore.
-- Check rule thresholds with Suede's designers and make them studio-tunable.
-- Path-based walkway check from each door, and diagonal rotation.
-- Brand-site dimension capture at catalog ingest, with a refresh date per claim.
-- Client view as a shareable link with comments.
-
-## How this grows into a Suede feature
-
-- **Designer training:** every warning is a small lesson tied to a real layout; repeated warnings show what each designer needs to learn.
-- **Client presentations:** the wall view and tape-out turn "84 inches" into something a client can feel before buying, which targets the main reason for returns.
-- **Sourcing data:** every designer-entered size is a candidate verified dimension for the whole catalog.
-
-## Time and AI use
-
-- Approximate time: **[Kanak to fill in]**.
-- AI: **[Kanak to fill in]**. Built with Claude Code as a pair programmer: I set the product direction and the trade-offs, reviewed each milestone in the browser, and had it write code and tests under a fixed quality bar (typecheck, lint, tests, comment check and build green before every commit). Brand-page dimensions were fetched and then checked by hand.
+- Time: **[Kanak to fill in]**.
+- AI: **[Kanak to fill in]**. Claude Code as pair programmer: I set direction and trade-offs and reviewed each step in the browser. It wrote code and tests. Brand-page sizes were fetched, then checked by hand.
